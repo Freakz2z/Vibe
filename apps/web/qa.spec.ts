@@ -130,12 +130,13 @@ test('live catalog, all required routes and compact first screens', async ({ pag
   const catalog = await liveCatalog(page);
 
   await page.goto(BASE);
-  await expect(page.getByRole('heading', {name: '全部工具', exact: true})).toBeVisible();
+  await expect(page.getByRole('heading', {name: '首页', exact: true})).toBeVisible();
   await expect(page.locator('.featured-section, .demos-section, .hero')).toHaveCount(0);
   await expect(page.getByText('编辑精选', {exact:true})).toHaveCount(0);
   await expect(page.getByRole('button', {name:'关于与选型说明'})).toHaveCount(0);
   await expect(page.locator('.tool-card')).toHaveCount(catalog.tools.length);
-  await expect(page.locator('.tool-card').first()).toBeInViewport({ ratio: 0.5 });
+  await expect(page.getByRole('region', { name: '网站数据' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '分类收录', exact: true })).toBeInViewport();
   expectCopyAbsent(await page.locator('body').innerText(), REMOVED_COPY);
   await noOverflow(page);
   await page.screenshot({ path: `${shots}/accept-home-1280.png` });
@@ -703,7 +704,7 @@ test.describe('mobile widths', () => {
       }
 
       await page.goto(BASE);
-      await expect(page.getByRole('heading', {name:'全部工具',exact:true})).toBeVisible();
+      await expect(page.getByRole('heading', {name:'首页',exact:true})).toBeVisible();
       await expect(page.locator('.topbar__favorite-link')).toBeVisible();
       await expect(page.locator('.sidebar a[href="/?favorites=1"]')).toHaveCount(0);
 
@@ -936,6 +937,45 @@ test('dense demo settings and textual readouts do not leave an empty column', as
     expect(Math.abs(layout.outputWidth - layout.settingsWidth), id).toBeLessThanOrEqual(1);
     expect(layout.gap, id).toBeGreaterThanOrEqual(0);
     expect(layout.gap, id).toBeLessThanOrEqual(32);
+    await noOverflow(page);
+  }
+});
+
+test('homepage statistics match the catalog and lead into the corresponding directories', async ({ page }) => {
+  await prepare(page);
+  const catalog = await liveCatalog(page);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(BASE);
+  const overview = page.getByRole('region', { name: '网站数据' });
+  await expect(page.getByRole('heading', { name: '首页', exact: true })).toBeVisible();
+  for (const [label, value] of [['收录工具', catalog.tools.length], ['可运行示例', catalog.demos.length], ['工具分类', catalog.categories.length]] as const) {
+    await expect(overview.locator('.catalog-metrics > div').filter({ hasText: label }).locator('dd')).toContainText(String(value));
+  }
+  await expect(overview.locator('time')).toHaveAttribute('datetime', catalog.updatedAt);
+  await expect(overview.locator('time')).toHaveText(catalog.updatedAt.replaceAll('-', '.'));
+  const rows = overview.locator('.catalog-table tbody tr');
+  await expect(rows).toHaveCount(catalog.categories.length);
+  for (const [index, category] of catalog.categories.entries()) {
+    const tools = catalog.tools.filter(tool => tool.categoryId === category.id);
+    const ids = new Set(tools.map(tool => tool.id));
+    const demos = catalog.demos.filter(demo => ids.has(demo.stack));
+    await expect(rows.nth(index).locator('td').nth(0)).toHaveText(String(tools.length));
+    await expect(rows.nth(index).locator('td').nth(1)).toHaveText(String(demos.length));
+  }
+  await overview.getByRole('link', { name: '浏览工具', exact: true }).click();
+  await expect(page.locator('.tool-card').first()).toBeInViewport({ ratio: 0.5 });
+  await overview.getByRole('link', { name: '开源免费', exact: false }).click();
+  await expect(overview).toHaveCount(0);
+  await expect(page.locator('.tool-card')).toHaveCount(catalog.tools.filter(tool => tool.pricing === '开源免费').length);
+  await page.getByRole('button', { name: '首页', exact: true }).click();
+  await expect(overview).toBeVisible();
+  await overview.locator('.catalog-table tbody a').first().click();
+  await expect(overview).toHaveCount(0);
+  await expect(page.locator('.browse-heading h1')).toHaveText(catalog.categories[0].name);
+  for (const width of [1280, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto(BASE);
+    await expect(overview).toBeVisible();
     await noOverflow(page);
   }
 });

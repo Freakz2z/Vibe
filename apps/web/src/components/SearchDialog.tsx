@@ -234,7 +234,7 @@ export function SearchDialog({
               onClose();
             }}
           >
-            {trimmed ? '查看全部结果' : '浏览全部工具'}
+            {trimmed ? '查看全部结果' : '前往首页'}
             <ArrowRight size={14} aria-hidden="true" />
           </button>
         </div>

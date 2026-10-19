@@ -4,6 +4,7 @@ import type { ToolFilters } from '../lib/catalog';
 import { groupTools } from '../lib/catalog';
 import { ToolCard } from '../components/ToolCard';
 import { FilterBar, type ActiveFilter, type FilterKey } from '../components/FilterBar';
+import { CatalogOverview } from '../components/CatalogOverview';
 import { CategoryIcon } from '../components/icons';
 
 interface HomePageProps {
@@ -60,7 +61,7 @@ function EmptyDirectory({
           className={`button ${favorites && hasOtherFilters ? 'button--quiet' : 'button--secondary'}`}
           onClick={onClearAll}
         >
-          {favorites ? '浏览全部工具' : '清除所有筛选'}
+          {favorites ? '返回首页' : '清除所有筛选'}
         </button>
       </div>
     </div>
@@ -88,9 +89,9 @@ export function HomePage({
   const activeCategory = catalog.categories.find((category) => category.id === filters.category);
   const hasFacetFilters = Boolean(filters.platform || filters.pricing);
 
-  let heading = '全部工具';
+  let heading = '首页';
   let headingDescription: string | undefined;
-  let eyebrow = '目录浏览';
+  let eyebrow = '网站概览';
   if (filters.q) {
     heading = `搜索“${filters.q}”`;
     eyebrow = '搜索结果';
@@ -114,19 +115,21 @@ export function HomePage({
           <p className="eyebrow">{eyebrow}</p>
           <div className="browse-heading__title-row">
             <h1>{heading}</h1>
-            <span className="browse-heading__count" aria-live="polite">
+            {!isLanding ? <span className="browse-heading__count" aria-live="polite">
               共 {tools.length} 个工具
-            </span>
+            </span> : null}
           </div>
           {headingDescription ? <p>{headingDescription}</p> : null}
         </header>
+
+      {isLanding ? <CatalogOverview catalog={catalog} /> : null}
 
       <section
         className={`home-section directory-section${isLanding ? '' : ' directory-section--results'}`}
         id="directory"
         aria-labelledby="directory-title"
       >
-        <h2 id="directory-title" className="sr-only">工具目录</h2>
+        <h2 id="directory-title" className={isLanding ? 'directory-title' : 'sr-only'}>工具目录</h2>
 
         <FilterBar
           platform={filters.platform}

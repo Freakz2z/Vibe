@@ -16,7 +16,7 @@ export function Footer({ updatedAt }: FooterProps) {
           </a>
         </div>
         <nav className="site-footer__nav" aria-label="页脚导航">
-          <a href="/">全部工具</a>
+          <a href="/">首页</a>
           <a href="/demos">站内示例</a>
         </nav>
       </div>

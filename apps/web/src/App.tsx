@@ -286,7 +286,7 @@ export default function App() {
     sidebarActive = 'demos';
   }
 
-  let contextLabel = '全部工具';
+  let contextLabel = '首页';
   if (pathname === '/') {
     if (filters.q) contextLabel = '搜索目录';
     else if (filters.favorites) contextLabel = '我的收藏';
@@ -525,7 +525,6 @@ export default function App() {
         <Sidebar
           categories={catalog.categories}
           toolCounts={toolCounts}
-          totalTools={catalog.tools.length}
           demoCount={catalog.demos.length}
           active={sidebarActive}
           activeCategory={filters.category}
@@ -556,7 +555,6 @@ export default function App() {
             <Sidebar
               categories={catalog.categories}
               toolCounts={toolCounts}
-              totalTools={catalog.tools.length}
               demoCount={catalog.demos.length}
               active={sidebarActive}
               activeCategory={filters.category}

@@ -1,4 +1,4 @@
-import { Compass, X } from 'lucide-react';
+import { House, X } from 'lucide-react';
 import type { Category } from '../types';
 import { Brand } from './Brand';
 import { CategoryIcon, DemoEntryIcon } from './icons';
@@ -8,7 +8,6 @@ export type SidebarActive = 'all' | 'demos' | 'category' | 'none';
 interface SidebarProps {
   categories: Category[];
   toolCounts: Map<string, number>;
-  totalTools: number;
   demoCount: number;
   active: SidebarActive;
   activeCategory: string;
@@ -24,7 +23,6 @@ const MAKING_GROUPS = ['design', 'content', 'productivity'];
 export function Sidebar({
   categories,
   toolCounts,
-  totalTools,
   demoCount,
   active,
   activeCategory,
@@ -63,9 +61,8 @@ export function Sidebar({
             onClick={onAll}
             aria-current={active === 'all' ? 'page' : undefined}
           >
-            <Compass size={16} aria-hidden="true" />
-            <span>全部工具</span>
-            <span className="sidebar__count">{totalTools}</span>
+            <House size={16} aria-hidden="true" />
+            <span>首页</span>
           </button>
           <button
             type="button"
