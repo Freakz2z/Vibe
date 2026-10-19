@@ -1,0 +1,32 @@
+{
+  "name": "vibe-cn",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "dev:web": "npm run dev -w apps/web",
+    "build": "npm run build -w apps/web",
+    "typecheck": "tsc --noEmit && npm run typecheck -w apps/web",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "db:local": "wrangler d1 migrations apply vibe-catalog --local",
+    "db:remote": "wrangler d1 migrations apply vibe-catalog --remote",
+    "seed:build": "tsx scripts/build-seed.ts",
+    "assets:local": "tsx scripts/sync-assets.ts --local",
+    "assets:remote": "tsx scripts/sync-assets.ts --remote",
+    "deploy": "npm run build && wrangler deploy",
+    "test:e2e": "npm run test:e2e -w apps/web",
+    "test:api": "tsx scripts/verify-api.ts",
+    "check:links": "tsx scripts/check-links.ts"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "latest",
+    "typescript": "^5.9.0",
+    "tsx": "^4.20.0",
+    "wrangler": "^4.101.0",
+    "@playwright/test": "^1.56.0"
+  }
+}
