@@ -32,8 +32,20 @@ type CatalogRecord = {
 const TEST_LOGO =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#0f766e"/></svg>';
 
+async function withoutBootstrap(page: Page) {
+  // Exercise the API fallback intentionally; normal navigation uses embedded data.
+  await page.route('**/*', async route => {
+    if (route.request().resourceType() !== 'document') return route.fallback();
+    const response = await route.fetch();
+    if (!(response.headers()['content-type'] ?? '').includes('text/html')) return route.fulfill({ response });
+    const html = (await response.text()).replace(/<script\b[^>]*id="vibe-catalog"[^>]*>[\s\S]*?<\/script>/g, '');
+    await route.fulfill({ response, body: html });
+  });
+}
+
 async function prepare(page: Page) {
   if (!MOCK) return;
+  await withoutBootstrap(page);
   await page.route('**/api/catalog', (route) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: catalogFixture! }),
   );
@@ -196,6 +208,7 @@ test('live catalog, all required routes and compact first screens', async ({ pag
 });
 
 test('logos use local assets, respect dark variants and fall back safely', async ({ page }) => {
+  await withoutBootstrap(page);
   await page.setViewportSize({ width: 1280, height: 900 });
   await prepare(page);
   const catalog = await liveCatalog(page);
@@ -555,6 +568,7 @@ test('scroll restoration waits for catalog content after reload and back', async
   await page.setViewportSize({ width: 1280, height: 720 });
   await prepare(page);
 
+  await withoutBootstrap(page);
   // Slow every catalog response so the loading screen is observable.
   await page.route('**/api/catalog', async (route) => {
     await new Promise((resolve) => setTimeout(resolve, 700));
@@ -978,4 +992,30 @@ test('homepage statistics match the catalog and lead into the corresponding dire
     await expect(overview).toBeVisible();
     await noOverflow(page);
   }
+});
+
+test('HTML first paint has the actual overview and normal boot needs no catalog round trip', async ({ page, browser }) => {
+  const requests: string[] = [];
+  page.on('request', request => { if (new URL(request.url()).pathname === '/api/catalog') requests.push(request.url()); });
+  const catalog = await liveCatalog(page);
+  await page.route('**/api/catalog', route => route.abort());
+  await page.goto(BASE);
+  await expect(page.locator('.tool-card')).toHaveCount(catalog.tools.length);
+  await expect(page.locator('[data-home-preview]')).toHaveCount(0);
+  expect(requests).toEqual([]);
+  await page.goto(BASE + '/tools/react');
+  await expect(page.locator('.tool-detail-hero h1')).toHaveText('React');
+  expect(requests).toEqual([]);
+
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  try {
+    const firstPaint = await context.newPage();
+    await firstPaint.goto(BASE);
+    await expect(firstPaint.locator('[data-home-preview]')).toBeVisible();
+    await expect(firstPaint.getByRole('heading', { name: '首页', exact: true })).toBeVisible();
+    await expect(firstPaint.getByRole('region', { name: '网站数据' })).toBeVisible();
+    await expect(firstPaint.locator('.catalog-metrics > div').first().locator('dd')).toContainText(String(catalog.tools.length));
+    await firstPaint.setViewportSize({ width: 320, height: 844 });
+    await noOverflow(firstPaint);
+  } finally { await context.close(); }
 });

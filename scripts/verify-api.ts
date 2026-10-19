@@ -3,7 +3,10 @@ import fs from 'node:fs';
 const base=process.argv[2]||'http://localhost:8787';const evidence:{name:string,status:number}[]=[];
 const get=async(path:string,status=200)=>{const r=await fetch(base+path);assert.equal(r.status,status,path);assert.equal(r.headers.get('X-Content-Type-Options'),'nosniff',path);evidence.push({name:path,status:r.status});return r;};
 const health=await(await get('/api/health')).json();assert.equal(health.status,'ok');assert.equal(health.storage,'ready');
-const catalog=await(await get('/api/catalog')).json();assert(catalog.tools.length>=201);assert(catalog.categories.length>=10);assert(catalog.demos.length>=21);
+const catalogResponse=await get('/api/catalog');const catalog=await catalogResponse.json();
+const catalogTag=catalogResponse.headers.get('ETag');assert(catalogTag,'Catalog supports conditional revalidation');
+assert(['HIT','MISS'].includes(catalogResponse.headers.get('X-Vibe-Cache')||''));
+const catalog304=await fetch(base+'/api/catalog',{headers:{'If-None-Match':'W/'+catalogTag}});assert.equal(catalog304.status,304);assert.equal(await catalog304.text(),'');evidence.push({name:'catalog conditional GET',status:304});assert(catalog.tools.length>=201);assert(catalog.categories.length>=10);assert(catalog.demos.length>=21);
 const linked=catalog.tools.filter((tool:any)=>tool.demoId);
 for(const demo of catalog.demos){assert(['library','service'].includes(demo.kind),'Only actual stack showcases are published');assert.equal(demo.toolIds.length,1,'A showcase has one primary stack');assert.equal(demo.stack,demo.toolIds[0]);assert.equal(catalog.tools.find((t:any)=>t.id===demo.stack)?.demoId,demo.id);}
 for(const tool of catalog.tools){if(tool.demoId)assert(catalog.demos.find((demo:any)=>demo.id===tool.demoId)?.toolIds.includes(tool.id),'Broken example link: '+tool.id);}
@@ -22,6 +25,10 @@ const head=await fetch(base+'/api/catalog',{method:'HEAD'});assert.equal(head.st
 const post=await fetch(base+'/api/tools',{method:'POST'});assert.equal(post.status,405);evidence.push({name:'public writes rejected',status:405});
 const sitemap=await(await get('/sitemap.xml')).text();assert(sitemap.includes('/tools/react'));assert(sitemap.includes('/demos/'+catalog.demos[0].id));
 const rootResponse=await get('/');assert(rootResponse.headers.get('Content-Security-Policy')?.includes("'nonce-"));assert(rootResponse.headers.get('Cache-Control')?.includes('no-store'));const root=await rootResponse.text();assert(/<script[^>]*nonce=/.test(root));assert(root.includes('/media/brand/og.png'));assert(root.includes('rel="canonical"'));
+assert(root.includes('data-home-preview="true"'),'Homepage overview is present before JS runs');
+const boot=root.match(/<script\b[^>]*id="vibe-catalog"[^>]*>([\s\S]*?)<\/script>/);assert(boot,'Embedded catalog eliminates a follow-up startup request');assert.deepEqual(JSON.parse(boot[1]),catalog);
+const nextRoot=await get('/');assert.notEqual(nextRoot.headers.get('Content-Security-Policy'),rootResponse.headers.get('Content-Security-Policy'),'Per-response CSP nonces must not be cached');await nextRoot.arrayBuffer();
+const assetPath=root.match(/src="(\/assets\/[^"]+\.js)"/)?.[1];assert(assetPath);const asset=await get(assetPath);assert(asset.headers.get('Cache-Control')?.includes('immutable'));assert(asset.headers.get('Cache-Control')?.includes('31536000'));await asset.arrayBuffer();
 const detail=await(await get('/tools/react')).text();assert(detail.includes('<title>React · Vibe 工具集</title>'));
 const showcase=catalog.demos[0];const demo=await(await get('/demos/'+showcase.id)).text();assert(demo.includes(showcase.name));
 await get('/tools/unknown-tool',404);await get('/demos/unknown-demo',404);await get('/unknown-page',404);

@@ -9,9 +9,9 @@
   "scripts": {
     "dev": "wrangler dev --port 8787",
     "dev:web": "npm run dev -w apps/web",
-    "build": "tsx scripts/prepare-demo-assets.ts && npm run build -w apps/web",
-    "typecheck": "tsc --noEmit && npm run typecheck -w apps/web",
-    "test": "node --import tsx --test tests/*.test.ts",
+    "build": "tsx scripts/prepare-demo-assets.ts && tsx scripts/prepare-build.ts && npm run build -w apps/web",
+    "typecheck": "tsx scripts/prepare-build.ts && tsc --noEmit && npm run typecheck -w apps/web",
+    "test": "tsx scripts/prepare-build.ts && node --import tsx --test tests/*.test.ts",
     "db:local": "wrangler d1 migrations apply vibe-catalog --local",
     "db:remote": "wrangler d1 migrations apply vibe-catalog --remote",
     "seed:build": "tsx scripts/build-seed.ts",

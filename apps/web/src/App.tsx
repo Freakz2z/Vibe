@@ -39,9 +39,9 @@ function decodeSegment(segment: string): string | null {
 
 type LoadStatus = 'loading' | 'ready' | 'error';
 
-export default function App() {
-  const [catalog, setCatalog] = useState<Catalog | null>(null);
-  const [loadStatus, setLoadStatus] = useState<LoadStatus>('loading');
+export default function App({ initialCatalog = null }: { initialCatalog?: Catalog | null }) {
+  const [catalog, setCatalog] = useState<Catalog | null>(initialCatalog);
+  const [loadStatus, setLoadStatus] = useState<LoadStatus>(initialCatalog ? 'ready' : 'loading');
   const [errorMessage, setErrorMessage] = useState('');
   const [attempt, setAttempt] = useState(0);
   const route = useRoute(loadStatus === 'ready');
@@ -67,6 +67,7 @@ export default function App() {
   useDialog(drawerOpen, drawerRef, closeDrawer);
 
   useEffect(() => {
+    if (initialCatalog && attempt === 0) return;
     const controller = new AbortController();
     setLoadStatus('loading');
     setErrorMessage('');
@@ -85,7 +86,7 @@ export default function App() {
       });
 
     return () => controller.abort();
-  }, [attempt]);
+  }, [attempt, initialCatalog]);
 
   useEffect(() => {
     if (!toast) return;

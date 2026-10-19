@@ -13,7 +13,7 @@ interface TopbarProps {
   setThemeMode: (mode: ThemeMode) => void;
 }
 
-const IS_APPLE = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
+const IS_APPLE = /Mac|iPhone|iPad|iPod/.test(typeof navigator === 'undefined' ? '' : navigator.userAgent);
 
 export function Topbar({
   contextLabel,

@@ -1,3 +1,6 @@
+import {cachedPublicResponse} from './edge-cache';
+import {bootstrapScript,initialThemeScript} from './bootstrap';
+import {renderHomePreview} from './home-preview';
 import {demoAssets} from './demo-assets';
 import {labFetch} from './labs';
 import {matchesEntityTag,parseTool,queryFilters,validMediaKey} from './catalog';
@@ -20,7 +23,19 @@ async function catalog(env:Env):Promise<Catalog>{
  if(!categories.results.length||!tools.results.length)throw new Error('CATALOG_NOT_SEEDED');
  return {categories:categories.results as unknown as Category[],tools:(tools.results as {payload:string}[]).map(parseTool),demos:(demos.results as {payload:string}[]).map(r=>JSON.parse(r.payload) as Demo),updatedAt:(updated.results[0] as {value:string})?.value||''};
 }
-async function route(request:Request,env:Env):Promise<Response>{
+interface CatalogSnapshot { data:Catalog; etag:string; home:string; }
+async function snapshot(request:Request,env:Env,ctx:ExecutionContext):Promise<CatalogSnapshot & {cache:string}>{
+ const origin=env.PUBLIC_ORIGIN||new URL(request.url).origin;
+ const result=await cachedPublicResponse(origin,'catalog','all',60,ctx,async()=>{
+  const data=await catalog(env);const body=JSON.stringify(data);
+  const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(body));
+  const etag='"'+Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,'0')).join('')+'"';
+  let home='';try{home=renderHomePreview(data);}catch{console.warn('Homepage preview unavailable');}
+  return json({data,etag,home},200,'public, max-age=60');
+ });
+ return {...await result.response.json<CatalogSnapshot>(),cache:result.status};
+}
+async function route(request:Request,env:Env,ctx:ExecutionContext):Promise<Response>{
  const url=new URL(request.url);const path=url.pathname;const origin=env.PUBLIC_ORIGIN||url.origin;
  if(path.length>1&&path.endsWith('/')&&/^\/(tools|demos)(\/|$)/.test(path)){url.pathname=path.replace(/\/+$/,'');return Response.redirect(url.toString(),308);}
  if(request.method!=='GET'&&request.method!=='HEAD'){const response=json({error:'METHOD_NOT_ALLOWED'},405,'no-store');response.headers.set('Allow','GET, HEAD');return response;}
@@ -30,7 +45,12 @@ async function route(request:Request,env:Env):Promise<Response>{
    const healthy=!!db?.total&&!!logo;return json({status:healthy?'ok':'degraded',database:db?.total?'ready':'empty',storage:logo?'ready':'missing',tools:db?.total||0},healthy?200:503,'no-store');
   }catch{return json({status:'unavailable'},503,'no-store');}
  }
- if(path==='/api/catalog')return json(await catalog(env));
+ if(path==='/api/catalog'){
+  const entry=await snapshot(request,env,ctx);const response=json(entry.data,200,'public, max-age=60');
+  response.headers.set('ETag',entry.etag);response.headers.set('X-Vibe-Cache',entry.cache);
+  if(matchesEntityTag(request.headers.get('If-None-Match'),entry.etag))return new Response(null,{status:304,headers:response.headers});
+  return response;
+ }
  if(path==='/api/categories'){const result=await env.DB.prepare('SELECT c.id,c.name,c.description,c.icon,count(t.id) AS count FROM categories c LEFT JOIN tools t ON t.category_id=c.id GROUP BY c.id ORDER BY c.position').all();return json({categories:result.results});}
  if(path==='/api/demos'){const result=await env.DB.prepare('SELECT payload FROM demos ORDER BY position').all<{payload:string}>();return json({demos:result.results.map(r=>JSON.parse(r.payload))});}
  if(path==='/api/tools'){
@@ -42,10 +62,16 @@ async function route(request:Request,env:Env):Promise<Response>{
  if(path.startsWith('/api/'))return json({error:'NOT_FOUND'},404);
  if(path.startsWith('/media/')){
   const key=validMediaKey(path);if(!key)return json({error:'NOT_FOUND'},404,'no-store');
-  const object=await env.MEDIA.get(key);if(!object)return json({error:'NOT_FOUND'},404,'no-store');
-  const headers=new Headers();object.writeHttpMetadata(headers);if(Object.hasOwn(demoAssets,key))headers.set('Content-Type',demoAssets[key]);headers.set('ETag',object.httpEtag);headers.set('Cache-Control','public, max-age=3600');
-  if(matchesEntityTag(request.headers.get('If-None-Match'),object.httpEtag))return new Response(null,{status:304,headers});
-  return new Response(object.body,{headers});
+  // Browser caching stays bounded for mutable icon URLs; deployed cache keys invalidate on release.
+  const result=await cachedPublicResponse(origin,'media',key,3600,ctx,async()=>{
+   const object=await env.MEDIA.get(key);if(!object)return json({error:'NOT_FOUND'},404,'no-store');
+   const headers=new Headers();object.writeHttpMetadata(headers);if(Object.hasOwn(demoAssets,key))headers.set('Content-Type',demoAssets[key]);
+   headers.set('ETag',object.httpEtag);headers.set('Cache-Control',Object.hasOwn(demoAssets,key)?'public, max-age=31536000, immutable':'public, max-age=3600');
+   return new Response(object.body,{headers});
+  });
+  const response=new Response(result.response.body,result.response);response.headers.set('X-Vibe-Cache',result.status);
+  if(response.status===200&&matchesEntityTag(request.headers.get('If-None-Match'),response.headers.get('ETag')||''))return new Response(null,{status:304,headers:response.headers});
+  return response;
  }
  if(path==='/robots.txt')return new Response(`User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: ${origin}/sitemap.xml\n`,{headers:{'Content-Type':'text/plain; charset=utf-8'}});
  if(path==='/sitemap.xml'){
@@ -54,28 +80,40 @@ async function route(request:Request,env:Env):Promise<Response>{
   return new Response(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(path=>`<url><loc>${origin}${path}</loc></url>`).join('')}</urlset>`,{headers:{'Content-Type':'application/xml; charset=utf-8'}});
  }
  let response=await env.ASSETS.fetch(request);
+ let boot:Awaited<ReturnType<typeof snapshot>>|undefined;
  if(response.headers.get('Content-Type')?.includes('text/html')){
+  try{boot=await snapshot(request,env,ctx);}catch{/* Keep the existing retry/error UI if D1 is unavailable. */}
   response=new HTMLRewriter().on('meta[property="og:image"], meta[name="twitter:image"]',{element(el){el.setAttribute('content',origin+'/media/brand/og.png');}}).on('head',{element(el){el.append('<link rel="canonical" href="'+origin+url.pathname+'"><meta property="og:url" content="'+origin+url.pathname+'">',{html:true});}}).transform(response);
  }
  if(path.startsWith('/tools/')&&response.headers.get('Content-Type')?.includes('text/html')){
-  const row=await env.DB.prepare('SELECT payload FROM tools WHERE id=?').bind(path.slice(7)).first<{payload:string}>();
-  if(!row)return new Response(response.body,{status:404,headers:response.headers});
-  const tool=parseTool(row);
-  return new HTMLRewriter().on('title',{element(el){el.setInnerContent(`${tool.name} · Vibe 工具集`);}}).on('meta[name="description"]',{element(el){el.setAttribute('content',tool.tagline);}}).on('meta[property="og:title"]',{element(el){el.setAttribute('content',`${tool.name} · Vibe 工具集`);}}).on('meta[property="og:description"]',{element(el){el.setAttribute('content',tool.tagline);}}).on('link[rel="canonical"]',{element(el){el.setAttribute('href',`${origin}/tools/${tool.id}`);}}).transform(response);
+  if(!boot)throw new Error('CATALOG_UNAVAILABLE');
+  const tool=boot.data.tools.find(item=>item.id===path.slice(7));
+  if(!tool)return new Response(response.body,{status:404,headers:response.headers});
+  response=new HTMLRewriter().on('title',{element(el){el.setInnerContent(`${tool.name} · Vibe 工具集`);}}).on('meta[name="description"]',{element(el){el.setAttribute('content',tool.tagline);}}).on('meta[property="og:title"]',{element(el){el.setAttribute('content',`${tool.name} · Vibe 工具集`);}}).on('meta[property="og:description"]',{element(el){el.setAttribute('content',tool.tagline);}}).on('link[rel="canonical"]',{element(el){el.setAttribute('href',`${origin}/tools/${tool.id}`);}}).transform(response);
  }
  if(path.startsWith('/demos/')&&response.headers.get('Content-Type')?.includes('text/html')){
-  const row=await env.DB.prepare('SELECT payload FROM demos WHERE id=?').bind(path.slice(7)).first<{payload:string}>();
-  if(!row)return new Response(response.body,{status:404,headers:response.headers});
-  const demo=JSON.parse(row.payload) as Demo;
-  return new HTMLRewriter().on('title',{element(el){el.setInnerContent(demo.name+' · Vibe 工具集');}}).on('meta[name="description"], meta[property="og:description"]',{element(el){el.setAttribute('content',demo.description);}}).on('meta[property="og:title"]',{element(el){el.setAttribute('content',demo.name+' · Vibe 工具集');}}).transform(response);
+  if(!boot)throw new Error('CATALOG_UNAVAILABLE');
+  const demo=boot.data.demos.find(item=>item.id===path.slice(7));
+  if(!demo)return new Response(response.body,{status:404,headers:response.headers});
+  response=new HTMLRewriter().on('title',{element(el){el.setInnerContent(demo.name+' · Vibe 工具集');}}).on('meta[name="description"], meta[property="og:description"]',{element(el){el.setAttribute('content',demo.description);}}).on('meta[property="og:title"]',{element(el){el.setAttribute('content',demo.name+' · Vibe 工具集');}}).transform(response);
  }
- if(response.headers.get('Content-Type')?.includes('text/html')&&path!=='/'&&path!=='/demos')return new Response(response.body,{status:404,headers:response.headers});
+ if(response.headers.get('Content-Type')?.includes('text/html')&&path!=='/'&&path!=='/demos'&&!/^\/(tools|demos)\/[^/]+$/.test(path))return new Response(response.body,{status:404,headers:response.headers});
+ if(boot&&response.status===200&&response.headers.get('Content-Type')?.includes('text/html')){
+  const isHome=path==='/'&&!['q','category','platform','pricing','favorites'].some(key=>url.searchParams.get(key));
+  response=new HTMLRewriter().on('head',{element(el){el.prepend(initialThemeScript,{html:true});}}).on('#root',{element(el){if(isHome&&boot!.home)el.setInnerContent(boot!.home,{html:true});}}).on('body',{element(el){el.append(bootstrapScript(boot!.data),{html:true});}}).transform(response);
+  const headers=new Headers(response.headers);headers.set('X-Vibe-Catalog-Cache',boot.cache);
+  response=new Response(response.body,{status:response.status,headers});
+ }
+ if(response.status===200&&path.startsWith('/assets/')&&!response.headers.get('Content-Type')?.includes('text/html')){
+  const headers=new Headers(response.headers);headers.set('Cache-Control','public, max-age=31536000, immutable');
+  response=new Response(response.body,{status:response.status,headers});
+ }
  return response;
 }
 export default {
- async fetch(request:Request,env:Env):Promise<Response>{
+ async fetch(request:Request,env:Env,ctx:ExecutionContext):Promise<Response>{
   let response:Response;
-  try {response=await route(request,env);}catch(error){console.error('Request failed', error instanceof Error?error.message:'unknown');response=json({error:'SERVICE_UNAVAILABLE',message:'服务暂时不可用，请稍后重试'},503,'no-store');}
+  try {response=await route(request,env,ctx);}catch(error){console.error('Request failed', error instanceof Error?error.message:'unknown');response=json({error:'SERVICE_UNAVAILABLE',message:'服务暂时不可用，请稍后重试'},503,'no-store');}
   const headers=new Headers(response.headers);for(const [key,value] of Object.entries(security))headers.set(key,value);
   if(headers.get('Content-Type')?.includes('text/html')){
    // Cloudflare forwards this nonce to its own injected detection scripts.

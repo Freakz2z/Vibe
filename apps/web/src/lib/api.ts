@@ -27,7 +27,6 @@ export async function fetchCatalog(signal?: AbortSignal): Promise<Catalog> {
     response = await fetch('/api/catalog', {
       signal,
       headers: { Accept: 'application/json' },
-      cache: 'no-cache',
     });
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') throw error;
@@ -50,4 +49,15 @@ export async function fetchCatalog(signal?: AbortSignal): Promise<Catalog> {
   }
 
   return payload;
+}
+
+/** The Worker embeds the same public D1 snapshot used by the catalog API. */
+export function readInitialCatalog(): Catalog | null {
+  const element = document.getElementById('vibe-catalog');
+  if (!element) return null;
+  try {
+    const data: unknown = JSON.parse(element.textContent ?? '');
+    return isCatalog(data) ? data : null;
+  } catch { return null; }
+  finally { element.remove(); }
 }

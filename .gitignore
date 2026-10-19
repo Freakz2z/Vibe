@@ -20,3 +20,5 @@ apps/web/qa-debug/
 apps/web/qa-shots-minimax/
 
 apps/web/test-results-*/
+
+shared/generated/
