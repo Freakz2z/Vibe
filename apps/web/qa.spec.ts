@@ -1007,7 +1007,7 @@ test('HTML first paint has the actual overview and normal boot needs no catalog 
   await expect(page.locator('.tool-detail-hero h1')).toHaveText('React');
   expect(requests).toEqual([]);
 
-  const context = await browser.newContext({ javaScriptEnabled: false });
+  const context = await browser.newContext({ javaScriptEnabled: false, proxy: process.env.VIBE_TEST_PROXY ? { server: process.env.VIBE_TEST_PROXY } : undefined });
   try {
     const firstPaint = await context.newPage();
     await firstPaint.goto(BASE);
