@@ -35,7 +35,7 @@ export function renderHomePreview(catalog: Catalog): string {
         <Topbar
           contextLabel="首页"
           favoriteCount={0}
-          mode="system"
+          mode="light"
           resolvedTheme="light"
           onOpenMenu={noop}
           onOpenSearch={noop}

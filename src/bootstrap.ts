@@ -15,4 +15,4 @@ export function bootstrapScript(catalog: Catalog): string {
 }
 
 // Runs before stylesheet/body paint; main.tsx applies the same preference when the app starts.
-export const initialThemeScript = `<script>try{var m=localStorage.getItem('vibe-theme');var t=m==='dark'||m==='light'?m:matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;document.documentElement.style.colorScheme=t}catch(e){}</script>`;
+export const initialThemeScript = `<script>try{var m=localStorage.getItem('vibe-theme');var t=m==='dark'?'dark':m==='system'&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;document.documentElement.style.colorScheme=t}catch(e){}</script>`;

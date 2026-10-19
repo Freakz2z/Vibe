@@ -12,7 +12,7 @@ function readStoredMode(): ThemeMode {
   } catch {
     // Storage can be unavailable in hardened browser contexts.
   }
-  return 'system';
+  return 'light';
 }
 
 export function resolveTheme(mode: ThemeMode): ResolvedTheme {
