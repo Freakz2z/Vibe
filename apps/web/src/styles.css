@@ -2424,7 +2424,7 @@ kbd {
 }
 
 .detail-prose {
-  max-width: 68ch;
+  max-width: none;
   color: var(--ink-soft);
   font-size: 0.94rem;
   line-height: 1.85;

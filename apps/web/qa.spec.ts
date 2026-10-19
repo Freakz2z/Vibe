@@ -298,18 +298,24 @@ test('tool detail follows the reading order with one resource card', async ({ pa
   await expect(page.locator('.tool-detail-hero__icon.tool-logo')).toBeVisible();
   await expect(page.locator('.tool-demo-callout .principle-badge svg')).toBeVisible();
 
-  const prose = await page.locator('.detail-prose').evaluate((element) => {
-    const style = window.getComputedStyle(element);
-    return {
-      width: element.getBoundingClientRect().width,
-      maxWidth: Number.parseFloat(style.maxWidth),
-      fontSize: Number.parseFloat(style.fontSize),
-      lineHeight: Number.parseFloat(style.lineHeight),
-    };
-  });
-  expect(prose.width).toBeLessThanOrEqual(prose.maxWidth + 1);
-  expect(prose.fontSize).toBeGreaterThanOrEqual(14);
-  expect(prose.lineHeight).toBeGreaterThanOrEqual(24);
+  for (const width of [1600, 1280, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    const prose = await page.locator('.detail-prose').evaluate((element) => {
+      const style = window.getComputedStyle(element);
+      const section = element.parentElement!;
+      const sectionStyle = window.getComputedStyle(section);
+      return {
+        width: element.getBoundingClientRect().width,
+        available: section.clientWidth - Number.parseFloat(sectionStyle.paddingLeft) - Number.parseFloat(sectionStyle.paddingRight),
+        fontSize: Number.parseFloat(style.fontSize),
+        lineHeight: Number.parseFloat(style.lineHeight),
+      };
+    });
+    expect(Math.abs(prose.width - prose.available), `intro should use its card width at ${width}px`).toBeLessThanOrEqual(1);
+    expect(prose.fontSize).toBeGreaterThanOrEqual(14);
+    expect(prose.lineHeight).toBeGreaterThanOrEqual(24);
+    await noOverflow(page);
+  }
 
   const install = page.locator('.install-command');
   await expect(install).toBeVisible();
