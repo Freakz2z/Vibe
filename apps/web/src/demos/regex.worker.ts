@@ -12,4 +12,5 @@ self.onmessage = (event: MessageEvent<{ pattern: string; flags: string; text: st
     self.postMessage({ matches });
   } catch (error) { self.postMessage({ error: error instanceof Error ? error.message : '规则无法解析' }); }
 };
+self.postMessage({ ready: true });
 export {};

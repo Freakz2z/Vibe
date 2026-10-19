@@ -891,6 +891,10 @@ test('expanded data labs parse user input and stop pathological regex', async ({
   await expect(page.locator('.lab-table tbody tr')).toHaveCount(2);
   await expect(page.locator('.lab-table')).toContainText('a,b');
   await expect(page.locator('.lab-code')).toContainText('a\\"b');
+  await page.context().route('**/assets/regex.worker-*.js', async route => {
+    await new Promise(resolve => setTimeout(resolve, 700));
+    await route.continue();
+  });
   await page.goto(`${BASE}/demos/regex-lab`);
   await expect(page.locator('.lab-matches li')).toHaveCount(3);
   await page.getByLabel('正则规则').fill('[');

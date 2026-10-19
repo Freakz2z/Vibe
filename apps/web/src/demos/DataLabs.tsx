@@ -38,11 +38,23 @@ export function RegexLab() {
   useEffect(() => {
     setResult({ matches: [], error: '', pending: true });
     const worker = new Worker(new URL('./regex.worker.ts', import.meta.url), { type: 'module' });
-    const timer = window.setTimeout(() => { worker.terminate(); setResult({ matches: [], error: '计算已停止：规则运行时间超过 300ms，请简化表达式。', pending: false }); }, 300);
-    worker.onmessage = (e: MessageEvent<{ matches?: RegexMatch[]; error?: string }>) => { clearTimeout(timer); setResult({ matches: e.data.matches || [], error: e.data.error || '', pending: false }); worker.terminate(); };
-    worker.onerror = () => { clearTimeout(timer); setResult({ matches: [], error: '计算线程未能启动，请重新输入。', pending: false }); worker.terminate(); };
-    worker.postMessage({ pattern, flags, text });
-    return () => { clearTimeout(timer); worker.terminate(); };
+    let finished = false, computeTimer: number | undefined;
+    const finish = (matches: RegexMatch[], error = '') => {
+      if (finished) return;
+      finished = true; clearTimeout(startupTimer); clearTimeout(computeTimer);
+      setResult({ matches, error, pending: false }); worker.terminate();
+    };
+    const startupTimer = window.setTimeout(() => finish([], '计算线程加载超时，请重新输入。'), 10000);
+    worker.onmessage = (e: MessageEvent<{ ready?: boolean; matches?: RegexMatch[]; error?: string }>) => {
+      if (finished) return;
+      if (e.data.ready) {
+        clearTimeout(startupTimer);
+        worker.postMessage({ pattern, flags, text });
+        computeTimer = window.setTimeout(() => finish([], '计算已停止：规则运行时间超过 300ms，请简化表达式。'), 300);
+      } else finish(e.data.matches || [], e.data.error || '');
+    };
+    worker.onerror = event => { event.preventDefault(); finish([], '计算线程未能启动，请重新输入。'); };
+    return () => { finished = true; clearTimeout(startupTimer); clearTimeout(computeTimer); worker.terminate(); };
   }, [pattern, flags, text]);
   return <Lab title="正则表达式" reset={() => { setPattern('\\b[A-Z][a-z]+\\b'); setFlags('g'); setText('React and Vue build interfaces. Vibe connects useful tools.'); }}><div className="lab-options"><label className="lab-field lab-grow"><span>正则规则</span><input maxLength={160} value={pattern} onChange={e => setPattern(e.target.value)} spellCheck={false} /></label><label className="lab-field"><span>标志</span><input maxLength={8} className="lab-flags" value={flags} onChange={e => setFlags(e.target.value)} spellCheck={false} /></label></div><label className="lab-field"><span>测试文本</span><textarea className="lab-editor" maxLength={5000} value={text} onChange={e => setText(e.target.value)} /></label><p className="lab-status" role="status">{result.pending ? '正在匹配…' : `${result.matches.length} 个匹配${result.matches.length === 200 ? '（显示上限）' : ''}`}</p>{result.error ? <p role="alert" className="lab-error">{result.error}</p> : <ol className="lab-matches">{result.matches.map((m, i) => <li key={i}><code>{m.text || '（空匹配）'}</code><span>位置 {m.index}{m.groups.length ? ` · 分组 ${JSON.stringify(m.groups)}` : ''}</span></li>)}</ol>}<p className="demo-caption">使用浏览器 JavaScript RegExp。计算在独立线程执行，超时自动终止；输入内容不上传。</p></Lab>;
 }
