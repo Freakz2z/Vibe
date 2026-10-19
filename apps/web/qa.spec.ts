@@ -12,6 +12,7 @@ mkdirSync(shots, { recursive: true });
 
 type ToolRecord = {
   id: string;
+  categoryId: string;
   name: string;
   icon: string;
   logo?: string;
@@ -24,6 +25,7 @@ type ToolRecord = {
 };
 
 type CatalogRecord = {
+  updatedAt: string;
   tools: ToolRecord[];
   categories: { id: string; name: string }[];
   demos: { id: string; kind: string; stack: string; toolIds: string[] }[];

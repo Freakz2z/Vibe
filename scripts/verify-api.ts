@@ -6,7 +6,7 @@ const health=await(await get('/api/health')).json();assert.equal(health.status,'
 const catalogResponse=await get('/api/catalog');const catalog=await catalogResponse.json();
 const catalogTag=catalogResponse.headers.get('ETag');assert(catalogTag,'Catalog supports conditional revalidation');
 assert(['HIT','MISS'].includes(catalogResponse.headers.get('X-Vibe-Cache')||''));
-const catalog304=await fetch(base+'/api/catalog',{headers:{'If-None-Match':'W/'+catalogTag}});assert.equal(catalog304.status,304);assert.equal(await catalog304.text(),'');evidence.push({name:'catalog conditional GET',status:304});assert(catalog.tools.length>=201);assert(catalog.categories.length>=10);assert(catalog.demos.length>=21);
+const catalog304=await fetch(base+'/api/catalog',{headers:{'If-None-Match':'W/'+catalogTag.replace(/^W\//,'')}});assert.equal(catalog304.status,304);assert.equal(await catalog304.text(),'');evidence.push({name:'catalog conditional GET',status:304});assert(catalog.tools.length>=201);assert(catalog.categories.length>=10);assert(catalog.demos.length>=21);
 const linked=catalog.tools.filter((tool:any)=>tool.demoId);
 for(const demo of catalog.demos){assert(['library','service'].includes(demo.kind),'Only actual stack showcases are published');assert.equal(demo.toolIds.length,1,'A showcase has one primary stack');assert.equal(demo.stack,demo.toolIds[0]);assert.equal(catalog.tools.find((t:any)=>t.id===demo.stack)?.demoId,demo.id);}
 for(const tool of catalog.tools){if(tool.demoId)assert(catalog.demos.find((demo:any)=>demo.id===tool.demoId)?.toolIds.includes(tool.id),'Broken example link: '+tool.id);}
