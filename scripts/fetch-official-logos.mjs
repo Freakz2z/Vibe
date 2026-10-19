@@ -62,6 +62,10 @@ async function run(tool){
   }
   candidates.push(new URL('favicon.ico',page.url).href,new URL('/favicon.ico',page.url).href);
  }catch(e){errors.push(`${tool.website}: ${e.message}`);candidates.push(new URL('/favicon.ico',tool.website).href);}
+ // A repository host's Octocat is not the hosted project's brand mark.
+ if(new URL(tool.website).hostname==='github.com'&&tool.id!=='github-actions'){
+  candidates=candidates.filter(url=>{const u=new URL(url);return u.hostname!=='github.githubassets.com'&&!(u.hostname==='github.com'&&u.pathname==='/favicon.ico');});
+ }
  for(const url of [...new Set(candidates)]){
   try{
    const r=await get(url); const bytes=Buffer.from(await r.arrayBuffer());if(bytes.length>2*1024*1024)throw Error('Image exceeds 2MiB');

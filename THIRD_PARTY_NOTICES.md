@@ -10,9 +10,9 @@
 
 ## 依赖
 
-React、Vite、TypeScript、Lucide、Wrangler 与测试工具遵循各自发布包中的许可。依赖版本由 `package-lock.json` 锁定；本仓库没有将所收录工具的实现代码打包进示例。
+站内示例直接使用各技术栈的发布包；依赖版本及完整性由 `package-lock.json` 锁定。[直接依赖清单](docs/DEPENDENCIES.md)记录版本与发布包许可。每个依赖遵循其发布包中的许可，项目的 MIT License 不替代这些许可。示例页面标明主要技术栈，并链接对应工具资料与官方文档。
 
-站内示例由本项目独立实现，关联工具名称只说明同类能力。正则使用浏览器 RegExp，布局使用 CSS，图形使用 SVG/Canvas，图片使用浏览器编码器，缓存示例使用本地定时器。
+独立运行时素材的来源、SHA-256 与许可记录在 `assets/demos/manifest.json`；第三方示例数据与资源按清单中的许可使用。[Natural Earth 使用条款](https://www.naturalearthdata.com/about/terms-of-use/)将其矢量数据列为公有领域；本站保留所用数据的源链接和文件哈希。D1 中的客户和订单为项目自建的虚构样本，查询在本站真实数据库执行，不包含真实交易资料。
 
 ## 站点品牌
 

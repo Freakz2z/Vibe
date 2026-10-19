@@ -325,7 +325,7 @@ export default function App() {
       }
     } else if (pathname === '/demos') {
       pageTitle = '站内示例 · Vibe 工具集';
-      pageDescription = '可直接操作的原理演示：布局、颜色、图形、数据处理、排序与请求控制。';
+      pageDescription = '在浏览器里真实运行的工具示例：动画、图表、状态、编辑与本站服务接口。';
     } else if (selectedDemo) {
       pageTitle = `${selectedDemo.name} · 站内示例 · Vibe 工具集`;
       pageDescription = selectedDemo.description;
@@ -475,7 +475,7 @@ export default function App() {
       />
     );
   } else if (pathname === '/demos') {
-    content = <DemosPage demos={catalog.demos} />;
+    content = <DemosPage demos={catalog.demos} tools={catalog.tools} />;
   } else if (demoMatch) {
     content = selectedDemo ? (
       <DemoPage

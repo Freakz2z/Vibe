@@ -1,10 +1,10 @@
-import { ArrowLeft, ArrowUpRight, ExternalLink, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, BookOpen, ExternalLink, Sparkles } from 'lucide-react';
 import type { Demo, Tool } from '../types';
-import { demoKindLabels } from '../lib/catalog';
 import { DemoRenderer } from '../demos/DemoRenderer';
 import type { DemoCopyHandler } from '../demos/types';
-import { DemoKindIcon } from '../components/icons';
+import { DemoStackIcon } from '../components/icons';
 import { ToolLogo } from '../components/ToolLogo';
+import { stackLabel } from '../lib/catalog';
 
 interface DemoPageProps {
   demo: Demo;
@@ -14,6 +14,8 @@ interface DemoPageProps {
 }
 
 export function DemoPage({ demo, tools, onCopy, onBackToDemos }: DemoPageProps) {
+  const stackTool = tools[0];
+
   return (
     <article className="page demo-page">
       <nav className="breadcrumb" aria-label="面包屑导航">
@@ -33,50 +35,50 @@ export function DemoPage({ demo, tools, onCopy, onBackToDemos }: DemoPageProps) 
 
       <header className="demo-page__header">
         <div className="demo-page__meta">
-          <span className="principle-badge">原理演示</span>
           <span className="demo-kind-badge">
-            <DemoKindIcon kind={demo.kind} size={13} />
-            {demoKindLabels[demo.kind]}
+            <DemoStackIcon stack={demo.stack} size={13} />
+            {demo.kind === 'service' ? '本站接口' : '可操作'}
           </span>
+          <span className="demo-kind-badge">{stackLabel(demo.stack)}</span>
         </div>
         <h1>{demo.name}</h1>
         <p>{demo.description}</p>
-        <div className="demo-page__tools" aria-label="关联工具">
-          <span className="demo-page__tools-label">关联工具</span>
-          {tools.map((tool) => (
-            <a className="tool-chip" href={`/tools/${tool.id}`} key={tool.id}>
-              <ToolLogo tool={tool} className="tool-chip__logo" />
-              {tool.name}
+        <div className="demo-page__tools" aria-label="主工具">
+          <span className="demo-page__tools-label">主工具</span>
+          {stackTool ? (
+            <a className="tool-chip" href={`/tools/${stackTool.id}`}>
+              <ToolLogo tool={stackTool} className="tool-chip__logo" />
+              {stackTool.name}
             </a>
-          ))}
+          ) : (
+            <span className="tool-chip">{demo.stack}</span>
+          )}
+          {demo.documentation ? (
+            <a className="tool-chip" href={demo.documentation} target="_blank" rel="noopener noreferrer">
+              <BookOpen size={13} aria-hidden="true" />
+              官方能力文档
+            </a>
+          ) : null}
         </div>
       </header>
 
-      <DemoRenderer kind={demo.kind} onCopy={onCopy} />
-
-      <aside className="demo-disclaimer">
-        <div>
-          <p className="eyebrow">说明</p>
-          <h2>这是原理演示</h2>
-        </div>
-        <p>
-          示例由本站独立实现，用于解释交互与参数如何影响结果，不加载或代表关联工具的实际运行效果。工具名称仅用于说明这类能力，各工具的功能与实现请以官方文档为准。
-        </p>
-        <a className="text-link" href="/demos">
-          看其他示例
-          <ArrowUpRight size={14} aria-hidden="true" />
-        </a>
-      </aside>
+      <DemoRenderer demo={demo} onCopy={onCopy} />
 
       <div className="demo-page__footer-links">
-        <a className="button button--secondary" href="/">
+        <a className="button button--secondary" href="/demos">
           <Sparkles size={15} aria-hidden="true" />
-          回到工具目录
+          看其他示例
         </a>
-        {tools[0] ? (
-          <a className="button button--quiet" href={`/tools/${tools[0].id}`}>
-            了解 {tools[0].name}
+        {stackTool ? (
+          <a className="button button--quiet" href={`/tools/${stackTool.id}`}>
+            了解 {stackTool.name}
             <ExternalLink size={14} aria-hidden="true" />
+          </a>
+        ) : null}
+        {demo.documentation ? (
+          <a className="button button--quiet" href={demo.documentation} target="_blank" rel="noopener noreferrer">
+            官方文档
+            <ArrowUpRight size={14} aria-hidden="true" />
           </a>
         ) : null}
       </div>

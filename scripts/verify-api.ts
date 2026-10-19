@@ -4,6 +4,10 @@ const base=process.argv[2]||'http://localhost:8787';const evidence:{name:string,
 const get=async(path:string,status=200)=>{const r=await fetch(base+path);assert.equal(r.status,status,path);assert.equal(r.headers.get('X-Content-Type-Options'),'nosniff',path);evidence.push({name:path,status:r.status});return r;};
 const health=await(await get('/api/health')).json();assert.equal(health.status,'ok');assert.equal(health.storage,'ready');
 const catalog=await(await get('/api/catalog')).json();assert(catalog.tools.length>=201);assert(catalog.categories.length>=10);assert(catalog.demos.length>=21);
+const linked=catalog.tools.filter((tool:any)=>tool.demoId);
+for(const demo of catalog.demos){assert(['library','service'].includes(demo.kind),'Only actual stack showcases are published');assert.equal(demo.toolIds.length,1,'A showcase has one primary stack');assert.equal(demo.stack,demo.toolIds[0]);assert.equal(catalog.tools.find((t:any)=>t.id===demo.stack)?.demoId,demo.id);}
+for(const tool of catalog.tools){if(tool.demoId)assert(catalog.demos.find((demo:any)=>demo.id===tool.demoId)?.toolIds.includes(tool.id),'Broken example link: '+tool.id);}
+console.log(`Catalog: ${catalog.tools.length} tools, ${catalog.demos.length} examples; ${linked.length} dedicated tool showcases`);
 const search=await(await get('/api/tools?q=react')).json();assert(search.tools.some((t:any)=>t.id==='react'));
 const chinese=await(await get('/api/tools?q='+encodeURIComponent('数据库'))).json();assert(chinese.total>0);
 const category=catalog.categories[0].id;const filtered=await(await get('/api/tools?category='+category)).json();assert(filtered.tools.every((t:any)=>t.categoryId===category));
@@ -16,11 +20,11 @@ const logo=await get('/media/brand/logo.png');assert.equal(logo.headers.get('Con
 const cached=await fetch(base+'/media/brand/logo.png',{headers:{'If-None-Match':etag}});assert.equal(cached.status,304);evidence.push({name:'R2 conditional GET',status:304});
 const head=await fetch(base+'/api/catalog',{method:'HEAD'});assert.equal(head.status,200);assert.equal((await head.text()).length,0);
 const post=await fetch(base+'/api/tools',{method:'POST'});assert.equal(post.status,405);evidence.push({name:'public writes rejected',status:405});
-const sitemap=await(await get('/sitemap.xml')).text();assert(sitemap.includes('/tools/react'));assert(sitemap.includes('/demos/cache-lab'));
+const sitemap=await(await get('/sitemap.xml')).text();assert(sitemap.includes('/tools/react'));assert(sitemap.includes('/demos/'+catalog.demos[0].id));
 const rootResponse=await get('/');assert(rootResponse.headers.get('Content-Security-Policy')?.includes("'nonce-"));assert(rootResponse.headers.get('Cache-Control')?.includes('no-store'));const root=await rootResponse.text();assert(/<script[^>]*nonce=/.test(root));assert(root.includes('/media/brand/og.png'));assert(root.includes('rel="canonical"'));
 const detail=await(await get('/tools/react')).text();assert(detail.includes('<title>React · Vibe 工具集</title>'));
-const demo=await(await get('/demos/chart-studio')).text();assert(demo.includes('同一组数据的两种画法'));
+const showcase=catalog.demos[0];const demo=await(await get('/demos/'+showcase.id)).text();assert(demo.includes(showcase.name));
 await get('/tools/unknown-tool',404);await get('/demos/unknown-demo',404);await get('/unknown-page',404);
 const slash=await fetch(base+'/tools/react/',{redirect:'manual'});assert.equal(slash.status,308);
 await get('/robots.txt');
-const report={base,checkedAt:new Date().toISOString(),counts:{tools:catalog.tools.length,categories:catalog.categories.length,demos:catalog.demos.length},evidence};fs.mkdirSync('artifacts',{recursive:true});fs.writeFileSync('artifacts/api-'+(base.includes('localhost')?'local':'production')+'.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
+const report={base,checkedAt:new Date().toISOString(),counts:{tools:catalog.tools.length,categories:catalog.categories.length,demos:catalog.demos.length},evidence};fs.mkdirSync('artifacts',{recursive:true});fs.writeFileSync('artifacts/api-'+(['localhost','127.0.0.1','[::1]'].includes(new URL(base).hostname)?'local':'production')+'.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));

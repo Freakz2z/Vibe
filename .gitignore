@@ -17,3 +17,6 @@ apps/web/playwright-report/
 qa-shots/
 test-results/
 apps/web/qa-debug/
+apps/web/qa-shots-minimax/
+
+apps/web/test-results-*/

@@ -1,3 +1,4 @@
+import {demoAssets} from './demo-assets';
 import type { Tool } from '../shared/contracts';
 export function queryFilters(params: URLSearchParams) {
  const q = (params.get('q') || '').trim().slice(0,120).toLowerCase();
@@ -18,5 +19,10 @@ export function queryFilters(params: URLSearchParams) {
 }
 export function parseTool(row:{payload:string}):Tool { return JSON.parse(row.payload) as Tool; }
 export function validMediaKey(path:string):string|null {
- try { const key=decodeURIComponent(path.replace(/^\/media\//,'')); return /^(brand|icons|previews)\/[a-zA-Z0-9_./-]+\.(png|webp|jpg|jpeg|svg|ico|gif)$/.test(key) && !key.split('/').some(s=>s==='..'||s==='.') ? key:null; } catch {return null;}
+ try { const key=decodeURIComponent(path.replace(/^\/media\//,'')); if(Object.hasOwn(demoAssets,key))return key; return /^(brand|icons|previews)\/[a-zA-Z0-9_./-]+\.(png|webp|jpg|jpeg|svg|ico|gif)$/.test(key) && !key.split('/').some(s=>s==='..'||s==='.') ? key:null; } catch {return null;}
+}
+
+/** If-None-Match on GET/HEAD uses weak comparison, including compressed edge variants. */
+export function matchesEntityTag(header:string|null, etag:string):boolean {
+ return !!header && header.split(',').some(value=>value.trim()==='*'||value.trim().replace(/^W\//,'')===etag.replace(/^W\//,''));
 }

@@ -7,7 +7,7 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -21,6 +21,7 @@ jobs:
       - run: npm run build
       - run: npm run db:local
       - run: npm run assets:local
+      - run: npm run assets:demos:local
       - run: npx playwright install --with-deps chromium
       - name: API and browser checks
         run: |
@@ -32,5 +33,7 @@ jobs:
             sleep 1
           done
           npm run test:api
+          npm run test:labs
+          npm run test:demo-assets
           node --import tsx scripts/verify-logos.ts
           npm run test:e2e

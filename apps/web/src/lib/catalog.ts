@@ -1,4 +1,4 @@
-import type { Category, Demo, Tool } from '../types';
+import type { Category, Tool } from '../types';
 
 export interface ToolFilters {
   q: string;
@@ -36,17 +36,33 @@ export const pricingTones: Record<Tool['pricing'], PricingTone> = {
   付费: 'paid',
 };
 
-export const demoKindLabels: Record<Demo['kind'], string> = {
-  spring: '弹性运动',
-  chart: '数据图表',
-  gradient: '色彩渐变',
-  kanban: '拖拽排序',
-  particles: 'Canvas 粒子',
-  markdown: '安全解析',
-  contrast: '颜色对比', bezier: '缓动曲线', grid: '网格布局', shadow: '阴影样式', typography: '文字排版',
-  regex: '正则匹配', json: '数据格式', csv: '表格数据', svgpath: '矢量路径', image: '图片处理',
-  flex: '弹性布局', noise: '生成纹理', sorting: '算法过程', debounce: '事件控制', cache: '请求缓存',
+/** Human label for each demo stack. Falls back to the tool id itself. */
+export const stackLabels: Record<string, string> = {
+  gsap: '时间轴编排', motion: '共享布局动效', 'react-spring': '弹簧物理',
+  threejs: '实例化 3D 场景', pixijs: 'WebGL 精灵批处理', matterjs: '刚体物理',
+  paperjs: '矢量布尔运算', animejs: 'SVG 动画', 'lottie-web': '矢量动画播放',
+  swiper: '触摸分页', 'embla-carousel': '吸附轮播', 'dnd-kit': '拖拽排序',
+  'auto-animate': 'DOM 变更动画', moveable: '自由拖拽缩放旋转',
+  echarts: '大数据量图表', d3: '数据连接与比例尺', chartjs: '响应式图表',
+  recharts: '联动图表', 'observable-plot': '统计图表', uplot: '高频时序',
+  g6: '图关系分析', x6: '流程图编辑', mermaid: '文本转图表',
+  'react-flow': '节点流程画布', leaflet: '地理图层', 'maplibre-gl': 'WebGL 地图',
+  zod: '结构校验', 'tanstack-query': '服务端状态缓存', swr: '请求缓存',
+  zustand: '轻量状态', 'redux-toolkit': '可预测状态', jotai: '原子化状态',
+  htmx: 'HTML 片段交互', 'radix-ui': '无障碍交互', 'ant-design': '数据表格',
+  mantine: '表单流程',
+  tiptap: '结构化富文本', lexical: '可扩展富文本', prosemirror: '编辑器内核',
+  quill: 'Delta 文档模型', codemirror: '代码编辑器', 'markdown-it': 'Markdown 解析',
+  shiki: '语法高亮', katex: '公式排版', remark: 'Markdown AST',
+  culori: '色彩空间计算', colorjs: '色彩管理与色域', prettier: '代码格式化',
+  typescript: '类型诊断', esbuild: '实时编译',
+  d1: '云端 SQL 数据库', drizzle: '类型安全 ORM', kysely: '可组合查询',
+  hono: '边缘路由', r2: '对象存储读取',
 };
+
+export function stackLabel(stack: string): string {
+  return stackLabels[stack] ?? stack;
+}
 
 export function formatUpdatedAt(value: string): string {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);

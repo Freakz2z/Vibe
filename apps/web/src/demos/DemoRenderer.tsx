@@ -1,51 +1,56 @@
-import { lazy, Suspense } from 'react';
+import { Suspense, useEffect, useState, type ComponentType } from 'react';
 import type { Demo } from '../types';
 import type { DemoCopyHandler } from './types';
-import { SpringDemo } from './SpringDemo';
-import { ChartDemo } from './ChartDemo';
-import { GradientDemo } from './GradientDemo';
-import { KanbanDemo } from './KanbanDemo';
-import { ParticlesDemo } from './ParticlesDemo';
-import { MarkdownDemo } from './MarkdownDemo';
-const Contrast = lazy(() => import('./LayoutLabs').then(m => ({ default: m.ContrastLab })));
-const Grid = lazy(() => import('./LayoutLabs').then(m => ({ default: m.GridLab })));
-const Shadow = lazy(() => import('./LayoutLabs').then(m => ({ default: m.ShadowLab })));
-const Typography = lazy(() => import('./LayoutLabs').then(m => ({ default: m.TypographyLab })));
-const Flex = lazy(() => import('./LayoutLabs').then(m => ({ default: m.FlexLab })));
-const SvgPath = lazy(() => import('./LayoutLabs').then(m => ({ default: m.SvgPathLab })));
-const Json = lazy(() => import('./DataLabs').then(m => ({ default: m.JsonLab })));
-const Csv = lazy(() => import('./DataLabs').then(m => ({ default: m.CsvLab })));
-const Regex = lazy(() => import('./DataLabs').then(m => ({ default: m.RegexLab })));
-const Bezier = lazy(() => import('./VisualLabs').then(m => ({ default: m.BezierLab })));
-const Image = lazy(() => import('./VisualLabs').then(m => ({ default: m.ImageLab })));
-const Noise = lazy(() => import('./VisualLabs').then(m => ({ default: m.NoiseLab })));
-const Sorting = lazy(() => import('./LogicLabs').then(m => ({ default: m.SortingLab })));
-const Debounce = lazy(() => import('./LogicLabs').then(m => ({ default: m.DebounceLab })));
-const Cache = lazy(() => import('./LogicLabs').then(m => ({ default: m.CacheLab })));
-export function DemoRenderer({ kind, onCopy }: { kind: Demo['kind']; onCopy: DemoCopyHandler }) {
-  let demo;
-  switch (kind) {
-    case 'spring': demo = <SpringDemo />; break;
-    case 'chart': demo = <ChartDemo />; break;
-    case 'gradient': demo = <GradientDemo onCopy={onCopy} />; break;
-    case 'kanban': demo = <KanbanDemo />; break;
-    case 'particles': demo = <ParticlesDemo />; break;
-    case 'markdown': demo = <MarkdownDemo />; break;
-    case 'contrast': demo = <Contrast onCopy={onCopy} />; break;
-    case 'grid': demo = <Grid onCopy={onCopy} />; break;
-    case 'shadow': demo = <Shadow onCopy={onCopy} />; break;
-    case 'typography': demo = <Typography onCopy={onCopy} />; break;
-    case 'flex': demo = <Flex onCopy={onCopy} />; break;
-    case 'svgpath': demo = <SvgPath onCopy={onCopy} />; break;
-    case 'json': demo = <Json onCopy={onCopy} />; break;
-    case 'csv': demo = <Csv onCopy={onCopy} />; break;
-    case 'regex': demo = <Regex />; break;
-    case 'bezier': demo = <Bezier onCopy={onCopy} />; break;
-    case 'image': demo = <Image />; break;
-    case 'noise': demo = <Noise />; break;
-    case 'sorting': demo = <Sorting />; break;
-    case 'debounce': demo = <Debounce />; break;
-    case 'cache': demo = <Cache />; break;
+import { loadDemo } from './registry';
+
+interface Resolved {
+  Component: ComponentType<{ onCopy: DemoCopyHandler }> | null;
+  error: string | null;
+}
+
+/**
+ * Loads exactly the module for demo.stack. Changing stack aborts the previous
+ * load and unmounts the old scene, so switching routes never leaks an SDK.
+ */
+export function DemoRenderer({ demo, onCopy }: { demo: Demo; onCopy: DemoCopyHandler }) {
+  const [state, setState] = useState<Resolved>({ Component: null, error: null });
+
+  useEffect(() => {
+    let cancelled = false;
+    setState({ Component: null, error: null });
+    loadDemo(demo.stack).then(
+      (module) => {
+        if (!cancelled) setState({ Component: module.default, error: null });
+      },
+      (error: unknown) => {
+        if (!cancelled) setState({ Component: null, error: error instanceof Error ? error.message : String(error) });
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [demo.stack]);
+
+  if (state.error) {
+    return (
+      <div className="demo-workspace lab" role="alert">
+        <p className="lab-error">示例模块加载失败：{state.error}</p>
+      </div>
+    );
   }
-  return <Suspense fallback={<div className="demo-workspace" role="status">正在加载示例…</div>}>{demo}</Suspense>;
+
+  if (!state.Component) {
+    return (
+      <div className="demo-workspace" role="status">
+        正在加载 {demo.stack} 示例…
+      </div>
+    );
+  }
+
+  const Component = state.Component;
+  return (
+    <Suspense fallback={<div className="demo-workspace" role="status">正在加载示例…</div>}>
+      <Component onCopy={onCopy} />
+    </Suspense>
+  );
 }

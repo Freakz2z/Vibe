@@ -1,9 +1,8 @@
-import { ArrowRight, ChevronDown, Heart, Search, Sparkles } from 'lucide-react';
-import type { Catalog, Demo, Tool } from '../types';
+import { Heart, Search } from 'lucide-react';
+import type { Catalog, Tool } from '../types';
 import type { ToolFilters } from '../lib/catalog';
-import { formatUpdatedAt, groupTools } from '../lib/catalog';
-import { FeaturedToolCard, ToolCard } from '../components/ToolCard';
-import { DemoCard } from '../components/DemoCard';
+import { groupTools } from '../lib/catalog';
+import { ToolCard } from '../components/ToolCard';
 import { FilterBar, type ActiveFilter, type FilterKey } from '../components/FilterBar';
 import { CategoryIcon } from '../components/icons';
 
@@ -68,52 +67,6 @@ function EmptyDirectory({
   );
 }
 
-function FeaturedSection({ catalog, searchSuffix }: { catalog: Catalog; searchSuffix: string }) {
-  const categoryNames = new Map(catalog.categories.map((category) => [category.id, category.name]));
-  const featured = catalog.tools.filter((tool) => tool.featured).slice(0, 8);
-
-  return (
-    <section className="home-section featured-section" aria-label="编辑精选">
-      <div className="section-heading">
-        <div>
-          <p className="eyebrow">编辑精选</p>
-        </div>
-      </div>
-      <div className="featured-grid">
-        {featured.map((tool) => (
-          <FeaturedToolCard
-            key={tool.id}
-            tool={tool}
-            categoryName={categoryNames.get(tool.categoryId) ?? ''}
-            hrefSuffix={searchSuffix}
-          />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function DemoSection({ demos }: { demos: Demo[] }) {
-  return (
-    <section className="home-section demos-section" aria-label="站内示例">
-      <div className="section-heading">
-        <div>
-          <p className="eyebrow">站内示例</p>
-        </div>
-        <a className="text-link" href="/demos">
-          查看全部示例
-          <ArrowRight size={15} aria-hidden="true" />
-        </a>
-      </div>
-      <div className="demo-grid">
-        {demos.map((demo) => (
-          <DemoCard key={demo.id} demo={demo} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
 export function HomePage({
   catalog,
   tools,
@@ -135,7 +88,7 @@ export function HomePage({
   const activeCategory = catalog.categories.find((category) => category.id === filters.category);
   const hasFacetFilters = Boolean(filters.platform || filters.pricing);
 
-  let heading = '完整目录';
+  let heading = '全部工具';
   let headingDescription: string | undefined;
   let eyebrow = '目录浏览';
   if (filters.q) {
@@ -157,50 +110,6 @@ export function HomePage({
 
   return (
     <div className="page page--home">
-      {isLanding ? (
-        <>
-          <section className="hero" aria-label="目录概况">
-            <div className="hero__texture" aria-hidden="true" />
-            <div className="hero__content">
-              <p className="eyebrow hero__eyebrow">
-                <span className="eyebrow__dot" aria-hidden="true" />
-                Vibe 工具集 · 独立开发者的中文工具导航
-              </p>
-              <div className="hero__actions">
-                <a className="button button--primary" href="#directory">
-                  开始浏览
-                  <ChevronDown size={16} aria-hidden="true" />
-                </a>
-                <a className="button button--secondary" href="/demos">
-                  试试站内示例
-                  <Sparkles size={16} aria-hidden="true" />
-                </a>
-              </div>
-              <dl className="hero__stats" aria-label="目录概况">
-                <div>
-                  <dt>件工具</dt>
-                  <dd>{catalog.tools.length}</dd>
-                </div>
-                <div>
-                  <dt>个分类</dt>
-                  <dd>{catalog.categories.length}</dd>
-                </div>
-                <div>
-                  <dt>个动手示例</dt>
-                  <dd>{catalog.demos.length}</dd>
-                </div>
-                <div className="hero__updated">
-                  <dt>最近整理</dt>
-                  <dd>{formatUpdatedAt(catalog.updatedAt)}</dd>
-                </div>
-              </dl>
-            </div>
-          </section>
-
-          <FeaturedSection catalog={catalog} searchSuffix={searchSuffix} />
-          <DemoSection demos={catalog.demos.slice(0, 6)} />
-        </>
-      ) : (
         <header className="browse-heading browse-heading--compact">
           <p className="eyebrow">{eyebrow}</p>
           <div className="browse-heading__title-row">
@@ -211,25 +120,13 @@ export function HomePage({
           </div>
           {headingDescription ? <p>{headingDescription}</p> : null}
         </header>
-      )}
 
       <section
         className={`home-section directory-section${isLanding ? '' : ' directory-section--results'}`}
         id="directory"
         aria-labelledby="directory-title"
       >
-        {isLanding ? (
-          <div className="section-heading section-heading--directory">
-            <div>
-              <p className="eyebrow">目录</p>
-              <h2 id="directory-title">按分类找工具</h2>
-            </div>
-          </div>
-        ) : (
-          <h2 id="directory-title" className="sr-only">
-            筛选结果
-          </h2>
-        )}
+        <h2 id="directory-title" className="sr-only">工具目录</h2>
 
         <FilterBar
           platform={filters.platform}

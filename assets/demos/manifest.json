@@ -1,0 +1,26 @@
+[
+  {
+    "key": "demos/leaflet/countries_60bc5282.geojson",
+    "file": "assets/demos/leaflet/countries_60bc5282.geojson",
+    "contentType": "application/geo+json",
+    "sha256": "60bc52825bcb74414186f9481647b36e79b5200730c2072d6dc6efa1133f2cc1",
+    "source": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
+    "license": "Public Domain (Natural Earth)"
+  },
+  {
+    "key": "demos/maplibre-gl/countries_60bc5282.geojson",
+    "file": "assets/demos/maplibre-gl/countries_60bc5282.geojson",
+    "contentType": "application/geo+json",
+    "sha256": "60bc52825bcb74414186f9481647b36e79b5200730c2072d6dc6efa1133f2cc1",
+    "source": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
+    "license": "Public Domain (Natural Earth)"
+  },
+  {
+    "key": "demos/esbuild/esbuild_e2b4b98297e0.wasm",
+    "file": "assets/demos/esbuild/esbuild_e2b4b98297e0.wasm",
+    "contentType": "application/wasm",
+    "sha256": "e2b4b98297e04ef12981bafabf0a3c2d7c3c5cf6af603ef79d886deac3b5eeb3",
+    "source": "npm:esbuild-wasm@0.24.2",
+    "license": "MIT"
+  }
+]

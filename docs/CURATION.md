@@ -4,14 +4,14 @@
 
 ## 来源与处理
 
-- 目录现有 219 个工具与 21 个独立实现的原理示例。本轮新增 153 个工具和 15 个示例，由当前维护代理直接实现，未调用 Claude CLI。
+- 目录现有 219 个工具。本站示例已按“一例一个主要技术栈”重新组织，实际加载对应库或请求本站真实服务；不能在本站真实运行的工具不关联示例。
+- 示例初稿由用户指定的 Claude Code CLI / MiniMax-M3.1-Flash-Preview 编写；额度用尽后按用户要求停止调用，由 Codex 接手后端、前端修正、文案、验收与发布。具体实现与验收见 [示例报告](EXAMPLES_MINIMAX_REPORT.md)。
 - 本轮源码核对记录见 [catalog-sources.json](catalog-sources.json)，包括官方仓库、主页、许可标识与归档状态。许可元数据仅作核对线索，不将 NOASSERTION 等同于开源许可。
 - 候选中的 Roo Code、Flowise、TOAST UI Editor 已归档，本轮未加入目录，改用 Kilo Code、Mastra、Plate。
 - CodeMirror 与 ProseMirror 的 GitHub 镜像已归档，但官方 README 明确指向新的独立托管站。详情使用迁移后的源码入口，而非把 GitHub 归档理解为项目停用。[CodeMirror](https://github.com/codemirror/view)、[ProseMirror](https://github.com/ProseMirror/prosemirror-state)。
 - 官网 GET 检查保留响应状态、标题和重定向。超时、限流或机器人验证不会被包装成官网失效或实测成功。Unsplash 的验证页、Observable 的限流均未绕过。
-- Logo 逐项与官方来源核对，217 个可用素材由本站 R2 提供；Monaco Editor 与 Lottie Web 使用文本回退。部分白色或自适应标志使用相应底板与 color-scheme，不使用滤镜伪造品牌色。
-- 站点不提供工具的实时排名、star、版本或价格承诺。示例对关联工具的引用不表示实际加载该工具。
-- 对比度示例按 [WCAG 对比度说明](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)计算相对亮度与阈值，判断使用未舍入的数值。
+- Logo 逐项与官方来源核对，216 个可用素材由本站 R2 提供；Monaco Editor、Lottie Web 与 uPlot 使用文本回退。部分白色或自适应标志使用相应底板与 color-scheme，不使用滤镜伪造品牌色。
+- 站点不提供工具的实时排名、star、版本或价格承诺。示例交互只说明页面中实际运行的能力，不宣称涵盖工具所有功能。
 
 完整自动检查结果保存在本机 `artifacts/`，公开仓库保留可复核的来源清单。历史 66 个工具的初始文案曾由 Claude CLI 编写；后续维护按当前用户要求由维护代理直接完成。
 

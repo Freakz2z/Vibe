@@ -1,25 +1,26 @@
 import { ArrowUpRight } from 'lucide-react';
-import type { Demo } from '../types';
-import { demoKindLabels } from '../lib/catalog';
-import { DemoThumb } from './DemoThumb';
-import { DemoKindIcon } from './icons';
+import type { Demo, Tool } from '../types';
+import { DemoThumb } from './LabThumb';
+import { DemoStackIcon } from './icons';
+import { stackLabel } from '../lib/catalog';
 
-export function DemoCard({ demo }: { demo: Demo }) {
+
+export function DemoCard({ demo, tool }: { demo: Demo; tool?: Tool }) {
   return (
     <a className="demo-card" href={`/demos/${demo.id}`}>
       <div className="demo-card__visual">
-        <DemoThumb kind={demo.kind} />
-        <span className="demo-card__badge">原理演示</span>
+        <DemoThumb stack={demo.stack} />
+        <span className="demo-card__badge">{demo.kind === 'service' ? '本站接口' : '可操作'}</span>
       </div>
       <div className="demo-card__body">
         <p className="demo-card__kind">
-          <DemoKindIcon kind={demo.kind} size={14} />
-          {demoKindLabels[demo.kind]}
+          <DemoStackIcon stack={demo.stack} size={14} />
+          {tool?.name ?? demo.stack}
         </p>
         <h3>{demo.name}</h3>
         <p className="demo-card__description">{demo.description}</p>
         <div className="demo-card__footer">
-          <span>关联 {demo.toolIds.length} 个工具</span>
+          <span>{demo.kind === 'service' ? '本站接口' : stackLabel(demo.stack)}</span>
           <span className="demo-card__open">
             打开体验
             <ArrowUpRight size={14} aria-hidden="true" />

@@ -1,10 +1,12 @@
-import {parseTool,queryFilters,validMediaKey} from './catalog';
+import {demoAssets} from './demo-assets';
+import {labFetch} from './labs';
+import {matchesEntityTag,parseTool,queryFilters,validMediaKey} from './catalog';
 import type { Catalog,Category,Demo } from '../shared/contracts';
 interface Env { DB:D1Database; MEDIA:R2Bucket; ASSETS:Fetcher; PUBLIC_ORIGIN?:string; }
 const security:Record<string,string>={
  'X-Content-Type-Options':'nosniff', 'Referrer-Policy':'strict-origin-when-cross-origin',
  'X-Frame-Options':'DENY','Permissions-Policy':'camera=(), microphone=(), geolocation=()',
- 'Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'",
+ 'Content-Security-Policy':"default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'",
 };
 function json(data:unknown,status=200,cache='public, max-age=60, stale-while-revalidate=300'){
  return new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':cache}});
@@ -22,6 +24,7 @@ async function route(request:Request,env:Env):Promise<Response>{
  const url=new URL(request.url);const path=url.pathname;const origin=env.PUBLIC_ORIGIN||url.origin;
  if(path.length>1&&path.endsWith('/')&&/^\/(tools|demos)(\/|$)/.test(path)){url.pathname=path.replace(/\/+$/,'');return Response.redirect(url.toString(),308);}
  if(request.method!=='GET'&&request.method!=='HEAD'){const response=json({error:'METHOD_NOT_ALLOWED'},405,'no-store');response.headers.set('Allow','GET, HEAD');return response;}
+ if(path==='/api/labs'||path.startsWith('/api/labs/'))return labFetch(request,env);
  if(path==='/api/health'){
   try {const [db,logo]=await Promise.all([env.DB.prepare('SELECT count(*) AS total FROM tools').first<{total:number}>(),env.MEDIA.head('brand/logo.png')]);
    const healthy=!!db?.total&&!!logo;return json({status:healthy?'ok':'degraded',database:db?.total?'ready':'empty',storage:logo?'ready':'missing',tools:db?.total||0},healthy?200:503,'no-store');
@@ -40,8 +43,8 @@ async function route(request:Request,env:Env):Promise<Response>{
  if(path.startsWith('/media/')){
   const key=validMediaKey(path);if(!key)return json({error:'NOT_FOUND'},404,'no-store');
   const object=await env.MEDIA.get(key);if(!object)return json({error:'NOT_FOUND'},404,'no-store');
-  const headers=new Headers();object.writeHttpMetadata(headers);headers.set('ETag',object.httpEtag);headers.set('Cache-Control','public, max-age=3600');
-  if(request.headers.get('If-None-Match')===object.httpEtag)return new Response(null,{status:304,headers});
+  const headers=new Headers();object.writeHttpMetadata(headers);if(Object.hasOwn(demoAssets,key))headers.set('Content-Type',demoAssets[key]);headers.set('ETag',object.httpEtag);headers.set('Cache-Control','public, max-age=3600');
+  if(matchesEntityTag(request.headers.get('If-None-Match'),object.httpEtag))return new Response(null,{status:304,headers});
   return new Response(object.body,{headers});
  }
  if(path==='/robots.txt')return new Response(`User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: ${origin}/sitemap.xml\n`,{headers:{'Content-Type':'text/plain; charset=utf-8'}});
@@ -77,7 +80,7 @@ export default {
   if(headers.get('Content-Type')?.includes('text/html')){
    // Cloudflare forwards this nonce to its own injected detection scripts.
    const nonce=btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
-   headers.set('Content-Security-Policy',security['Content-Security-Policy'].replace("script-src 'self';",`script-src 'self' 'nonce-${nonce}' https://static.cloudflareinsights.com;`));
+   headers.set('Content-Security-Policy',security['Content-Security-Policy'].replace(/script-src[^;]*;/,`script-src 'self' 'wasm-unsafe-eval' 'nonce-${nonce}' https://static.cloudflareinsights.com;`));
    headers.set('Cache-Control','private, no-store');
    headers.delete('ETag');headers.delete('Last-Modified');
    response=new HTMLRewriter().on('script',{element(el){el.setAttribute('nonce',nonce);}}).transform(response);

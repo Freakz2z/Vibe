@@ -26,7 +26,7 @@ type ToolRecord = {
 type CatalogRecord = {
   tools: ToolRecord[];
   categories: { id: string; name: string }[];
-  demos: { id: string; kind: string }[];
+  demos: { id: string; kind: string; stack: string; toolIds: string[] }[];
 };
 
 const TEST_LOGO =
@@ -100,13 +100,15 @@ async function expectHoverStable(page: Page, target: Locator, label: string) {
   }
 }
 
+// A small, stable sample of real demos for the smoke routes. The full catalog
+// sweep lives in qa-minimax.spec.ts.
 const DEMO_ROUTES = [
-  'spring-lab',
-  'chart-studio',
-  'gradient-studio',
-  'kanban-board',
-  'particle-field',
-  'markdown-desk',
+  'gsap-timeline',
+  'd3-datajoin',
+  'zod-schema',
+  'tiptap-json',
+  'culori-interpolate',
+  'd1-sql',
 ];
 
 const ALL_ROUTES = [
@@ -127,23 +129,12 @@ test('live catalog, all required routes and compact first screens', async ({ pag
   const catalog = await liveCatalog(page);
 
   await page.goto(BASE);
-  await expect(page.locator('.hero')).toBeVisible();
-  await expect(page.locator('.hero__actions')).toBeVisible();
-  await expect(page.locator('.hero__stats')).toBeVisible();
-  await expect(page.locator('.hero h1')).toHaveCount(0);
-  await expect(page.locator('.featured-tool').first()).toBeVisible();
-  await expect(page.locator('.featured-tool')).toHaveCount(
-    catalog.tools.filter((tool) => tool.featured).length,
-  );
+  await expect(page.getByRole('heading', {name: '全部工具', exact: true})).toBeVisible();
+  await expect(page.locator('.featured-section, .demos-section, .hero')).toHaveCount(0);
+  await expect(page.getByText('编辑精选', {exact:true})).toHaveCount(0);
+  await expect(page.locator('.tool-card')).toHaveCount(catalog.tools.length);
+  await expect(page.locator('.tool-card').first()).toBeInViewport({ ratio: 0.5 });
   expectCopyAbsent(await page.locator('body').innerText(), REMOVED_COPY);
-
-  const heroHeight = await page.locator('.hero').evaluate((element) => element.getBoundingClientRect().height);
-  expect(heroHeight).toBeGreaterThanOrEqual(140);
-  expect(heroHeight).toBeLessThanOrEqual(340);
-  const firstFeatured = page.locator('.featured-tool').first();
-  await expect(firstFeatured).toBeInViewport({ ratio: 0.5 });
-  const firstFeaturedBox = await firstFeatured.boundingBox();
-  expect(firstFeaturedBox!.y).toBeLessThan(720);
   await noOverflow(page);
   await page.screenshot({ path: `${shots}/accept-home-1280.png` });
 
@@ -152,7 +143,6 @@ test('live catalog, all required routes and compact first screens', async ({ pag
   await expect(page.locator('.sidebar a[href="/?favorites=1"]')).toHaveCount(0);
   await expect(page.locator('.sidebar__category-icon svg')).toHaveCount(catalog.categories.length);
   await expect(page.locator('.tool-group__icon svg')).toHaveCount(catalog.categories.length);
-  await expect(page.locator('.demo-card__kind svg').first()).toBeVisible();
 
   // Official logos stay on-site; failures fall back to the text mark without hotlinks.
   const shippedLogos = catalog.tools.filter((tool) => tool.logo);
@@ -166,7 +156,7 @@ test('live catalog, all required routes and compact first screens', async ({ pag
     }
   }
   await expect(page.locator('.tool-logo')).toHaveCount(
-    catalog.tools.length + catalog.tools.filter((tool) => tool.featured).length,
+    catalog.tools.length,
   );
 
   const categoryTool = catalog.tools.find((tool) => tool.platforms.includes('Web'));
@@ -301,7 +291,7 @@ test('tool detail follows the reading order with one resource card', async ({ pa
   await page.goto(`${BASE}/tools/${tool!.id}`);
   await expect(page.locator('.tool-detail-hero h1')).toHaveText(tool!.name);
   const headings = await page.locator('.tool-detail-main .detail-section h2').allInnerTexts();
-  expect(headings).toEqual(['简介', '安装', '适用场景', '特点', '示例']);
+  expect(headings).toEqual(['简介', '安装', '适用场景', '特点', '专属示例']);
   await expect(page.locator('.tool-detail-main h2')).toHaveCount(5);
   await expect(page.locator('.tool-detail-aside .fact-card')).toHaveCount(1);
   await expect(page.locator('.tool-detail-aside h2')).toHaveText(['资料']);
@@ -396,41 +386,41 @@ test('filters, search, favorites, demos and safe markdown', async ({ page }) => 
   );
   await expect(page.locator('.tool-card').first()).toBeVisible();
 
-  // Demos index and the original principle demos.
+  // Demos index. Every published demo runs one real library or one real service.
   await page.goto(`${BASE}/demos`);
   await expect(page.locator('.demo-card')).toHaveCount(catalog.demos.length);
-  expectCopyAbsent(
-    await page.locator('.demos-page').innerText(),
-    ['六个可以动手的小实验', '想让你在挑工具前先感受交互本身'],
-  );
+  for (const demo of catalog.demos) {
+    expect(demo.toolIds, `${demo.id} must target exactly one tool`).toEqual([demo.stack]);
+    expect(['library', 'service']).toContain(demo.kind);
+  }
+  // The retired "principle demo" framing must be gone from the demos index.
+  expectCopyAbsent(await page.locator('.demos-page').innerText(), [
+    '原理演示',
+    '不加载或代表关联工具的实际运行效果',
+  ]);
   for (const id of DEMO_ROUTES) {
     await page.goto(`${BASE}/demos/${id}`);
     await expect(page.locator('.demo-workspace')).toBeVisible();
+    expectCopyAbsent(await page.locator('.demo-page').innerText(), [
+      '这是原理演示',
+      '不加载或代表关联工具的实际运行效果',
+    ]);
     await noOverflow(page);
   }
 
-  // Markdown never renders untrusted HTML and code spans win over bold markers.
-  await page.goto(`${BASE}/demos/markdown-desk`);
-  await expect(page.locator('.markdown-preview li code').first()).toHaveText('**粗体**');
-  const maxLength = await page.locator('#markdown-source').getAttribute('maxlength');
-  expect(Number(maxLength)).toBeGreaterThan(0);
-  await page.locator('#markdown-source').fill('<img src=x onerror="window.__xss=1"> **安全**');
-  await expect(page.locator('.markdown-preview img')).toHaveCount(0);
-  await expect(page.locator('.markdown-preview strong')).toHaveText('安全');
-  expect(await page.evaluate(() => (window as unknown as { __xss?: number }).__xss)).toBeUndefined();
+  // Each tool's demoId points only at its own exclusive demo.
+  const demoById = new Map(catalog.demos.map((demo) => [demo.id, demo]));
+  for (const tool of catalog.tools) {
+    if (!tool.demoId) continue;
+    const demo = demoById.get(tool.demoId);
+    expect(demo, `${tool.id} demoId ${tool.demoId} must exist`).toBeTruthy();
+    expect(demo!.stack, `${tool.id} demoId must point at its own demo`).toBe(tool.id);
+  }
 
-  // Kanban move buttons work without drag; spring respects reduced motion.
-  await page.goto(`${BASE}/demos/kanban-board`);
-  await page
-    .getByRole('button', { name: /将「梳理导航信息架构」移到进行中/ })
-    .click();
-  await expect(
-    page.getByRole('button', { name: /将「梳理导航信息架构」移到已完成/ }),
-  ).toBeVisible();
-
+  // Reduced motion must not break a real animated demo.
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto(`${BASE}/demos/spring-lab`);
-  await expect(page.locator('.spring-ball')).toBeVisible();
+  await page.goto(`${BASE}/demos/gsap-timeline`);
+  await expect(page.locator('.demo-workspace')).toBeVisible();
 
   await page.goto(`${BASE}/tools/gsap`);
   await expect(page.locator('.price').first()).toHaveText('免费使用');
@@ -647,14 +637,11 @@ test('hover feedback never shifts cards, navigation or buttons', async ({ page }
   await expect(page.locator('.tool-card').first()).toBeVisible();
 
   const landingTargets: [string, Locator][] = [
-    ['featured card', page.locator('.featured-tool').first()],
     ['tool card', page.locator('.tool-card').first()],
-    ['demo card', page.locator('.demo-card').first()],
     ['sidebar navigation item', page.locator('.sidebar__item').first()],
     ['filter chip', page.locator('.filter-chip').first()],
     ['favorite entry', page.locator('.topbar__favorite-link')],
     ['favorite button', page.locator('.favorite-button').first()],
-    ['primary button', page.locator('.button--primary').first()],
     ['search trigger', page.locator('.search-trigger')],
   ];
 
@@ -714,7 +701,7 @@ test.describe('mobile widths', () => {
       }
 
       await page.goto(BASE);
-      await expect(page.locator('.hero')).toBeVisible();
+      await expect(page.getByRole('heading', {name:'全部工具',exact:true})).toBeVisible();
       await expect(page.locator('.topbar__favorite-link')).toBeVisible();
       await expect(page.locator('.sidebar a[href="/?favorites=1"]')).toHaveCount(0);
 
@@ -818,132 +805,44 @@ test('expanded catalog, demo search and rightmost source link', async ({ page })
   await page.goto(BASE);
   const catalog = await liveCatalog(page);
   expect(catalog.tools.length).toBeGreaterThan(200);
-  expect(catalog.demos.length).toBeGreaterThan(20);
+  expect(catalog.demos.length).toBeGreaterThanOrEqual(21);
   const source = page.getByRole('link', {name: 'GitHub 开源仓库'});
   await expect(source).toHaveAttribute('href', 'https://github.com/Freakz2z/Vibe');
   await expect(source).toHaveAttribute('target', '_blank');
   await expect(page.locator('.topbar__actions > :last-child')).toHaveClass(/topbar__github/);
+
+  // Demo search filters by demo name, description or its primary tool name.
   await page.goto(`${BASE}/demos`);
   await expect(page.locator('.demo-card')).toHaveCount(catalog.demos.length);
-  await page.getByRole('searchbox', {name: '搜索示例'}).fill('缓存');
-  await expect(page.locator('.demo-card')).toHaveCount(1);
-  await page.locator('.demo-card').click();
-  await expect(page).toHaveURL(/cache-lab$/);
-  await expect(page.getByRole('button', {name: '同时请求 3 次'})).toBeVisible();
+  await page.getByRole('searchbox', {name: '搜索示例'}).fill('ECharts');
+  const echartsDemo = catalog.demos.find(demo => demo.stack === 'echarts')!;
+  // "ECharts" also matches the stack id "recharts", so assert the ECharts card
+  // is present rather than pinning an exact count.
+  await expect(page.locator(`.demo-card[href="/demos/${echartsDemo.id}"]`)).toBeVisible();
+  const shown = await page.locator('.demo-card').count();
+  expect(shown).toBeLessThan(catalog.demos.length);
+  await page.locator(`.demo-card[href="/demos/${echartsDemo.id}"]`).click();
+  await expect(page).toHaveURL(`${BASE}/demos/${echartsDemo.id}`);
+  await expect(page.locator('.demo-workspace')).toBeVisible();
+
+  // A tool page links to that tool's own demo and nowhere else.
+  const linked = catalog.tools.filter(tool => tool.demoId);
+  expect(linked.length).toBeGreaterThanOrEqual(21);
+  const sample = linked.find(tool => tool.id === 'zod')!;
+  await page.goto(`${BASE}/demos`);
+  await page.getByRole('searchbox', {name: '搜索示例'}).fill('Zod');
+  await expect(page.locator(`.demo-card[href="/demos/${sample.demoId}"]`)).toBeVisible();
+  await page.goto(`${BASE}/tools/${sample.id}`);
+  await page.getByRole('link', {name: '打开示例'}).click();
+  await expect(page).toHaveURL(`${BASE}/demos/${sample.demoId}`);
+  await expect(page.locator('.demo-workspace')).toBeVisible();
+
+  // A tool with no exclusive demo must not advertise one.
+  const withoutDemo = catalog.tools.find(tool => !tool.demoId)!;
+  expect(withoutDemo).toBeTruthy();
+  await page.goto(`${BASE}/tools/${withoutDemo.id}`);
+  await expect(page.locator('.tool-demo-callout')).toHaveCount(0);
+
   await page.goto(`${BASE}/tools/codemirror`);
   await expect(page.locator('.tool-detail-hero__actions a', {hasText: '源码'})).toHaveAttribute('href', 'https://code.haverbeke.berlin/codemirror/view');
-});
-
-test('expanded labs run at desktop and mobile widths without page overflow', async ({ page }) => {
-  const errors: string[] = [];
-  page.on('pageerror', e => errors.push(e.message));
-  await page.goto(BASE);
-  const catalog = await liveCatalog(page);
-  for (const width of [1280, 320]) {
-    await page.setViewportSize({width, height: 900});
-    for (const demo of catalog.demos) {
-      await page.goto(`${BASE}/demos/${demo.id}`);
-      await expect(page.locator('.demo-workspace[aria-label]')).toBeVisible();
-      await noOverflow(page);
-    }
-  }
-  expect(errors).toEqual([]);
-});
-
-test('expanded CSS and graphics labs respond to input', async ({ page }) => {
-  await page.goto(`${BASE}/demos/contrast-lab`);
-  await page.getByLabel('文字颜色', {exact: true}).fill('#000000');
-  await page.getByLabel('背景颜色', {exact: true}).fill('#ffffff');
-  await expect(page.locator('.lab-metric')).toHaveText('21.00 : 1');
-  await page.goto(`${BASE}/demos/grid-playground`);
-  await page.getByLabel('列数', {exact: true}).fill('4');
-  await expect(page.locator('.lab-code')).toContainText('repeat(4, minmax(0, 1fr))');
-  await page.goto(`${BASE}/demos/flex-playground`);
-  await page.getByLabel('排列方向').selectOption('column');
-  await expect(page.locator('.lab-flex')).toHaveCSS('flex-direction','column');
-  await page.goto(`${BASE}/demos/shadow-studio`);
-  await page.getByLabel('模糊半径', {exact:true}).fill('40');
-  await expect(page.locator('.lab-code')).toContainText('40px');
-  await page.goto(`${BASE}/demos/type-scale`);
-  await page.getByLabel('基础字号', {exact:true}).fill('20');
-  await expect(page.locator('.lab-code')).toContainText('--text-0: 20px');
-  await page.goto(`${BASE}/demos/svg-path`);
-  await page.getByLabel('控制点 X', {exact:true}).fill('300');
-  await expect(page.locator('.lab-code')).toContainText('Q 300 20');
-  await page.goto(`${BASE}/demos/bezier-editor`);
-  await page.getByRole('button',{name:'播放',exact:true}).click();
-  await expect.poll(()=>page.locator('.lab-bezier-ball').evaluate(el=>el.getAnimations().length)).toBeGreaterThan(0);
-  await page.goto(`${BASE}/demos/noise-texture`);
-  const initial = await page.getByRole('link',{name:'下载 PNG'}).getAttribute('href');
-  await page.getByLabel('随机种子', {exact:true}).fill('30');
-  await expect(page.getByRole('link',{name:'下载 PNG'})).not.toHaveAttribute('href',initial!);
-});
-
-test('expanded data labs parse user input and stop pathological regex', async ({ page }) => {
-  await page.goto(`${BASE}/demos/json-explorer`);
-  await page.getByLabel('JSON 输入').fill('{"safe":"<img onerror=alert(1)>"}');
-  await expect(page.locator('.lab-code')).toContainText('<img onerror=alert(1)>');
-  await expect(page.locator('.lab-code img')).toHaveCount(0);
-  await page.getByLabel('JSON 输入').fill('{bad');
-  await expect(page.getByRole('alert')).toBeVisible();
-  await page.goto(`${BASE}/demos/csv-explorer`);
-  await page.getByLabel('CSV 输入').fill('name,note\nVue,"a,b"\nReact,"a""b"');
-  await expect(page.locator('.lab-table tbody tr')).toHaveCount(2);
-  await expect(page.locator('.lab-table')).toContainText('a,b');
-  await expect(page.locator('.lab-code')).toContainText('a\\"b');
-  await page.context().route('**/assets/regex.worker-*.js', async route => {
-    await new Promise(resolve => setTimeout(resolve, 700));
-    await route.continue();
-  });
-  await page.goto(`${BASE}/demos/regex-lab`);
-  await expect(page.locator('.lab-matches li')).toHaveCount(3);
-  await page.getByLabel('正则规则').fill('[');
-  await expect(page.getByRole('alert')).toBeVisible();
-  await page.getByLabel('正则规则').fill('(a+)+$');
-  await page.getByLabel('测试文本').fill('a'.repeat(80)+'!');
-  await expect(page.getByRole('alert')).toContainText('超过 300ms');
-  await page.getByLabel('正则规则').fill('a+');
-  await expect(page.locator('.lab-matches li')).toHaveCount(1);
-});
-
-test('expanded sorting, debounce and cache perform real state transitions', async ({ page }) => {
-  await page.goto(`${BASE}/demos/sorting-lab`);
-  for (const algorithm of ['bubble','insertion']) {
-    await page.getByLabel('排序算法').selectOption(algorithm);
-    await page.getByRole('button',{name:'完成排序',exact:true}).click();
-    const values = (await page.locator('.lab-sort-bar').allTextContents()).map(Number);
-    expect(values).toEqual([...values].sort((a,b)=>a-b));
-    await expect(page.locator('.lab-status')).toContainText('排序完成');
-  }
-  await page.goto(`${BASE}/demos/debounce-lab`);
-  await page.getByRole('button',{name:'连续触发 10 次'}).click();
-  await expect(page.locator('.lab-stats > div').nth(0).locator('strong')).toHaveText('10');
-  await expect(page.locator('.lab-stats > div').nth(1).locator('strong')).toHaveText('1');
-  await page.goto(`${BASE}/demos/cache-lab`);
-  await page.getByRole('button',{name:'同时请求 3 次'}).click();
-  await expect(page.locator('.lab-stats > div').nth(0).locator('strong')).toHaveText('1');
-  await expect(page.locator('.lab-stats > div').nth(2).locator('strong')).toHaveText('2');
-  await expect(page.locator('.lab-status')).toContainText('模拟请求完成');
-  await page.getByRole('button',{name:'请求数据',exact:true}).click();
-  await expect(page.locator('.lab-stats > div').nth(1).locator('strong')).toHaveText('1');
-  await page.getByRole('button',{name:'清除缓存',exact:true}).click();
-  await page.getByRole('button',{name:'请求数据',exact:true}).click();
-  await expect(page.locator('.lab-stats > div').nth(0).locator('strong')).toHaveText('2');
-});
-
-test('expanded image lab processes selected images locally and supports dark mobile', async ({ page }) => {
-  const requests: string[]=[];
-  page.on('request',r=>{if(r.method()!=='GET')requests.push(r.url());});
-  await page.setViewportSize({width:390,height:844});
-  await page.goto(`${BASE}/demos/image-export`);
-  await page.getByLabel('选择本地图片').setInputFiles(path.resolve(process.cwd(),'public/brand/logo.png'));
-  await expect(page.locator('.lab-image img')).toBeVisible();
-  await expect(page.getByRole('link',{name:'下载图片'})).toHaveAttribute('download','vibe-export.webp');
-  await page.getByLabel('输出格式').selectOption('image/png');
-  await expect(page.getByRole('link',{name:'下载图片'})).toHaveAttribute('download','vibe-export.png');
-  await page.evaluate(()=>window.localStorage.setItem('vibe-theme','dark'));
-  await page.reload();
-  await expect(page.locator('html')).toHaveAttribute('data-theme','dark');
-  await noOverflow(page);
-  expect(requests).toEqual([]);
 });

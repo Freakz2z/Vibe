@@ -1,0 +1,2 @@
+/* Mantine's base stylesheet is global; wrap it so the site's own tokens win. */
+@import '@mantine/core/styles.css' layer(vendor);

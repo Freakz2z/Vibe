@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { ArrowUpRight, Copy, Heart, Sparkles } from 'lucide-react';
+import { ArrowUpRight, Copy, Heart } from 'lucide-react';
 import type { Tool } from '../types';
 import { pricingTones, shortPlatformLabels } from '../lib/catalog';
 import { ToolLogo } from './ToolLogo';
@@ -41,11 +41,7 @@ export function ToolCard({
         <div className="tool-card__title-wrap">
           <div className="tool-card__title-row">
             <h3 id={titleId}>{tool.name}</h3>
-            {tool.featured ? (
-              <span className="feature-spark" title="编辑精选" aria-label="编辑精选">
-                <Sparkles size={12} aria-hidden="true" />
-              </span>
-            ) : null}
+
           </div>
           <p className="tool-card__category">{categoryName}</p>
         </div>
@@ -99,29 +95,5 @@ export function ToolCard({
         )}
       </div>
     </article>
-  );
-}
-
-interface FeaturedToolCardProps {
-  tool: Tool;
-  categoryName: string;
-  hrefSuffix?: string;
-}
-
-export function FeaturedToolCard({ tool, categoryName, hrefSuffix = '' }: FeaturedToolCardProps) {
-  return (
-    <a
-      className="featured-tool"
-      href={`/tools/${tool.id}${hrefSuffix}`}
-      style={{ '--tool-accent': tool.accent } as CSSProperties}
-    >
-      <div className="featured-tool__top">
-        <ToolLogo tool={tool} className="tool-icon--small" />
-        <span className="featured-tool__category">{categoryName}</span>
-        <ArrowUpRight className="featured-tool__arrow" size={15} aria-hidden="true" />
-      </div>
-      <h3>{tool.name}</h3>
-      <p>{tool.tagline}</p>
-    </a>
   );
 }

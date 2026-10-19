@@ -9,5 +9,7 @@
   "x6": "https://mdn.alipayobjects.com/huamei_qa8qxu/afts/img/A*A-lcQbVTpjwAAAAAAAAAAAAADmJ7AQ/original",
   "react-three-fiber": "https://raw.githubusercontent.com/pmndrs/react-three-fiber/master/docs/logo.jpg",
   "drei": "https://raw.githubusercontent.com/pmndrs/drei/master/docs/logo.jpg",
-  "marked": "https://raw.githubusercontent.com/markedjs/marked/master/docs/img/logo-black.svg"
+  "marked": "https://raw.githubusercontent.com/markedjs/marked/master/docs/img/logo-black.svg",
+  "bolt-diy": "https://raw.githubusercontent.com/stackblitz-labs/bolt.diy/main/icons/logo.svg",
+  "changesets": "https://github.com/changesets.png?size=128"
 }

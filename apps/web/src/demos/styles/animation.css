@@ -1,0 +1,181 @@
+/* Scoped styles for the Lottie-web and GSAP labs.
+   Namespace: lab-lottie-* / lab-gsap-*. Nothing here touches apps/web/src/styles.css. */
+
+.lab-lottie-canvas {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 300px;
+  border-radius: 14px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.lab-lottie-canvas__host {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  padding: 6px;
+}
+
+.lab-lottie-canvas__host > svg {
+  display: block;
+  width: min(300px, 74vw);
+  height: auto;
+  max-width: 100%;
+}
+
+.lab-lottie-frames {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.lab-lottie-legend {
+  display: grid;
+  gap: 5px;
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--muted);
+  font-size: .72rem;
+  line-height: 1.7;
+  list-style: none;
+}
+
+.lab-lottie-legend li { display: flex; gap: 8px; align-items: baseline; }
+
+.lab-lottie-legend b {
+  flex: 0 0 auto;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ---- GSAP ---- */
+
+.lab-gsap-track {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 10px;
+  min-height: 190px;
+  padding: 0 4px 10px;
+}
+
+.lab-gsap-card {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 12px 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: 11px;
+  background: var(--surface);
+  font-size: .72rem;
+  color: var(--muted);
+  will-change: transform, opacity;
+}
+
+.lab-gsap-card strong { font-size: 1rem; color: var(--ink); }
+
+.lab-gsap-path {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.lab-gsap-orb {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.lab-gsap-orb__label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+  pointer-events: none;
+}
+
+.lab-gsap-scrub {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.lab-gsap-scrub__row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 10px;
+  font-size: .72rem;
+  color: var(--muted);
+}
+
+.lab-gsap-scrub__time {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.lab-gsap-scrub__track {
+  position: relative;
+  height: 8px;
+  margin: 0 20px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.lab-gsap-scrub__fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  opacity: .45;
+  pointer-events: none;
+}
+
+.lab-gsap-scrub__head {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: -9px;
+  padding: 0;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.lab-gsap-scrub__head:focus-visible { outline: 2px solid var(--accent-strong); outline-offset: 2px; }
+
+@media (max-width: 480px) {
+  .lab-gsap-track { min-height: 168px; }
+  .lab-gsap-card { flex: 1 1 56px; padding: 10px 6px; }
+}

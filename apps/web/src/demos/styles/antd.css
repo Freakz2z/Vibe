@@ -1,0 +1,4 @@
+/* antd's global reset is imported into a low-priority cascade layer so its
+   element resets can never outrank the site's own component styles, even after
+   the visitor has opened this demo. */
+@import 'antd/dist/reset.css' layer(vendor);

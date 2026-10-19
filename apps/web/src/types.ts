@@ -1,1 +1,1 @@
-export type { Catalog, Category, Demo, Tool } from '../../../shared/contracts';
+export type { Catalog, Category, Demo, DemoKind, Tool } from '../../../shared/contracts';

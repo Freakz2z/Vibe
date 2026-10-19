@@ -12,8 +12,8 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { formatUpdatedAt, platformLabels, pricingTones } from '../lib/catalog';
-import { DemoThumb } from '../components/DemoThumb';
-import { CategoryIcon, DemoKindIcon } from '../components/icons';
+import { DemoThumb } from '../components/LabThumb';
+import { CategoryIcon, DemoStackIcon } from '../components/icons';
 import { ToolLogo } from '../components/ToolLogo';
 
 interface ToolPageProps {
@@ -83,12 +83,7 @@ export function ToolPage({
               <CategoryIcon id={category.id} size={13} />
               {category.name}
             </a>
-            {tool.featured ? (
-              <span className="featured-pill">
-                <Sparkles size={12} aria-hidden="true" />
-                编辑精选
-              </span>
-            ) : null}
+
           </div>
           <h1>{tool.name}</h1>
           <p className="tool-detail-hero__tagline">{tool.tagline}</p>
@@ -185,15 +180,15 @@ export function ToolPage({
 
           {demo ? (
             <section className="detail-section detail-section--demo" aria-labelledby="demo-title">
-              <h2 id="demo-title">示例</h2>
+              <h2 id="demo-title">专属示例</h2>
               <div className="tool-demo-callout">
                 <div className="tool-demo-callout__art">
-                  <DemoThumb kind={demo.kind} />
+                  <DemoThumb stack={demo.stack} />
                 </div>
                 <div className="tool-demo-callout__body">
                   <span className="principle-badge">
-                    <DemoKindIcon kind={demo.kind} size={12} />
-                    原理演示
+                    <DemoStackIcon stack={demo.stack} size={12} />
+                    {demo.kind === 'service' ? '本站真实服务' : '真实运行'}
                   </span>
                   <h3>{demo.name}</h3>
                   <p>{demo.description}</p>

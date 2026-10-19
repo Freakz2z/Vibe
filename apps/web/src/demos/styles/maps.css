@@ -1,0 +1,227 @@
+/*
+ * Scoped styles for the two map labs.
+ * Every class is namespaced (lab-leaflet-* / lab-maplibre-*) so this file can be
+ * imported directly by the labs without touching the shared stylesheet.
+ */
+
+.lab-leaflet-map,
+.lab-maplibre-map {
+  position: relative;
+  width: 100%;
+  height: clamp(240px, 46vw, 360px);
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.lab-leaflet-map .leaflet-container,
+.lab-maplibre-map .maplibregl-map {
+  width: 100%;
+  height: 100%;
+  background: var(--surface-2);
+  font: inherit;
+  color: var(--ink);
+  outline: none;
+}
+
+.lab-leaflet-map .leaflet-pane,
+.lab-maplibre-map .maplibregl-canvas-container {
+  /* never let the map push the page wider than the viewport */
+  max-width: 100%;
+}
+
+.lab-leaflet-map .leaflet-popup-content-wrapper,
+.lab-leaflet-map .leaflet-popup-tip,
+.lab-maplibre-map .maplibregl-popup-content-wrapper,
+.lab-maplibre-map .maplibregl-popup-tip {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 6px 22px rgb(0 0 0 / 18%);
+}
+
+.lab-leaflet-map .leaflet-popup-content,
+.lab-maplibre-map .maplibregl-popup-content {
+  margin: 12px 14px;
+  font-size: 0.78rem;
+  line-height: 1.8;
+  max-width: 240px;
+}
+
+.lab-leaflet-map .leaflet-bar a,
+.lab-maplibre-map .maplibregl-ctrl-group button {
+  background: var(--surface);
+  color: var(--ink);
+  border-bottom-color: var(--line);
+}
+
+.lab-leaflet-map .leaflet-bar a:hover,
+.lab-maplibre-map .maplibregl-ctrl-group button:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.lab-leaflet-map .leaflet-control-layers,
+.lab-leaflet-map .leaflet-control-attribution,
+.lab-maplibre-map .maplibregl-ctrl-scale,
+.lab-maplibre-map .maplibregl-ctrl-attrib {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.lab-leaflet-map .leaflet-control-layers-toggle {
+  background: var(--surface);
+}
+
+.lab-leaflet-map label {
+  color: var(--ink);
+  font-size: 0.75rem;
+}
+
+.lab-leaflet-popup-name,
+.lab-maplibre-popup-name {
+  display: block;
+  font-weight: 700;
+  font-size: 0.92rem;
+  margin-bottom: 4px;
+}
+
+.lab-leaflet-popup-row,
+.lab-maplibre-popup-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  white-space: nowrap;
+}
+
+.lab-leaflet-popup-row span:first-child,
+.lab-maplibre-popup-row span:first-child {
+  color: var(--muted);
+}
+
+.lab-leaflet-popup-row span:last-child,
+.lab-maplibre-popup-row span:last-child {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Overlay strip sitting on top of the canvas (loading / failure / selection). */
+.lab-leaflet-overlay,
+.lab-maplibre-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--surface-2) 88%, transparent);
+}
+
+.lab-leaflet-overlay code,
+.lab-maplibre-overlay code {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.lab-leaflet-badge,
+.lab-maplibre-badge {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  z-index: 480;
+  max-width: calc(100% - 16px);
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+
+/* Ranking list rendered beside the map — scrolls inside its own box so a long
+   list can never create page-level horizontal overflow at 320px. */
+.lab-leaflet-rank,
+.lab-maplibre-rank {
+  max-height: 260px;
+  overflow: auto;
+  min-width: 0;
+}
+
+.lab-leaflet-chip,
+.lab-maplibre-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.75rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lab-leaflet-chip:hover,
+.lab-maplibre-chip:hover {
+  background: var(--surface-2);
+}
+
+.lab-leaflet-chip[aria-pressed='true'],
+.lab-maplibre-chip[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.lab-leaflet-chip i,
+.lab-maplibre-chip i {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.lab-leaflet-chip b,
+.lab-maplibre-chip b {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lab-leaflet-chip em,
+.lab-maplibre-chip em {
+  flex: 0 0 auto;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+@media (max-width: 420px) {
+  .lab-leaflet-map,
+  .lab-maplibre-map {
+    height: 240px;
+    border-radius: 10px;
+  }
+
+  .lab-leaflet-overlay,
+  .lab-maplibre-overlay {
+    font-size: 0.75rem;
+  }
+}

@@ -794,13 +794,13 @@
   "bolt-diy": {
     "name": "bolt.diy",
     "officialSite": "https://github.com/stackblitz-labs/bolt.diy",
-    "source": "https://github.githubassets.com/assets/pinned-octocat-093da3e6fa40.svg",
-    "resolvedUrl": "https://github.githubassets.com/assets/pinned-octocat-093da3e6fa40.svg",
+    "source": "https://raw.githubusercontent.com/stackblitz-labs/bolt.diy/main/icons/logo.svg",
+    "resolvedUrl": "https://raw.githubusercontent.com/stackblitz-labs/bolt.diy/main/icons/logo.svg",
     "file": "assets/icons/bolt-diy.svg",
     "mime": "image/svg+xml",
-    "bytes": 1009,
-    "sha256": "e2c39927d004078983910c9017066f4257a1d80a7e2456753d1285938dd858e7",
-    "retrievedAt": "2026-10-19T03:44:15.252Z"
+    "bytes": 241,
+    "sha256": "244dc2cebe251a2b839ee09107308bbdfeeac4e2831f6f7c6ddffd96929eacbe",
+    "retrievedAt": "2026-10-19T04:26:23.681Z"
   },
   "dify": {
     "name": "Dify",
@@ -1245,13 +1245,9 @@
   "uplot": {
     "name": "uPlot",
     "officialSite": "https://github.com/leeoniya/uPlot",
-    "source": "https://github.githubassets.com/assets/pinned-octocat-093da3e6fa40.svg",
-    "resolvedUrl": "https://github.githubassets.com/assets/pinned-octocat-093da3e6fa40.svg",
-    "file": "assets/icons/uplot.svg",
-    "mime": "image/svg+xml",
-    "bytes": 1009,
-    "sha256": "e2c39927d004078983910c9017066f4257a1d80a7e2456753d1285938dd858e7",
-    "retrievedAt": "2026-10-19T03:44:28.313Z"
+    "status": "no-product-mark",
+    "checkedAt": "2026-10-19",
+    "fallbackReason": "官网为官方 GitHub 仓库；平台的 Octocat 图标不是 uPlot 产品 Logo，未找到可确认的独立标志，保留文字标识。"
   },
   "g6": {
     "name": "AntV G6",
@@ -1597,13 +1593,13 @@
   "changesets": {
     "name": "Changesets",
     "officialSite": "https://github.com/changesets/changesets",
-    "source": "https://github.githubassets.com/assets/pinned-octocat-093da3e6fa40.svg",
-    "resolvedUrl": "https://github.githubassets.com/assets/pinned-octocat-093da3e6fa40.svg",
-    "file": "assets/icons/changesets.svg",
-    "mime": "image/svg+xml",
-    "bytes": 1009,
-    "sha256": "e2c39927d004078983910c9017066f4257a1d80a7e2456753d1285938dd858e7",
-    "retrievedAt": "2026-10-19T03:44:37.766Z"
+    "source": "https://github.com/changesets.png?size=128",
+    "resolvedUrl": "https://avatars.githubusercontent.com/u/51163350?s=128&v=4",
+    "file": "assets/icons/changesets.png",
+    "mime": "image/png",
+    "bytes": 5460,
+    "sha256": "2aa4b729bf1574f0953df05fd633af885871f7cb5489aa2d8688ce5280b0492e",
+    "retrievedAt": "2026-10-19T04:26:23.592Z"
   },
   "rollup": {
     "name": "Rollup",

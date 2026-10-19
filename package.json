@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "wrangler dev --port 8787",
     "dev:web": "npm run dev -w apps/web",
-    "build": "npm run build -w apps/web",
+    "build": "tsx scripts/prepare-demo-assets.ts && npm run build -w apps/web",
     "typecheck": "tsc --noEmit && npm run typecheck -w apps/web",
     "test": "node --import tsx --test tests/*.test.ts",
     "db:local": "wrangler d1 migrations apply vibe-catalog --local",
@@ -20,13 +20,26 @@
     "deploy": "npm run build && wrangler deploy",
     "test:e2e": "npm run test:e2e -w apps/web",
     "test:api": "tsx scripts/verify-api.ts",
-    "check:links": "tsx scripts/check-links.ts"
+    "check:links": "tsx scripts/check-links.ts",
+    "assets:demos:local": "tsx scripts/sync-demo-assets.ts --local",
+    "assets:demos:remote": "tsx scripts/sync-demo-assets.ts --remote",
+    "test:labs": "tsx scripts/verify-labs.ts",
+    "test:demo-assets": "tsx scripts/verify-demo-assets.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "latest",
-    "typescript": "^5.9.0",
+    "@playwright/test": "^1.56.0",
     "tsx": "^4.20.0",
-    "wrangler": "^4.101.0",
-    "@playwright/test": "^1.56.0"
+    "typescript": "^5.9.0",
+    "wrangler": "^4.101.0"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.4",
+    "hono": "^4.13.13",
+    "kysely": "^0.29.7"
+  },
+  "overrides": {
+    "@tiptap/core": "3.32.0",
+    "@tiptap/pm": "3.32.0"
   }
 }

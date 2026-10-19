@@ -4,7 +4,7 @@
 
 ## 开发
 
-先按 [README](README.md#快速开始) 初始化本地 D1/R2，再运行 `npm run dev`。前端开发可另开终端运行 `npm run dev:web`，在 5173 访问。
+先按 [开发说明](docs/DEVELOPMENT.md) 初始化本地 D1/R2，再运行 `npm run dev`。前端开发可另开终端运行 `npm run dev:web`，在 5173 访问。
 
 提交前运行：
 
@@ -14,6 +14,7 @@ npm run typecheck
 npm test
 npm run build
 npm run test:api
+node --import tsx scripts/verify-labs.ts
 npm run test:e2e
 ```
 
@@ -28,7 +29,9 @@ npm run test:e2e
 
 ## 新增示例
 
-示例需要有真实可操作的输入和输出，展示一种清楚的能力。请同时更新 DemoKind、渲染入口、缩略图、标签、目录关联与回归测试。
+一个示例围绕一个主要技术栈，直接调用它的库或真实服务，展示它有代表性的能力。`toolIds` 只包含 `stack`，对应工具的 `demoId` 指回该示例。不能在本站运行的工具不关联示例，不用通用演示、模拟 API 或录制结果替代。请同时更新渲染入口、缩略图、标签、目录关联与回归测试。
+
+独立运行时资源放在 `assets/demos/`，以内容哈希命名，在 `manifest.json` 记录 MIME、SHA-256、官方来源和许可。通过本站 R2 提供并逐项放行，禁止运行时 CDN 和放宽 CSP。服务接口见[示例服务契约](docs/SHOWCASE_BACKEND_CONTRACT.md)。
 
 默认不联网处理访客输入，不执行不可信代码。长计算应限制规模或放在可终止的 Worker 中。支持键盘、亮暗主题、320px 屏幕和减少动态效果；禁止 hover 导致卡片或按钮位移。
 

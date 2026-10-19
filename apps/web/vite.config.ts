@@ -15,5 +15,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    // Keep local fonts as same-origin files under the strict font-src policy.
+    assetsInlineLimit: 0,
   },
 });

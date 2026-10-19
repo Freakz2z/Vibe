@@ -1,0 +1,7 @@
+.demo-related-more { max-width: 100%; }
+.demo-related-more > summary { cursor: pointer; list-style: none; min-height: 28px; }
+.demo-related-more > summary::-webkit-details-marker { display: none; }
+.demo-related-more > summary::after { content: "＋"; margin-left: 4px; }
+.demo-related-more[open] { flex-basis: 100%; }
+.demo-related-more[open] > summary::after { content: "−"; }
+.demo-related-more > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
