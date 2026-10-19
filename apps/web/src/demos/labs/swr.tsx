@@ -159,6 +159,7 @@ export default function SwrLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   return (
     <Lab title="SWR 陈旧数据重验证" badge={<span className="demo-live-badge">swr 2.2.5</span>} reset={() => void mutate()}>
       <LabLayout
+        layout="toolbar"
         controls={
           <>
             <TextField label="缓存键 key" value={key} onChange={(v) => setKey(v.slice(0, 40))} placeholder="alpha" />

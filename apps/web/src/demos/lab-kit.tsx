@@ -36,9 +36,9 @@ export function Lab({
   );
 }
 
-export function LabLayout({ controls, children }: { controls: ReactNode; children: ReactNode }) {
+export function LabLayout({ controls, children, layout = 'split' }: { controls: ReactNode; children: ReactNode; layout?: 'split' | 'toolbar' | 'editor' }) {
   return (
-    <div className="lab-layout">
+    <div className={`lab-layout lab-layout--${layout}`}>
       <div className="lab-controls">{controls}</div>
       <div className="lab-stage">{children}</div>
     </div>
@@ -218,9 +218,13 @@ export function Status({ children, tone }: { children: ReactNode; tone?: 'ok' | 
   );
 }
 
-export function Stat({ label, value }: { label: string; value: ReactNode }) {
+export function Stat({ label, value, format = 'auto' }: { label: string; value: ReactNode; format?: 'auto' | 'number' | 'text' }) {
+  const textual = format === 'text' || (format === 'auto' && (typeof value === 'string'
+    ? value.length > 14 || (!/\d/.test(value) && !/^[—–-]$/.test(value))
+    : typeof value !== 'number'));
+  const wide = textual && (typeof value !== 'string' || value.length > 24);
   return (
-    <div>
+    <div data-format={textual ? 'text' : 'number'} data-wide={wide || undefined}>
       <span>{label}</span>
       <strong>{value}</strong>
     </div>

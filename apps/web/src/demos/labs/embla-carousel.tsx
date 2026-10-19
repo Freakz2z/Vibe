@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import type { EmblaOptionsType } from 'embla-carousel';
 import type { DemoCopyHandler } from '../types';
-import { Code, Lab, Segmented, Stat, Stats, Status, useMotionOk } from '../lab-kit';
+import { Code, Lab, Select, Stat, Stats, Status, useMotionOk } from '../lab-kit';
 
 type Align = 'start' | 'center' | 'end';
 type ScrollStep = '1' | '2' | 'auto';
@@ -139,65 +139,66 @@ export default function EmblaCarouselLab({ onCopy }: { onCopy: DemoCopyHandler }
         setNonce((n) => n + 1);
       }}
     >
-      <div className="lab-layout">
-        <div className="lab-controls">
-          <Segmented<Align> label="对齐 align" value={align} options={ALIGN_OPTIONS} onChange={setAlign} />
-          <Segmented<ScrollStep> label="滚动步长 slidesToScroll" value={step} options={STEP_OPTIONS} onChange={setStep} />
-          <Segmented<Contain> label="边界 containScroll" value={contain} options={CONTAIN_OPTIONS} onChange={setContain} />
-          <div className="lab-options">
-            <button type="button" className="button button--primary button--small" disabled={!emblaApi?.canScrollPrev()} onClick={() => emblaApi?.scrollPrev()}>
-              上一屏
-            </button>
-            <button type="button" className="button button--primary button--small" disabled={!emblaApi?.canScrollNext()} onClick={() => emblaApi?.scrollNext()}>
-              下一屏
-            </button>
-            <button type="button" className="button button--secondary button--small" onClick={() => emblaApi?.scrollTo(0)}>
-              回到开头
-            </button>
-          </div>
-          <Stats>
-            <Stat label="selectedScrollSnap()" value={selected} />
-            <Stat label="吸附点总数" value={snapCount || '—'} />
-            <Stat label="当前顺序" value={slides.slice(0, 3).join(' → ')} />
-          </Stats>
-          <p className="lab-motion-note">把卡片拖到最左边再松手，首项会被移到末尾并重新计算吸附点 —— 循环感来自真实的数据重排，不是复制节点。</p>
-          {!motionOk ? <Status>系统开启了「减少动态效果」，自动滚动已停用，拖拽吸附仍然可用。</Status> : null}
-        </div>
-
-        <div className="lab-stage">
-          <div className="lab-embla" ref={emblaRef} key={nonce}>
-            <div className="lab-embla__container">
-              {slides.map((label, i) => (
-                <div className="lab-embla__slide" key={`${label}-${i}`} style={{ flexBasis: step === 'auto' ? 'auto' : '62%' }}>
-                  <div className="lab-embla__card">
-                    <strong>{label}</strong>
-                    <small>#{i + 1}</small>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="lab-embla__dots">
-            {Array.from({ length: snapCount }, (_, i) => (
-              <button
-                key={i}
-                type="button"
-                className="lab-embla__dot"
-                data-active={i === selected}
-                aria-label={`跳到第 ${i + 1} 个吸附点`}
-                onClick={() => emblaApi?.scrollTo(i)}
-              />
-            ))}
-          </div>
-
-          <ul className="lab-embla__list">
-            {slides.map((label, i) => (
-              <li key={`${label}-${i}`}>{label}</li>
-            ))}
-          </ul>
-        </div>
+      <div className="lab-carousel-controls">
+        <Select<Align> label="对齐 align" value={align} options={ALIGN_OPTIONS} onChange={setAlign} />
+        <Select<ScrollStep> label="滚动步长 slidesToScroll" value={step} options={STEP_OPTIONS} onChange={setStep} />
+        <Select<Contain> label="边界 containScroll" value={contain} options={CONTAIN_OPTIONS} onChange={setContain} />
       </div>
+
+      <div className="lab-stage lab-carousel-stage">
+        <div className="lab-embla" ref={emblaRef} key={nonce}>
+          <div className="lab-embla__container">
+            {slides.map((label, i) => (
+              <div className="lab-embla__slide" key={`${label}-${i}`} style={{ flexBasis: step === 'auto' ? 'auto' : '62%' }}>
+                <div className="lab-embla__card">
+                  <strong>{label}</strong>
+                  <small>#{i + 1}</small>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="lab-embla__dots">
+          {Array.from({ length: snapCount }, (_, i) => (
+            <button
+              key={i}
+              type="button"
+              className="lab-embla__dot"
+              data-active={i === selected}
+              aria-label={`跳到第 ${i + 1} 个吸附点`}
+              onClick={() => emblaApi?.scrollTo(i)}
+            />
+          ))}
+        </div>
+
+        <p className="lab-carousel-label">当前顺序</p>
+        <ul className="lab-embla__list" aria-label="当前顺序">
+          {slides.map((label, i) => (
+            <li key={`${label}-${i}`}>{label}</li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="lab-carousel-footer">
+        <div className="lab-options">
+          <button type="button" className="button button--primary button--small" disabled={!emblaApi?.canScrollPrev()} onClick={() => emblaApi?.scrollPrev()}>
+            上一屏
+          </button>
+          <button type="button" className="button button--primary button--small" disabled={!emblaApi?.canScrollNext()} onClick={() => emblaApi?.scrollNext()}>
+            下一屏
+          </button>
+          <button type="button" className="button button--secondary button--small" onClick={() => emblaApi?.scrollTo(0)}>
+            回到开头
+          </button>
+        </div>
+        <Stats>
+          <Stat label="selectedScrollSnap()" value={selected} />
+          <Stat label="吸附点总数" value={snapCount || '—'} />
+        </Stats>
+      </div>
+      <p className="lab-motion-note">拖至开头并松手，可观察卡片重排与吸附点更新。</p>
+      {!motionOk ? <Status>已开启减少动态效果，拖拽吸附仍然可用。</Status> : null}
 
       <Code text={snippet} onCopy={onCopy} label="Embla 调用" maxHeight={340} />
     </Lab>

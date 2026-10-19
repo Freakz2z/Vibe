@@ -285,6 +285,7 @@ function QueryBody({ onCopy, net }: { onCopy: DemoCopyHandler; net: NetApi }) {
 
   return (
     <LabLayout
+        layout="toolbar"
       controls={
         <>
           <TextField label="查询键 key（最长 40 字符）" value={key} onChange={(v) => setKey(v.slice(0, 40))} placeholder={DEFAULT_KEY} />

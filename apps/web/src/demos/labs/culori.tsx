@@ -243,6 +243,7 @@ export default function CuloriLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   return (
     <Lab title="Culori 跨色彩空间插值" badge={<span className="demo-live-badge">culori 4.0.1</span>} reset={reset}>
       <LabLayout
+        layout="toolbar"
         controls={
           <>
             <div className="lab-field">

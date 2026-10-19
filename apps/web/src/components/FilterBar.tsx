@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, ListFilter, SlidersHorizontal, X } from 'lucide-react';
 import type { Tool } from '../types';
 import { useDialog } from '../hooks/useDialog';
+import { usePresence } from '../hooks/usePresence';
 
 export type FilterKey = 'q' | 'category' | 'platform' | 'pricing' | 'favorites';
 
@@ -154,6 +155,8 @@ export function FilterBar({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeSheet = useCallback(() => setSheetOpen(false), []);
 
+  const presence = usePresence(sheetOpen);
+
   useDialog(sheetOpen, sheetRef, closeSheet);
 
   useEffect(() => {
@@ -220,9 +223,12 @@ export function FilterBar({
         />
       </section>
 
-      {sheetOpen ? (
+      {presence.present ? (
         <div
           className="filter-sheet-backdrop"
+          data-state={presence.exiting ? 'closing' : 'open'}
+          aria-hidden={presence.exiting || undefined}
+          ref={(element) => { element?.toggleAttribute('inert', presence.exiting); }}
           onPointerDown={(event) => {
             if (event.target === event.currentTarget) closeSheet();
           }}

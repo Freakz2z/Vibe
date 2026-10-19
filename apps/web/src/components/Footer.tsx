@@ -4,10 +4,9 @@ import { Brand } from './Brand';
 
 interface FooterProps {
   updatedAt: string;
-  onAbout: () => void;
 }
 
-export function Footer({ updatedAt, onAbout }: FooterProps) {
+export function Footer({ updatedAt }: FooterProps) {
   return (
     <footer className="site-footer">
       <div className="site-footer__top">
@@ -19,9 +18,6 @@ export function Footer({ updatedAt, onAbout }: FooterProps) {
         <nav className="site-footer__nav" aria-label="页脚导航">
           <a href="/">全部工具</a>
           <a href="/demos">站内示例</a>
-          <button type="button" onClick={onAbout}>
-            关于与选型说明
-          </button>
         </nav>
       </div>
       <div className="site-footer__bottom">

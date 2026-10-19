@@ -2,7 +2,7 @@ import { Fragment, useMemo, useState, type ReactNode } from 'react';
 import markdownit from 'markdown-it';
 import type { Token } from 'markdown-it';
 import type { DemoCopyHandler } from '../types';
-import { Code, DataTable, Lab, LabLayout, Stage, Stats, Stat, Status, TextField } from '../lab-kit';
+import { Code, DataTable, Lab, LabLayout, Stats, Stat, Status, TextField } from '../lab-kit';
 
 const SAMPLE = `# Markdown-it 安全渲染
 
@@ -331,39 +331,40 @@ export default function MarkdownItLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   return (
     <Lab title="markdown-it 解析与安全渲染" badge={<span className="demo-live-badge">markdown-it 15</span>} reset={() => { setSource(SAMPLE); setDanger(DANGEROUS); setOptions({ html: false, linkify: true, typographer: true, breaks: true }); }}>
       <LabLayout
+        layout="editor"
         controls={
           <>
             <p className="demo-caption">
               <code>md.parse()</code> 出来的 token 流由本页自己渲染成 React 元素，<b>全程没有 innerHTML</b>。
             </p>
             <TextField label="Markdown 源码" value={source} onChange={setSource} rows={10} mono />
-            {(Object.keys(OPTION_LABEL) as OptionKey[]).map((key) => (
-              <div key={key} className="lab-field">
-                <span>{OPTION_LABEL[key]}</span>
-                <label className="lab-option">
-                  <input
-                    type="checkbox"
-                    checked={options[key]}
-                    onChange={(e) => setOptions((prev) => ({ ...prev, [key]: e.target.checked }))}
-                  />
-                  {options[key] ? '已开启' : '已关闭'}
-                </label>
-                <small className="lab-field__rule">{OPTION_HINT[key]}</small>
-              </div>
-            ))}
           </>
         }
       >
-        <Stage>
-          <div className="lab-md__preview">
-            {empty ? (
-              <p className="lab-status">输入为空：md.parse() 返回空数组，预览区显示占位提示。</p>
-            ) : (
-              blockNodes(tokens, 'md')
-            )}
-          </div>
-        </Stage>
+        <div className="lab-md__preview">
+          {empty ? (
+            <p className="lab-status">输入为空：md.parse() 返回空数组，预览区显示占位提示。</p>
+          ) : (
+            blockNodes(tokens, 'md')
+          )}
+        </div>
       </LabLayout>
+      <div className="lab-config lab-config--options">
+        {(Object.keys(OPTION_LABEL) as OptionKey[]).map((key) => (
+          <div key={key} className="lab-field">
+            <span>{OPTION_LABEL[key]}</span>
+            <label className="lab-option">
+              <input
+                type="checkbox"
+                checked={options[key]}
+                onChange={(e) => setOptions((prev) => ({ ...prev, [key]: e.target.checked }))}
+              />
+              {options[key] ? '已开启' : '已关闭'}
+            </label>
+            <small className="lab-field__rule">{OPTION_HINT[key]}</small>
+          </div>
+        ))}
+      </div>
 
       <Stats>
         <Stat label="block token 数" value={tokens.length} />

@@ -1,4 +1,4 @@
-import { Compass, Info, X } from 'lucide-react';
+import { Compass, X } from 'lucide-react';
 import type { Category } from '../types';
 import { Brand } from './Brand';
 import { CategoryIcon, DemoEntryIcon } from './icons';
@@ -15,7 +15,6 @@ interface SidebarProps {
   onAll: () => void;
   onDemos: () => void;
   onCategory: (id: string) => void;
-  onAbout: () => void;
   onRequestClose?: () => void;
 }
 
@@ -32,7 +31,6 @@ export function Sidebar({
   onAll,
   onDemos,
   onCategory,
-  onAbout,
   onRequestClose,
 }: SidebarProps) {
   const building = categories.filter((category) => BUILDING_GROUPS.includes(category.id));
@@ -123,13 +121,6 @@ export function Sidebar({
           ))}
         </div>
       </nav>
-
-      <div className="sidebar__foot">
-        <button type="button" className="sidebar__about" onClick={onAbout}>
-          <Info size={15} aria-hidden="true" />
-          关于与选型说明
-        </button>
-      </div>
     </div>
   );
 }

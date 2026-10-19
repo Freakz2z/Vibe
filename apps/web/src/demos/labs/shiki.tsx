@@ -9,7 +9,7 @@ import python from 'shiki/langs/python.mjs';
 import json from 'shiki/langs/json.mjs';
 import markdown from 'shiki/langs/markdown.mjs';
 import type { DemoCopyHandler } from '../types';
-import { Code, ErrorNote, Lab, LabLayout, Segmented, Stage, Status, TextField, useThemeColors } from '../lab-kit';
+import { Code, ErrorNote, Lab, LabLayout, Segmented, Status, TextField, useThemeColors } from '../lab-kit';
 
 type Lang = 'javascript' | 'typescript' | 'python' | 'json' | 'markdown';
 type ThemeChoice = 'auto' | 'github-light' | 'github-dark';
@@ -168,51 +168,52 @@ highlighter.dispose();`;
 
   return (
     <Lab title="Shiki 语法高亮（JS 正则引擎）" badge={<span className="demo-live-badge">Shiki 1.24</span>} reset={() => setCode(SAMPLE[lang])}>
+      <div className="lab-config lab-config--pair">
+        <p className="demo-caption">
+          用 <code>createHighlighterCore</code> + <code>createJavaScriptRegexEngine()</code>，全程不加载 WASM。
+        </p>
+        <Segmented<Lang>
+          label="语言"
+          value={lang}
+          options={(Object.keys(LANGS) as Lang[]).map((k) => [k, LANGS[k].label] as const)}
+          onChange={(v) => {
+            setLang(v);
+            setCode(SAMPLE[v]);
+          }}
+        />
+        <Segmented<ThemeChoice>
+          label="主题"
+          value={themeChoice}
+          options={[
+            ['auto', '跟随站点'],
+            ['github-light', 'github-light'],
+            ['github-dark', 'github-dark'],
+          ]}
+          onChange={setThemeChoice}
+        />
+      </div>
       <LabLayout
+        layout="editor"
         controls={
           <>
-            <p className="demo-caption">
-              用 <code>createHighlighterCore</code> + <code>createJavaScriptRegexEngine()</code>，全程不加载 WASM。
-            </p>
-            <Segmented<Lang>
-              label="语言"
-              value={lang}
-              options={(Object.keys(LANGS) as Lang[]).map((k) => [k, LANGS[k].label] as const)}
-              onChange={(v) => {
-                setLang(v);
-                setCode(SAMPLE[v]);
-              }}
-            />
-            <Segmented<ThemeChoice>
-              label="主题"
-              value={themeChoice}
-              options={[
-                ['auto', '跟随站点'],
-                ['github-light', 'github-light'],
-                ['github-dark', 'github-dark'],
-              ]}
-              onChange={setThemeChoice}
-            />
             <TextField label="代码" value={code} onChange={setCode} rows={12} mono />
             <p className="lab-field__rule">已加载：{info}</p>
           </>
         }
       >
-        <Stage>
-          {bootError ? (
-            <ErrorNote>{bootError}</ErrorNote>
-          ) : !highlighter ? (
-            <p className="lab-status">正在用 JavaScript RegExp 引擎初始化高亮器…</p>
-          ) : renderError ? (
-            <ErrorNote>{renderError}</ErrorNote>
-          ) : result.html ? (
-            // Shiki 会转义代码文本，颜色全部来自本地打包的主题文件，
-            // 输出里没有任何来自输入的原始 HTML 片段。
-            <div className="lab-shiki__out" dangerouslySetInnerHTML={{ __html: result.html }} />
-          ) : (
-            <p className="lab-status">没有可渲染的内容。</p>
-          )}
-        </Stage>
+        {bootError ? (
+          <ErrorNote>{bootError}</ErrorNote>
+        ) : !highlighter ? (
+          <p className="lab-status">正在用 JavaScript RegExp 引擎初始化高亮器…</p>
+        ) : renderError ? (
+          <ErrorNote>{renderError}</ErrorNote>
+        ) : result.html ? (
+          // Shiki 会转义代码文本，颜色全部来自本地打包的主题文件，
+          // 输出里没有任何来自输入的原始 HTML 片段。
+          <div className="lab-shiki__out" dangerouslySetInnerHTML={{ __html: result.html }} />
+        ) : (
+          <p className="lab-status">没有可渲染的内容。</p>
+        )}
       </LabLayout>
 
       <div className="lab-shiki__stats">

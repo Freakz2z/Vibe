@@ -7,11 +7,12 @@ import { writeClipboard } from './lib/clipboard';
 import { useTheme } from './hooks/useTheme';
 import { useFavorites } from './hooks/useFavorites';
 import { useDialog } from './hooks/useDialog';
+import { usePresence } from './hooks/usePresence';
+import { useSiteMotion } from './hooks/useSiteMotion';
 import { Topbar } from './components/Topbar';
 import { Sidebar, type SidebarActive } from './components/Sidebar';
 import { Footer } from './components/Footer';
 import { SearchDialog } from './components/SearchDialog';
-import { AboutDialog } from './components/AboutDialog';
 import { Toast, type ToastData } from './components/Toast';
 import { ErrorScreen, LoadingScreen } from './components/StartupScreens';
 import type { ActiveFilter, FilterKey } from './components/FilterBar';
@@ -50,17 +51,18 @@ export default function App() {
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [aboutOpen, setAboutOpen] = useState(false);
   const [toast, setToast] = useState<ToastData | null>(null);
   const toastId = useRef(0);
 
   const theme = useTheme();
   const favorites = useFavorites();
   const drawerRef = useRef<HTMLDivElement>(null);
+  const motionRef = useRef<HTMLElement>(null);
+  const drawerPresence = usePresence(drawerOpen);
+  useSiteMotion(motionRef, pathname, route.search, loadStatus === 'ready');
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
   const closeSearch = useCallback(() => setSearchOpen(false), []);
-  const closeAbout = useCallback(() => setAboutOpen(false), []);
 
   useDialog(drawerOpen, drawerRef, closeDrawer);
 
@@ -181,11 +183,6 @@ export default function App() {
   const openSearch = useCallback(() => {
     setDrawerOpen(false);
     setSearchOpen(true);
-  }, []);
-
-  const openAbout = useCallback(() => {
-    setDrawerOpen(false);
-    setAboutOpen(true);
   }, []);
 
   const filters = useMemo<ToolFilters>(() => {
@@ -535,13 +532,15 @@ export default function App() {
           onAll={goHome}
           onDemos={goDemos}
           onCategory={goCategory}
-          onAbout={openAbout}
         />
       </aside>
 
-      {drawerOpen ? (
+      {drawerPresence.present ? (
         <div
           className="drawer-backdrop"
+          data-state={drawerPresence.exiting ? 'closing' : 'open'}
+          aria-hidden={drawerPresence.exiting || undefined}
+          ref={(element) => { element?.toggleAttribute('inert', drawerPresence.exiting); }}
           onPointerDown={(event) => {
             if (event.target === event.currentTarget) closeDrawer();
           }}
@@ -564,7 +563,6 @@ export default function App() {
               onAll={goHome}
               onDemos={goDemos}
               onCategory={goCategory}
-              onAbout={openAbout}
               onRequestClose={closeDrawer}
             />
           </aside>
@@ -581,10 +579,10 @@ export default function App() {
           onOpenSearch={openSearch}
           setThemeMode={theme.setMode}
         />
-        <main id="main-content" className="content" tabIndex={-1}>
+        <main id="main-content" className="content" tabIndex={-1} ref={motionRef}>
           {content}
         </main>
-        <Footer updatedAt={catalog.updatedAt} onAbout={openAbout} />
+        <Footer updatedAt={catalog.updatedAt} />
       </div>
 
       <SearchDialog
@@ -601,15 +599,6 @@ export default function App() {
           navigate(`/?category=${encodeURIComponent(category.id)}`);
         }}
         onShowAll={handleSearchAll}
-      />
-
-      <AboutDialog
-        open={aboutOpen}
-        onClose={closeAbout}
-        updatedAt={catalog.updatedAt}
-        toolCount={catalog.tools.length}
-        categoryCount={catalog.categories.length}
-        demoCount={catalog.demos.length}
       />
 
       <Toast toast={toast} />

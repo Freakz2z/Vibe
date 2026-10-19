@@ -219,11 +219,7 @@ export default function PaperjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
           <Range label="形状 A 大小" value={a.size} min={40} max={280} step={5} unit=" px" onChange={(v) => setA((p) => ({ ...p, size: v }))} />
           <Select<Kind> label="形状 B 类型" value={b.kind} options={KIND_OPTIONS} onChange={(v) => setB((p) => ({ ...p, kind: v }))} />
           <Range label="形状 B 大小" value={b.size} min={40} max={280} step={5} unit=" px" onChange={(v) => setB((p) => ({ ...p, size: v }))} />
-          <Stats>
-            <Stat label="A" value={info.a} />
-            <Stat label="B" value={info.b} />
-            <Stat label="结果" value={info.result} />
-          </Stats>
+
           <p className="lab-paper-meta">直接在画布上拖动两个形状的重心，Paper.js 会重新计算布尔路径。</p>
           {error ? <p className="lab-error">{error}</p> : null}
         </div>
@@ -239,6 +235,13 @@ export default function PaperjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
                 坐标 B：{b.x}, {b.y}
               </p>
             </div>
+          </div>
+          <div className="lab-output-stats">
+            <Stats>
+              <Stat label="A" value={info.a} />
+              <Stat label="B" value={info.b} />
+              <Stat label="结果" value={info.result} />
+            </Stats>
           </div>
         </div>
       </div>

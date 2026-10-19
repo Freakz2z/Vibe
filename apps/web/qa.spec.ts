@@ -84,6 +84,7 @@ async function expectHoverStable(page: Page, target: Locator, label: string) {
   await target.scrollIntoViewIfNeeded();
   await page.mouse.move(1, 1);
   await page.waitForTimeout(220);
+  await target.evaluate(async element => { await Promise.all(element.getAnimations().map(animation => animation.finished.catch(() => {}))); });
   const before = await target.boundingBox();
   expect(before, `${label} should have a bounding box before hover`).not.toBeNull();
 
@@ -132,6 +133,7 @@ test('live catalog, all required routes and compact first screens', async ({ pag
   await expect(page.getByRole('heading', {name: '全部工具', exact: true})).toBeVisible();
   await expect(page.locator('.featured-section, .demos-section, .hero')).toHaveCount(0);
   await expect(page.getByText('编辑精选', {exact:true})).toHaveCount(0);
+  await expect(page.getByRole('button', {name:'关于与选型说明'})).toHaveCount(0);
   await expect(page.locator('.tool-card')).toHaveCount(catalog.tools.length);
   await expect(page.locator('.tool-card').first()).toBeInViewport({ ratio: 0.5 });
   expectCopyAbsent(await page.locator('body').innerText(), REMOVED_COPY);
@@ -435,12 +437,6 @@ test('filters, search, favorites, demos and safe markdown', async ({ page }) => 
   await expect(page.locator('.price').first()).toHaveText('免费使用');
   await expect(page.locator('.tool-detail-main')).toContainText('开发者计划');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
-
-  await page.getByRole('button', { name: '关于与选型说明' }).first().click();
-  const about = page.getByRole('dialog', { name: '关于 Vibe 工具集' });
-  await expect(about).toBeVisible();
-  await expect(about).toContainText('收藏与主题偏好保存在浏览器的 localStorage 中');
-  await page.keyboard.press('Escape');
 
   expect(errors).toEqual([]);
 });
@@ -851,4 +847,95 @@ test('expanded catalog, demo search and rightmost source link', async ({ page })
 
   await page.goto(`${BASE}/tools/codemirror`);
   await expect(page.locator('.tool-detail-hero__actions a', {hasText: '源码'})).toHaveAttribute('href', 'https://code.haverbeke.berlin/codemirror/view');
+});
+
+
+test('site motion gives feedback, restores focus and stops for reduced motion', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await prepare(page);
+  await page.goto(BASE);
+  const heart = page.locator('.favorite-button').first();
+  await expect(heart).toBeVisible();
+  await heart.click();
+  await expect(heart).toHaveAttribute('aria-pressed', 'true');
+  await expect.poll(() => heart.locator('svg').evaluate(element => element.getAnimations().map(animation => animation.id))).toContain('vibe-favorite');
+
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect.poll(() => page.evaluate(() => document.getAnimations().filter(animation => animation.id.startsWith('vibe-')).length)).toBe(0);
+  await expect(page.locator('.tool-card').first()).toHaveCSS('opacity', '1');
+  await page.getByRole('button', { name: '打开搜索' }).click();
+  await expect(page.getByRole('dialog', { name: '搜索工具目录' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: '搜索工具目录' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '打开搜索' })).toBeFocused();
+
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.setViewportSize({ width: 390, height: 844 });
+  const menu = page.getByRole('button', { name: '打开分类导航' });
+  await menu.click();
+  await expect(page.getByRole('dialog', { name: '分类导航' })).toBeVisible();
+  await expect(page.getByRole('button', {name:'关于与选型说明'})).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await menu.click();
+  await expect(page.getByRole('dialog', { name: '分类导航' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.drawer-backdrop')).toHaveCount(0);
+  await expect(menu).toBeFocused();
+  await noOverflow(page);
+});
+
+test('Embla gives the carousel full width and keeps order labels out of numeric tiles', async ({ page }) => {
+  await prepare(page);
+  for (const width of [1600, 1280, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto(BASE + '/demos/embla-snap');
+    const stage = page.locator('.lab-carousel-stage');
+    await expect(stage).toBeVisible();
+    const metrics = await stage.evaluate(element => {
+      const lab = element.closest('.demo-workspace')!;
+      const style = getComputedStyle(lab);
+      return { width: element.getBoundingClientRect().width, available: lab.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight) };
+    });
+    expect(Math.abs(metrics.width - metrics.available)).toBeLessThanOrEqual(1);
+    await expect(page.getByRole('list', {name:'当前顺序'}).locator('li')).toHaveCount(12);
+    await expect(page.locator('.lab-carousel-footer .lab-stats > div')).toHaveCount(2);
+    await noOverflow(page);
+  }
+  const selected = page.locator('.lab-carousel-footer .lab-stats > div').first().locator('strong');
+  await expect(selected).toHaveText('0');
+  await page.getByRole('button', {name:'下一屏',exact:true}).click();
+  await expect(selected).not.toHaveText('0');
+});
+
+test('dense demo settings and textual readouts do not leave an empty column', async ({ page }) => {
+  await prepare(page);
+  await page.setViewportSize({ width: 1600, height: 1000 });
+  for (const id of ['paper-boolean', 'markdown-safe', 'shiki-theme']) {
+    await page.goto(BASE + '/demos/' + id);
+    await expect(page.locator('.lab-layout > .lab-stage')).toBeVisible();
+    const heights = await page.locator('.lab-layout').evaluate(element => ({
+      controls: element.querySelector('.lab-controls')!.getBoundingClientRect().height,
+      stage: element.querySelector('.lab-stage')!.getBoundingClientRect().height,
+    }));
+    expect(Math.abs(heights.controls - heights.stage), id).toBeLessThan(220);
+    for (const value of await page.locator('.lab-stats > [data-format="text"] strong').all()) {
+      expect(parseFloat(await value.evaluate(element => getComputedStyle(element).fontSize)), id).toBeLessThan(16);
+    }
+  }
+  for (const id of ['pixi-sprite-batch', 'culori-interpolate', 'tanstack-cache', 'swr-revalidate', 'd1-sql']) {
+    await page.goto(BASE + '/demos/' + id);
+    const stage = page.locator('.lab-layout > .lab-stage');
+    await expect(stage).toBeVisible();
+    const layout = await stage.evaluate(element => {
+      const controls = element.parentElement!.querySelector('.lab-controls')!;
+      const output = element.getBoundingClientRect();
+      const settings = controls.getBoundingClientRect();
+      return { outputWidth: output.width, settingsWidth: settings.width, gap: output.top - settings.bottom };
+    });
+    expect(Math.abs(layout.outputWidth - layout.settingsWidth), id).toBeLessThanOrEqual(1);
+    expect(layout.gap, id).toBeGreaterThanOrEqual(0);
+    expect(layout.gap, id).toBeLessThanOrEqual(32);
+    await noOverflow(page);
+  }
 });

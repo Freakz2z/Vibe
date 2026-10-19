@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Search, X } from 'lucide-react';
 import type { Category, Tool } from '../types';
 import { useDialog } from '../hooks/useDialog';
+import { usePresence } from '../hooks/usePresence';
 import { toolMatches } from '../lib/catalog';
 import { CategoryIcon } from './icons';
 import { ToolLogo } from './ToolLogo';
@@ -41,6 +42,8 @@ export function SearchDialog({
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
 
+  const presence = usePresence(open);
+
   useDialog(open, dialogRef, onClose, inputRef);
 
   useEffect(() => {
@@ -70,7 +73,7 @@ export function SearchDialog({
     setActiveIndex((current) => Math.min(current, Math.max(results.length - 1, 0)));
   }, [results.length]);
 
-  if (!open) return null;
+  if (!presence.present) return null;
 
   const trimmed = query.trim();
   const selected = results[activeIndex];
@@ -83,6 +86,9 @@ export function SearchDialog({
   return (
     <div
       className="modal-backdrop modal-backdrop--search"
+      data-state={presence.exiting ? 'closing' : 'open'}
+      aria-hidden={presence.exiting || undefined}
+      ref={(element) => { element?.toggleAttribute('inert', presence.exiting); }}
       onPointerDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}

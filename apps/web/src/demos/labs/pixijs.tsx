@@ -207,7 +207,7 @@ export default function PixijsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
         setNonce((n) => n + 1);
       }}
     >
-      <div className="lab-layout">
+      <div className="lab-layout lab-layout--toolbar">
         <div className="lab-controls">
           <Select<Blend> label="混合模式" value={blend} options={BLENDS} onChange={setBlend} />
           <Range label="精灵数量" value={count} min={500} max={MAX_SPRITES} step={100} onChange={setCount} />
@@ -220,13 +220,6 @@ export default function PixijsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             onChange={setTextureCount}
             hint="调整共享纹理的数量。"
           />
-          <Stats>
-            <Stat label="精灵" value={count.toLocaleString('zh-CN')} />
-            <Stat label="不同纹理" value={textureCount} />
-            <Stat label="混合模式" value={blend} />
-
-            <Stat label="实测帧耗时" value={`${frameMs.toFixed(1)} ms`} />
-          </Stats>
           <p className="lab-motion-note">
             PixiJS v8 没有公开绘制调用计数器，精灵共享纹理；不同纹理仍可能在同一批次中绘制。帧耗时来自 ticker.deltaMS，包含帧间等待时间，不代表 GPU 渲染耗时。
           </p>
@@ -236,6 +229,15 @@ export default function PixijsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
 
         <div className="lab-stage">
           <div className="lab-pixi-viewport" ref={hostRef} />
+          <div className="lab-output-stats">
+            <Stats>
+              <Stat label="精灵" value={count.toLocaleString('zh-CN')} />
+              <Stat label="不同纹理" value={textureCount} />
+              <Stat label="混合模式" value={blend} />
+
+              <Stat label="实测帧耗时" value={`${frameMs.toFixed(1)} ms`} />
+            </Stats>
+          </div>
         </div>
       </div>
 

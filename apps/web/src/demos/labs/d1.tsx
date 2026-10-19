@@ -176,6 +176,7 @@ export default function D1Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
       }}
     >
       <LabLayout
+        layout="toolbar"
         controls={
           <>
             <Segmented<View> label="视图 view" value={view} options={VIEWS} onChange={setView} />
