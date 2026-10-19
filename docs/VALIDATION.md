@@ -2,11 +2,26 @@
 
 日期：2026-10-19（Asia/Shanghai）
 
+
+## 最新前端状态：恢复卡片布局，仅清理文案
+
+2026-10-19，按用户最新要求恢复仓库初版卡片布局，撤回工具行目录重做。当前前端基于提交 `2f41e1f`，界面小改由 Claude Code CLI 的 `deepseek-flash` 完成。作者会话：`c391045a-eead-4f1f-915c-2b6ee3de6682`。
+
+- 保留原颜色、字体、侧栏、卡片、精选、示例与所有交互功能。
+- 删除主标语、长介绍、“先从这里看”“先动手，再决定”等引导性文案和常驻本机收藏提示。
+- 保留原有栏目名、工具介绍与操作名；非 hover 的功能动画保留。
+- 悬停不再引发容器位移、缩放、箭头位移或 gap 改变；保留颜色、背景和边框反馈。
+- 类型检查与生产构建通过；连接真实 D1/R2 的本地 Worker 浏览器测试 7/7 通过，包含文案缺失、原卡片保留、hover 几何尺寸稳定、320/390px、主题和原有功能。
+- 正式域名浏览器复测 7/7 通过（2.0 分钟），包含恢复的卡片、文案缺失、悬停位置与尺寸不变、320/390px、深色主题及原功能。
+- 正式域名 24 项接口/资源检查通过，D1/R2 均 ready。日志分别为本机 artifacts/e2e-copy-only-production.log 和 artifacts/api-copy-only-production.log。
+
+以下保留初版技术与验收记录，最新界面和发布版本以本节为准。
+
 ## 正式部署
 
 - 正式地址：https://vibe.freakz2z.com
 - Cloudflare Worker：`vibe-cn`
-- 当前部署版本：`ab089b09-9411-4df2-b908-85899a50d080`
+- 当前部署版本：`4cea7a4e-6e51-4e57-b916-37a97360d4c9`
 - D1：`vibe-catalog` / `d65cc446-0b9e-47de-b937-76915cbefe68`
 - R2：`vibe-assets`，通过 Worker `MEDIA` binding 读取。
 - 自定义域名已在 Cloudflare 返回 `enabled: true`，服务为 `vibe-cn`、环境为 `production`。

@@ -35,19 +35,12 @@ function EmptyDirectory({
       ? `没有找到“${query}”`
       : '这一组合暂时没有匹配';
 
-  const description = favorites
-    ? '在任意工具卡片或详情页点一下心形按钮，工具就会留在这台设备上。'
-    : query
-      ? '试试更短的关键词、换一个分类，或清除筛选重新看看。'
-      : '放宽平台或授权条件，通常就能找到可用的选择。';
-
   return (
     <div className="empty-state">
       <span className="empty-state__icon" aria-hidden="true">
         {favorites ? <Heart size={24} /> : <Search size={24} />}
       </span>
       <h3>{title}</h3>
-      <p>{description}</p>
       <button type="button" className="button button--secondary" onClick={onClear}>
         清除所有筛选
       </button>
@@ -60,14 +53,10 @@ function FeaturedSection({ catalog, searchSuffix }: { catalog: Catalog; searchSu
   const featured = catalog.tools.filter((tool) => tool.featured).slice(0, 8);
 
   return (
-    <section className="home-section featured-section" aria-labelledby="featured-title">
+    <section className="home-section featured-section" aria-label="编辑精选">
       <div className="section-heading">
         <div>
           <p className="eyebrow">编辑精选</p>
-          <h2 id="featured-title">先从这里看</h2>
-          <p className="section-heading__description">
-            覆盖不同环节的八个起点。不是榜单，只是我们愿意先递给你的选择。
-          </p>
         </div>
         <a className="text-link" href="/?featured=1">
           只看精选
@@ -84,35 +73,16 @@ function FeaturedSection({ catalog, searchSuffix }: { catalog: Catalog; searchSu
           />
         ))}
       </div>
-      <div className="featured-actions">
-        <span>
-          <Sparkles size={14} aria-hidden="true" />
-          精选会随目录整理调整
-        </span>
-        <details className="featured-details">
-          <summary>
-            精选怎么用
-            <ChevronDown size={14} aria-hidden="true" />
-          </summary>
-          <p>
-            把它们当作了解目录的入口，不必照单全收。收藏功能可以把感兴趣的几项先放在本机，等真正需要时再比较。
-          </p>
-        </details>
-      </div>
     </section>
   );
 }
 
 function DemoSection({ demos }: { demos: Demo[] }) {
   return (
-    <section className="home-section demos-section" aria-labelledby="demos-title">
+    <section className="home-section demos-section" aria-label="站内示例">
       <div className="section-heading">
         <div>
           <p className="eyebrow">站内示例</p>
-          <h2 id="demos-title">先动手，再决定</h2>
-          <p className="section-heading__description">
-            六个可以直接操作的小实验，用来说明工具形态与交互原理。均由本站独立实现。
-          </p>
         </div>
         <a className="text-link" href="/demos">
           查看全部示例
@@ -149,16 +119,13 @@ export function HomePage({
   );
 
   let heading = '完整目录';
-  let headingDescription = '按分类铺开的选择。可以继续用平台与授权条件缩小范围。';
+  let headingDescription: string | undefined;
   if (filters.q) {
     heading = `搜索“${filters.q}”`;
-    headingDescription = '关键词会同时匹配名称、简介、标签与适用场景。';
   } else if (filters.favorites) {
     heading = '我的收藏';
-    headingDescription = '这些工具只保存在当前浏览器，不需要账号，也不会同步到云端。';
   } else if (filters.featured) {
     heading = '编辑精选';
-    headingDescription = '八个覆盖不同环节的起点，可以继续按平台和授权筛选。';
   } else if (activeCategory) {
     heading = activeCategory.name;
     headingDescription = activeCategory.description;
@@ -168,20 +135,12 @@ export function HomePage({
     <div className="page page--home">
       {isLanding ? (
         <>
-          <section className="hero" aria-labelledby="hero-title">
+          <section className="hero" aria-label="目录概况">
             <div className="hero__texture" aria-hidden="true" />
             <div className="hero__content">
               <p className="eyebrow hero__eyebrow">
                 <span className="eyebrow__dot" aria-hidden="true" />
                 Vibe 工具集 · 独立开发者的中文工具导航
-              </p>
-              <h1 id="hero-title">
-                把对味的工具，
-                <br />
-                放进同一条<span className="hero__accent">工作流</span>。
-              </h1>
-              <p className="hero__lede">
-                从 AI 编程到移动开发，从动画到部署。按分类、平台和授权找到顺手的工具，再收进自己的短名单。
               </p>
               <div className="hero__actions">
                 <a className="button button--primary" href="#directory">
@@ -211,10 +170,6 @@ export function HomePage({
                   <dd>{formatUpdatedAt(catalog.updatedAt)}</dd>
                 </div>
               </dl>
-              <p className="hero__note">
-                <Heart size={13} aria-hidden="true" />
-                收藏只写入本机浏览器，无需登录。
-              </p>
             </div>
           </section>
 
@@ -223,12 +178,12 @@ export function HomePage({
         </>
       ) : (
         <header className="browse-heading browse-heading--compact">
-          <p className="eyebrow">{filters.favorites ? '本机短名单' : filters.q ? '搜索结果' : '目录浏览'}</p>
+          <p className="eyebrow">{filters.favorites ? '我的收藏' : filters.q ? '搜索结果' : '目录浏览'}</p>
           <div className="browse-heading__title-row">
             <h1>{heading}</h1>
             <span className="browse-heading__count">{tools.length} 个工具</span>
           </div>
-          <p>{headingDescription}</p>
+          {headingDescription ? <p>{headingDescription}</p> : null}
         </header>
       )}
 
@@ -243,7 +198,6 @@ export function HomePage({
               <p className="eyebrow">目录</p>
               <h2 id="directory-title">按分类找工具</h2>
             </div>
-            <p className="result-note">平台与授权条件会即时筛选下方结果</p>
           </div>
         ) : (
           <h2 id="directory-title" className="sr-only">

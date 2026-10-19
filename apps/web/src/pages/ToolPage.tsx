@@ -158,7 +158,7 @@ export function ToolPage({
                 <code>{tool.install}</code>
               </pre>
               <p className="detail-note">
-                命令用于快速开始，具体版本与配置请以官方文档为准。复制成功或失败都会在本页给出提示。
+                命令用于快速开始，具体版本与配置请以官方文档为准。
               </p>
             </section>
           ) : (
@@ -170,7 +170,7 @@ export function ToolPage({
                 </div>
               </div>
               <p className="detail-paragraph">
-                这个工具主要通过官方网站或应用使用。建议先按官方文档完成最小示例，再决定是否引入现有项目。
+                这个工具主要通过官方网站或应用使用。
               </p>
             </section>
           )}

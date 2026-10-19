@@ -151,10 +151,6 @@ export function Sidebar({
       </nav>
 
       <div className="sidebar__foot">
-        <p className="sidebar__local-note">
-          <Heart size={13} aria-hidden="true" />
-          收藏保存在本机，无需登录
-        </p>
         <button type="button" className="sidebar__about" onClick={onAbout}>
           <Info size={15} aria-hidden="true" />
           关于与选型说明

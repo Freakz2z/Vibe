@@ -254,7 +254,6 @@ kbd {
 
 .text-link:hover {
   color: var(--accent-strong);
-  gap: 8px;
 }
 
 .demo-caption {
@@ -1080,7 +1079,6 @@ kbd {
 }
 
 .featured-tool:hover {
-  transform: translateY(-3px);
   border-color: color-mix(in srgb, var(--tool-accent) 48%, var(--line));
   box-shadow: var(--shadow-md);
 }
@@ -1109,7 +1107,6 @@ kbd {
 
 .featured-tool:hover .featured-tool__arrow {
   color: var(--tool-accent);
-  transform: translate(1px, -1px);
 }
 
 .featured-tool h3 {
@@ -1204,7 +1201,6 @@ kbd {
 }
 
 .demo-card:hover {
-  transform: translateY(-3px);
   border-color: var(--line-strong);
   box-shadow: var(--shadow-lg);
 }
@@ -1543,7 +1539,6 @@ kbd {
 }
 
 .tool-card:hover {
-  transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--tool-accent) 34%, var(--line));
   box-shadow: var(--shadow-md);
 }
@@ -1655,7 +1650,6 @@ kbd {
 .favorite-button:hover {
   background: var(--accent-soft);
   color: var(--accent-strong);
-  transform: scale(1.06);
 }
 
 .favorite-button.is-active {
@@ -2234,7 +2228,6 @@ kbd {
 }
 
 .related-item:hover {
-  transform: translateY(-2px);
   border-color: var(--line-strong);
 }
 
@@ -4084,7 +4077,6 @@ kbd {
 .search-result.is-active .search-result__arrow,
 .search-result:hover .search-result__arrow {
   opacity: 1;
-  transform: translateX(0);
 }
 
 .search-empty {

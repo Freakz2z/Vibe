@@ -22,7 +22,7 @@ import { NotFoundPage } from './pages/NotFoundPage';
 
 const BASE_TITLE = 'Vibe 工具集 · 独立开发者的中文工具导航';
 const BASE_DESCRIPTION =
-  'Vibe 工具集是一份面向独立开发者与 AI 编程创造者的中文工具导航：按分类浏览前端、动效、图表、后端、移动端与效率工具，支持搜索、平台筛选与本机收藏。';
+  'Vibe 工具集是一份面向独立开发者与 AI 编程创造者的中文工具导航：按分类浏览前端、动效、图表、后端、移动端与效率工具，支持搜索、平台筛选与收藏。';
 
 function decodeSegment(segment: string): string | null {
   try {
@@ -305,11 +305,11 @@ export default function App() {
         const name = catalog.categories.find((category) => category.id === filters.category)?.name;
         if (name) {
           pageTitle = `${name} · Vibe 工具集`;
-          pageDescription = `浏览 Vibe 工具集中的${name}分类，按平台与授权筛选并收藏到本机。`;
+          pageDescription = `浏览 Vibe 工具集中的${name}分类，按平台与授权筛选。`;
         }
       } else if (filters.favorites) {
         pageTitle = '我的收藏 · Vibe 工具集';
-        pageDescription = '保存在当前浏览器中的工具收藏，无需账号。';
+        pageDescription = 'Vibe 工具集中的工具收藏。';
       }
     } else if (pathname === '/demos') {
       pageTitle = '站内示例 · Vibe 工具集';

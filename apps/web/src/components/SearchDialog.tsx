@@ -210,7 +210,6 @@ export function SearchDialog({
           ) : (
             <div className="search-empty">
               <p>没有找到“{trimmed}”相关的工具。</p>
-              <span>试试更短的关键词，或从左侧分类浏览。</span>
             </div>
           )}
         </div>

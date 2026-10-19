@@ -6,10 +6,6 @@ export function DemosPage({ demos }: { demos: Demo[] }) {
     <div className="page demos-page">
       <header className="browse-heading demos-page__heading">
         <p className="eyebrow">站内示例</p>
-        <h1>六个可以动手的小实验。</h1>
-        <p>
-          这里没有加载任何一款外部工具库。六个示例都是本站用 React、SVG 与 Canvas 独立编写的原理演示，想让你在挑工具前先感受交互本身。
-        </p>
       </header>
 
       <div className="demo-grid demo-grid--page">
