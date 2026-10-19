@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import type { Demo } from '../types';
 import type { DemoCopyHandler } from './types';
 import { SpringDemo } from './SpringDemo';
@@ -6,22 +7,45 @@ import { GradientDemo } from './GradientDemo';
 import { KanbanDemo } from './KanbanDemo';
 import { ParticlesDemo } from './ParticlesDemo';
 import { MarkdownDemo } from './MarkdownDemo';
-
+const Contrast = lazy(() => import('./LayoutLabs').then(m => ({ default: m.ContrastLab })));
+const Grid = lazy(() => import('./LayoutLabs').then(m => ({ default: m.GridLab })));
+const Shadow = lazy(() => import('./LayoutLabs').then(m => ({ default: m.ShadowLab })));
+const Typography = lazy(() => import('./LayoutLabs').then(m => ({ default: m.TypographyLab })));
+const Flex = lazy(() => import('./LayoutLabs').then(m => ({ default: m.FlexLab })));
+const SvgPath = lazy(() => import('./LayoutLabs').then(m => ({ default: m.SvgPathLab })));
+const Json = lazy(() => import('./DataLabs').then(m => ({ default: m.JsonLab })));
+const Csv = lazy(() => import('./DataLabs').then(m => ({ default: m.CsvLab })));
+const Regex = lazy(() => import('./DataLabs').then(m => ({ default: m.RegexLab })));
+const Bezier = lazy(() => import('./VisualLabs').then(m => ({ default: m.BezierLab })));
+const Image = lazy(() => import('./VisualLabs').then(m => ({ default: m.ImageLab })));
+const Noise = lazy(() => import('./VisualLabs').then(m => ({ default: m.NoiseLab })));
+const Sorting = lazy(() => import('./LogicLabs').then(m => ({ default: m.SortingLab })));
+const Debounce = lazy(() => import('./LogicLabs').then(m => ({ default: m.DebounceLab })));
+const Cache = lazy(() => import('./LogicLabs').then(m => ({ default: m.CacheLab })));
 export function DemoRenderer({ kind, onCopy }: { kind: Demo['kind']; onCopy: DemoCopyHandler }) {
+  let demo;
   switch (kind) {
-    case 'spring':
-      return <SpringDemo />;
-    case 'chart':
-      return <ChartDemo />;
-    case 'gradient':
-      return <GradientDemo onCopy={onCopy} />;
-    case 'kanban':
-      return <KanbanDemo />;
-    case 'particles':
-      return <ParticlesDemo />;
-    case 'markdown':
-      return <MarkdownDemo />;
-    default:
-      return null;
+    case 'spring': demo = <SpringDemo />; break;
+    case 'chart': demo = <ChartDemo />; break;
+    case 'gradient': demo = <GradientDemo onCopy={onCopy} />; break;
+    case 'kanban': demo = <KanbanDemo />; break;
+    case 'particles': demo = <ParticlesDemo />; break;
+    case 'markdown': demo = <MarkdownDemo />; break;
+    case 'contrast': demo = <Contrast onCopy={onCopy} />; break;
+    case 'grid': demo = <Grid onCopy={onCopy} />; break;
+    case 'shadow': demo = <Shadow onCopy={onCopy} />; break;
+    case 'typography': demo = <Typography onCopy={onCopy} />; break;
+    case 'flex': demo = <Flex onCopy={onCopy} />; break;
+    case 'svgpath': demo = <SvgPath onCopy={onCopy} />; break;
+    case 'json': demo = <Json onCopy={onCopy} />; break;
+    case 'csv': demo = <Csv onCopy={onCopy} />; break;
+    case 'regex': demo = <Regex />; break;
+    case 'bezier': demo = <Bezier onCopy={onCopy} />; break;
+    case 'image': demo = <Image />; break;
+    case 'noise': demo = <Noise />; break;
+    case 'sorting': demo = <Sorting />; break;
+    case 'debounce': demo = <Debounce />; break;
+    case 'cache': demo = <Cache />; break;
   }
+  return <Suspense fallback={<div className="demo-workspace" role="status">正在加载示例…</div>}>{demo}</Suspense>;
 }

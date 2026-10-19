@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import type { Demo } from '../types';
+import { LabThumb } from './LabThumb';
 
 const PARTICLES = [
   [18, 30],
@@ -88,6 +89,7 @@ export function DemoThumb({ kind }: { kind: Demo['kind'] }) {
     );
   }
 
+  if (kind !== 'markdown') return <LabThumb kind={kind} />;
   return (
     <div className="demo-thumb demo-thumb--markdown" aria-hidden="true">
       <span className="mini-md-line mini-md-line--heading" />

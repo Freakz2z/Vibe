@@ -1,16 +1,19 @@
 # 内容核验记录（2026-10-19）
 
-本项目的中文工具介绍与页面文案由 Claude Code CLI 编写。Codex 校验数据结构、关联、官方链接和显著易变信息。工具能力、授权与价格最终以官网为准；目录不宣称所有工具已逐一实测。
+本项目以独立中文介绍记录工具用途，核对数据结构、关联、官方链接和显著易变信息。工具能力、授权与价格最终以官网为准；目录不宣称所有工具已逐一实测。
 
 ## 来源与处理
 
-- 参考结构：[vibecodetools.dev](https://vibecodetools.dev/en)。本站采用独立品牌、中文介绍和示例代码。
-- 66 个工具官网的自动 GET 检查：61 个直接成功；GitHub Actions、Google Fonts、markdown-it、Swiper 的脚本请求遇到网络超时或连接错误，随后通过网页读取再次确认官方地址有效。
-- Unsplash 返回站点机器人验证页（401），不绕过验证；保留官方链接，不将自动检查成功数写成站内背书。
-- GSAP 官方说明其所有插件现在免费；使用自有 no-charge license，不能因此标成标准开源授权。[官方 README](https://github.com/greensock/GSAP/blob/master/README.md)、[安装说明](https://gsap.com/docs/v3/Installation/)。
-- SwiftUI 工具与免费开发者账号可用于开发，App Store 分发属于另外的开发者计划。[Apple 免费入门](https://developer.apple.com/get-started/)、[SwiftUI](https://developer.apple.com/swiftui/)。
+- 目录现有 219 个工具与 21 个独立实现的原理示例。本轮新增 153 个工具和 15 个示例，由当前维护代理直接实现，未调用 Claude CLI。
+- 本轮源码核对记录见 [catalog-sources.json](catalog-sources.json)，包括官方仓库、主页、许可标识与归档状态。许可元数据仅作核对线索，不将 NOASSERTION 等同于开源许可。
+- 候选中的 Roo Code、Flowise、TOAST UI Editor 已归档，本轮未加入目录，改用 Kilo Code、Mastra、Plate。
+- CodeMirror 与 ProseMirror 的 GitHub 镜像已归档，但官方 README 明确指向新的独立托管站。详情使用迁移后的源码入口，而非把 GitHub 归档理解为项目停用。[CodeMirror](https://github.com/codemirror/view)、[ProseMirror](https://github.com/ProseMirror/prosemirror-state)。
+- 官网 GET 检查保留响应状态、标题和重定向。超时、限流或机器人验证不会被包装成官网失效或实测成功。Unsplash 的验证页、Observable 的限流均未绕过。
+- Logo 逐项与官方来源核对，217 个可用素材由本站 R2 提供；Monaco Editor 与 Lottie Web 使用文本回退。部分白色或自适应标志使用相应底板与 color-scheme，不使用滤镜伪造品牌色。
+- 站点不提供工具的实时排名、star、版本或价格承诺。示例对关联工具的引用不表示实际加载该工具。
+- 对比度示例按 [WCAG 对比度说明](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)计算相对亮度与阈值，判断使用未舍入的数值。
 
-完整链接检查结果保存在本机 `artifacts/link-check.json`，不部署到公开目录。
+完整自动检查结果保存在本机 `artifacts/`，公开仓库保留可复核的来源清单。历史 66 个工具的初始文案曾由 Claude CLI 编写；后续维护按当前用户要求由维护代理直接完成。
 
 ## 计费标签
 

@@ -198,7 +198,7 @@ export function HomePage({
           </section>
 
           <FeaturedSection catalog={catalog} searchSuffix={searchSuffix} />
-          <DemoSection demos={catalog.demos} />
+          <DemoSection demos={catalog.demos.slice(0, 6)} />
         </>
       ) : (
         <header className="browse-heading browse-heading--compact">

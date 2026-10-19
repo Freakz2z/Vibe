@@ -18,5 +18,5 @@ export function queryFilters(params: URLSearchParams) {
 }
 export function parseTool(row:{payload:string}):Tool { return JSON.parse(row.payload) as Tool; }
 export function validMediaKey(path:string):string|null {
- try { const key=decodeURIComponent(path.replace(/^\/media\//,'')); return /^(brand|icons|previews)\/[a-zA-Z0-9_./-]+\.(png|webp|jpg|jpeg|svg|ico)$/.test(key) && !key.split('/').some(s=>s==='..'||s==='.') ? key:null; } catch {return null;}
+ try { const key=decodeURIComponent(path.replace(/^\/media\//,'')); return /^(brand|icons|previews)\/[a-zA-Z0-9_./-]+\.(png|webp|jpg|jpeg|svg|ico|gif)$/.test(key) && !key.split('/').some(s=>s==='..'||s==='.') ? key:null; } catch {return null;}
 }

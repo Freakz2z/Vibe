@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import type {Catalog} from '../shared/contracts';
+import {DEMO_KINDS, type Catalog} from '../shared/contracts';
 const catalog=JSON.parse(fs.readFileSync('data/catalog.json','utf8')) as Catalog;
-assert(catalog.categories.length>=10,'至少10个分类');assert(catalog.tools.length>=48,'至少48个工具');assert(catalog.demos.length>=6,'至少6个示例');
+assert(catalog.categories.length>=10,'至少10个分类');assert(catalog.tools.length>=201,'至少201个工具');assert(catalog.demos.length>=21,'至少21个示例');
 const ids=new Set<string>();const cats=new Set(catalog.categories.map(x=>x.id));const demos=new Set(catalog.demos.map(x=>x.id));
 const quote=(s:string)=>"'"+s.replaceAll("'","''")+"'";
 const sql=['-- Generated from data/catalog.json. Update via npm run seed:build.'];
@@ -12,7 +12,7 @@ for(const [i,t]of catalog.tools.entries()){
  const search=[t.name,t.tagline,t.description,...t.tags,...t.useCases].join(' ').toLowerCase();
  sql.push(`INSERT INTO tools(id,name,category_id,pricing,featured,demo_id,search_text,payload,position) VALUES(${[t.id,t.name,t.categoryId,t.pricing].map(quote).join(',')},${t.featured?1:0},${t.demoId?quote(t.demoId):'NULL'},${quote(search)},${quote(JSON.stringify(t))},${i}) ON CONFLICT(id) DO UPDATE SET name=excluded.name,category_id=excluded.category_id,pricing=excluded.pricing,featured=excluded.featured,demo_id=excluded.demo_id,search_text=excluded.search_text,payload=excluded.payload,position=excluded.position;`);
 }
-for(const [i,d]of catalog.demos.entries()){assert(/^[a-z0-9-]+$/.test(d.id));assert(d.toolIds.every(id=>ids.has(id)),'Demo tool missing');sql.push(`INSERT INTO demos(id,payload,position) VALUES(${quote(d.id)},${quote(JSON.stringify(d))},${i}) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,position=excluded.position;`);}
+for(const [i,d]of catalog.demos.entries()){assert(/^[a-z0-9-]+$/.test(d.id));assert(DEMO_KINDS.includes(d.kind),'Unknown demo kind');assert(d.name&&d.description&&d.toolIds.length,'Demo content missing');assert(d.toolIds.every(id=>ids.has(id)),'Demo tool missing');sql.push(`INSERT INTO demos(id,payload,position) VALUES(${quote(d.id)},${quote(JSON.stringify(d))},${i}) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,position=excluded.position;`);}
 sql.push(`INSERT INTO metadata(key,value) VALUES('updatedAt',${quote(catalog.updatedAt)}) ON CONFLICT(key) DO UPDATE SET value=excluded.value;`);
 const contents=sql.join('\n')+'\n';
 let output='migrations/0002_catalog.sql';

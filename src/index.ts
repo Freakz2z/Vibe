@@ -1,7 +1,6 @@
 import {parseTool,queryFilters,validMediaKey} from './catalog';
 import type { Catalog,Category,Demo } from '../shared/contracts';
-interface Env { DB:D1Database; MEDIA:R2Bucket; ASSETS:Fetcher; }
-const origin='https://vibe.freakz2z.com';
+interface Env { DB:D1Database; MEDIA:R2Bucket; ASSETS:Fetcher; PUBLIC_ORIGIN?:string; }
 const security:Record<string,string>={
  'X-Content-Type-Options':'nosniff', 'Referrer-Policy':'strict-origin-when-cross-origin',
  'X-Frame-Options':'DENY','Permissions-Policy':'camera=(), microphone=(), geolocation=()',
@@ -20,7 +19,7 @@ async function catalog(env:Env):Promise<Catalog>{
  return {categories:categories.results as unknown as Category[],tools:(tools.results as {payload:string}[]).map(parseTool),demos:(demos.results as {payload:string}[]).map(r=>JSON.parse(r.payload) as Demo),updatedAt:(updated.results[0] as {value:string})?.value||''};
 }
 async function route(request:Request,env:Env):Promise<Response>{
- const url=new URL(request.url);const path=url.pathname;
+ const url=new URL(request.url);const path=url.pathname;const origin=env.PUBLIC_ORIGIN||url.origin;
  if(path.length>1&&path.endsWith('/')&&/^\/(tools|demos)(\/|$)/.test(path)){url.pathname=path.replace(/\/+$/,'');return Response.redirect(url.toString(),308);}
  if(request.method!=='GET'&&request.method!=='HEAD'){const response=json({error:'METHOD_NOT_ALLOWED'},405,'no-store');response.headers.set('Allow','GET, HEAD');return response;}
  if(path==='/api/health'){
@@ -47,8 +46,9 @@ async function route(request:Request,env:Env):Promise<Response>{
  }
  if(path==='/robots.txt')return new Response(`User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: ${origin}/sitemap.xml\n`,{headers:{'Content-Type':'text/plain; charset=utf-8'}});
  if(path==='/sitemap.xml'){
-  const rows=await env.DB.prepare('SELECT id FROM tools').all<{id:string}>();
-  return new Response(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${origin}/</loc></url>${rows.results.map(r=>`<url><loc>${origin}/tools/${encodeURIComponent(r.id)}</loc></url>`).join('')}</urlset>`,{headers:{'Content-Type':'application/xml; charset=utf-8'}});
+  const [tools,demos]=await env.DB.batch([env.DB.prepare('SELECT id FROM tools'),env.DB.prepare('SELECT id FROM demos')]);
+  const urls=['/','/demos',...(tools.results as {id:string}[]).map(r=>'/tools/'+encodeURIComponent(r.id)),...(demos.results as {id:string}[]).map(r=>'/demos/'+encodeURIComponent(r.id))];
+  return new Response(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(path=>`<url><loc>${origin}${path}</loc></url>`).join('')}</urlset>`,{headers:{'Content-Type':'application/xml; charset=utf-8'}});
  }
  let response=await env.ASSETS.fetch(request);
  if(response.headers.get('Content-Type')?.includes('text/html')){

@@ -1,0 +1,16 @@
+name: 收录或修正工具
+description: 提供可核对的官方来源
+body:
+  - type: input
+    id: website
+    attributes:
+      label: 官方网站
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: 工具用途与收录或修正理由
+      description: 请附官方文档、源码和 Logo 来源。
+    validations:
+      required: true

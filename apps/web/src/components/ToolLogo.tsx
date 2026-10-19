@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Tool } from '../types';
 
 interface ToolLogoProps {
-  tool: Pick<Tool, 'name' | 'icon' | 'logo' | 'logoDark'>;
+  tool: Pick<Tool, 'name' | 'icon' | 'logo' | 'logoDark' | 'logoOnDark'>;
   className?: string;
 }
 
@@ -33,7 +33,7 @@ export function ToolLogo({ tool, className = '' }: ToolLogoProps) {
     <span
       className={`tool-icon tool-logo${hasDarkVariant ? ' tool-logo--with-dark' : ''}${
         lightReady || darkReady ? '' : ' tool-logo--fallback'
-      } ${className}`.trim()}
+      }${tool.logoOnDark ? ' tool-logo--dark-plate' : ''} ${className}`.trim()}
       aria-hidden="true"
     >
       {lightReady ? (

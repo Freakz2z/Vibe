@@ -1,99 +1,33 @@
-# 部署与验收记录
+# 验收记录
 
 日期：2026-10-19（Asia/Shanghai）
 
+## 本轮范围
 
-## 最新前端状态：筛选、详情与浏览逻辑优化
+当前源码包含 **219 个工具、10 个分类、21 个可交互示例**。新增 153 个工具与 15 个示例由维护代理直接完成，未调用 Claude CLI。保留暖色卡片、亮暗主题、移动端筛选、唯一全站收藏入口与无 hover 位移规则。
 
-2026-10-19，在恢复后的卡片版上完成用户本轮七项优化。前端实施与修订来自 Claude Code CLI 的 `deepseek-flash`，会话 `e0ecb767-8ee7-4821-bed4-72211e3dd0dc`；主代理负责官方素材、契约、D1/R2、集成与发布。
+217 个工具使用有来源和 SHA-256 记录的官方素材；Monaco Editor 与 Lottie Web 使用文本回退。React Three Fiber、Drei 已排除文档站默认打印机图标，改用官方仓库素材。白色标志使用深色底板，自适应 SVG 指定正确的 color-scheme。
 
-- 桌面筛选按平台、费用分行；选中条件可单项移除，重置入口去重，实时结果数与 URL 同步。手机筛选使用独立面板，支持 Esc、焦点回收和背景滚动锁定。
-- 详情调整为简介、安装、适用场景、特点、示例；相关资料合并，控制行宽、字号与行距，长命令在自身区域滚动。
-- 侧栏移除编辑精选和收藏入口，Header 保留全站唯一收藏入口；分类与演示使用语义对应的 Lucide 图标。
-- 65 个官方工具 Logo 存入 R2，来源及 SHA-256 见 `assets/icons/sources.json`；Monaco Editor 未找到可确认的独立 Logo，保留文字标识。所有工具入口共用 Logo 组件，暗色保留可读底板，失败才回退。
-- 目录 → 详情 → 相关工具 → 返回目录恢复筛选和滚动；浏览器前进/后退及异步加载后恢复位置均有回归覆盖。收藏去重、取消和筛选空状态保持同步。
-- 保留暖色卡片与亮暗主题；未恢复宣传引导文案或 hover 位移。资源 404 使用 `no-store`，避免缺失素材响应进入缓存。
-- 类型检查、生产构建、3 个后端测试通过。连接本地真实 D1/R2 的浏览器回归 14/14 通过；只有 Logo 的少量专用失败地址使用测试夹具。
-- 正式域名接口检查与 65 个官方图标的 MIME、SHA-256、ETag 校验均通过，D1/R2 ready。迁移 `0005_catalog_update.sql` 已在本地和正式 D1 应用。
-- 正式域名浏览器回归 14/14 通过（3.2 分钟），24 项 API 检查通过，媒体缺失响应确认 `Cache-Control: no-store`。生产日志为本机 `artifacts/e2e-ux-production.log`、`artifacts/api-ux-production.log`、`artifacts/logos-production.json`。
-- 发布版本 `d0cda6ba-1dce-436c-b928-c6d7b6e7a56e`，构建 JS 243.41 kB / gzip 76.77 kB、CSS 83.67 kB / gzip 15.76 kB。
+## 本地已验证
 
-## 上一版记录：恢复卡片布局，仅清理文案
+- `npm run seed:build`：219 个工具、21 个示例，检查 ID、关联与示例类型。
+- `npm run typecheck`、`npm run build`：通过；新增实验按文件组动态加载，正则拥有独立 Worker 产物。
+- `npm test`：7 个用例通过，涵盖查询绑定、分页、媒体路径、对比度公式、CSV 引号与换行、排序过程及可复现噪声。
+- 真实 D1/R2 的浏览器回归 **20/20 通过**，包含原功能、全部 21 个示例在桌面与 320px 的访问，以及实际的颜色、布局、曲线、数据、图片、排序、事件与缓存交互。
+- 正则的复杂表达式超时会终止计算线程，之后仍能输入并匹配新规则。JSON/Markdown 的不可信文本没有作为 HTML 执行。
+- 图片示例只处理当前浏览器选择的文件，不发送上传请求。输出 MIME 与下载扩展名一致。
+- `verify-logos.ts`：217 个 R2 图像逐一核对 MIME、SHA-256、ETag，2 个文字回退有记录。
+- `verify-api.ts`：24 项接口与资源检查通过；健康、搜索、筛选、分页、404、只读限制、ETag、HTML CSP 与元信息均正常，站点地图包含工具和示例。
+- README 图片引用审计通过；正式界面截图位于 `docs/screenshots/`。
+- 开源前扫描了 Git 历史与待发布源码，未发现匹配常见令牌与私钥格式的内容。本地状态、日志、密钥文件和内部任务简报不进入当前公开源码树。
 
-2026-10-19，按用户最新要求恢复仓库初版卡片布局，撤回工具行目录重做。当前前端基于提交 `2f41e1f`，界面小改由 Claude Code CLI 的 `deepseek-flash` 完成。作者会话：`c391045a-eead-4f1f-915c-2b6ee3de6682`。
+## 运行与发布
 
-- 保留原颜色、字体、侧栏、卡片、精选、示例与所有交互功能。
-- 删除主标语、长介绍、“先从这里看”“先动手，再决定”等引导性文案和常驻本机收藏提示。
-- 保留原有栏目名、工具介绍与操作名；非 hover 的功能动画保留。
-- 悬停不再引发容器位移、缩放、箭头位移或 gap 改变；保留颜色、背景和边框反馈。
-- 类型检查与生产构建通过；连接真实 D1/R2 的本地 Worker 浏览器测试 7/7 通过，包含文案缺失、原卡片保留、hover 几何尺寸稳定、320/390px、主题和原有功能。
-- 正式域名浏览器复测 7/7 通过（2.0 分钟），包含恢复的卡片、文案缺失、悬停位置与尺寸不变、320/390px、深色主题及原功能。
-- 正式域名 24 项接口/资源检查通过，D1/R2 均 ready。日志分别为本机 artifacts/e2e-copy-only-production.log 和 artifacts/api-copy-only-production.log。
+- 正式站点：<https://vibe.freakz2z.com>
+- Worker：`vibe-cn`，D1：`vibe-catalog`，R2：`vibe-assets`。
+- 自定义部署使用 `wrangler.example.jsonc`，生产域名从 `PUBLIC_ORIGIN` 配置读取。
+- GitHub Actions 只做本地检查，不执行远程部署。
 
-以下保留初版技术与历史验收记录，最新界面和发布版本以上方最新状态为准。
+生产发布版本、正式域名复测结果和 GitHub CI 结果在发布完成后记录于本节。
 
-## 正式部署
-
-- 正式地址：https://vibe.freakz2z.com
-- Cloudflare Worker：`vibe-cn`
-- 当前部署版本：`d0cda6ba-1dce-436c-b928-c6d7b6e7a56e`
-- D1：`vibe-catalog` / `d65cc446-0b9e-47de-b937-76915cbefe68`
-- R2：`vibe-assets`，通过 Worker `MEDIA` binding 读取。
-- 自定义域名已在 Cloudflare 返回 `enabled: true`，服务为 `vibe-cn`、环境为 `production`。
-- 公网 DNS 已解析出 Cloudflare IPv4/IPv6，HTTPS 证书正常。
-
-## 功能范围
-
-66 个工具、10 个中文分类、6 个交互示例。支持分类、关键词、平台和费用筛选、工具详情、安装命令复制、快捷搜索、本机收藏和浅色/深色/跟随系统主题。收藏与主题不跨设备同步。
-
-六个示例为本站独立实现的原理演示：弹簧参数、柱线图切换、渐变 CSS、任务看板、Canvas 粒子、Markdown 安全预览。关联工具用于帮助选型，并未暗示示例在运行相应第三方库。
-
-## 实施分工
-
-- 前端、响应式、双主题、中文文案、66 项目录资料和示例由 Claude Code CLI 实施。
-- 用户切换供应商之后，CLI 新启动及后续会话响应中 model 均为 `deepseek-flash`；会话 `d84347bf-055c-4d85-8984-36668240b923`。
-- 后端、API 契约、D1 迁移、R2 接入、品牌图片和 Cloudflare 部署由 Codex 完成。
-- 原有 MiniMax CLI 进程在用户切换供应商后停止，仅保留早期脚手架；后续前端与修订在 DeepSeek 会话执行。
-
-## 已通过
-
-- `npm run typecheck`。
-- `npm test`：3 个后端边界用例（参数绑定、分页限制、媒体路径）。
-- `npm run build`：Vite 8.3.4 生产构建；JS 236.07 kB / gzip 74.31 kB，CSS 76.12 kB / gzip 14.58 kB。
-- `npm audit`：0 个已知漏洞。
-- 构建后 Worker 的真实接口验收通过：D1/R2 健康、中文查询、筛选、分页、详情、404、HEAD、禁止公开写入、R2 ETag/304、页面元信息、站点地图与 robots。
-- 同一套接口验收在正式域名通过，证据为本机 `artifacts/api-production.json`。
-- 构建后 Worker 的 5 组浏览器测试通过：真实目录与全部主要路由，搜索/收藏/示例/安全 Markdown，320px，390px，暗色主题。
-- 正式域名同样 5/5 浏览器测试通过（2.2 分钟），使用真实 D1/R2 接口。流程包含桌面与全部九个主要路由、搜索/筛选/收藏持久化/示例/Markdown 注入保护、320px、390px、暗色主题。日志：本机 `artifacts/e2e-production.log`。
-- 正式域名 24 项接口与资源检查全部通过（2026-10-19 10:22 CST），D1/R2 均为 ready。
-- 额外在线交互验证：图表成功从柱状切换折线，换成上升数据后最高值为 68；渐变参数和复制 CSS 成功。
-
-## 网络与平台说明
-
-本机路由器仍缓存了部署前的 NXDOMAIN，验收通过系统已经配置的 `127.0.0.1:7890` 代理进行。未改系统 DNS，未关闭 HTTPS 证书校验。公网 DNS（8.8.8.8）已能解析新域名。
-
-首次线上浏览器验收发现 Cloudflare 自动注入脚本与 CSP 的兼容问题，已按官方 nonce 机制修复并重新部署；没有关闭域名防护或开放任意脚本。HTML 使用每次响应的新 nonce 与不缓存策略，R2 图片仍保留缓存和 ETag。
-
-官网链接检查为 61/66 直接成功；4 个网络失败地址通过网页再次核对，Unsplash 返回机器人验证页。具体见 `docs/CURATION.md`。
-
-## 复测
-
-```bash
-npm run typecheck
-npm test
-npm run build
-npm audit
-npm run test:api
-VIBE_TEST_BASE_URL=http://localhost:8787 npm run test:e2e
-```
-
-线上全路由测试跨网络连续导航超过原先 30 秒用例上限，已将巡检时限设为 120 秒，单项可见性等待 15 秒；没有降低功能断言或忽略控制台错误。
-
-正式环境通过普通网络访问时：
-
-```bash
-npm run test:api -- https://vibe.freakz2z.com
-VIBE_TEST_BASE_URL=https://vibe.freakz2z.com npm run test:e2e
-```
-
-如果机器使用系统 HTTP 代理，但命令行没有继承代理设置，可给浏览器测试传入 `VIBE_TEST_PROXY`。Node 22.23+ 的脚本可使用 `HTTPS_PROXY` 配合 `node --use-env-proxy --import tsx scripts/verify-api.ts <正式地址>`。
+本机网络验收通过已有系统代理进行，未修改系统 DNS，也未关闭 TLS 验证。正式 HTML 使用每次响应新生成的 CSP nonce 兼容 Cloudflare 注入脚本；媒体保持缓存与 ETag，缺失媒体不缓存。

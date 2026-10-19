@@ -7,6 +7,7 @@ import {
   Copy,
   ExternalLink,
   Github,
+  CodeXml,
   Heart,
   Sparkles,
 } from 'lucide-react';
@@ -49,6 +50,8 @@ export function ToolPage({
   search,
 }: ToolPageProps) {
   const backHref = search ? `/${search}` : '/';
+  const sourceUrl = tool.source || tool.github;
+  const sourceLabel = sourceUrl?.startsWith('https://github.com/') ? 'GitHub' : '源码';
 
   return (
     <article
@@ -99,15 +102,15 @@ export function ToolPage({
               访问官网
               <ExternalLink size={15} aria-hidden="true" />
             </a>
-            {tool.github ? (
+            {sourceUrl ? (
               <a
                 className="button button--secondary"
-                href={tool.github}
+                href={sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Github size={15} aria-hidden="true" />
-                GitHub
+                {sourceLabel === 'GitHub' ? <Github size={15} aria-hidden="true" /> : <CodeXml size={15} aria-hidden="true" />}
+                {sourceLabel}
               </a>
             ) : null}
             <button
@@ -231,12 +234,12 @@ export function ToolPage({
                   </a>
                 </dd>
               </div>
-              {tool.github ? (
+              {sourceUrl ? (
                 <div>
                   <dt>源码</dt>
                   <dd>
-                    <a href={tool.github} target="_blank" rel="noopener noreferrer">
-                      GitHub
+                    <a href={sourceUrl} target="_blank" rel="noopener noreferrer">
+                      {sourceLabel}
                       <ExternalLink size={12} aria-hidden="true" />
                     </a>
                   </dd>

@@ -325,7 +325,7 @@ export default function App() {
       }
     } else if (pathname === '/demos') {
       pageTitle = '站内示例 · Vibe 工具集';
-      pageDescription = '六个可直接操作的原理演示：弹簧参数、图表切换、渐变、看板、Canvas 粒子与安全 Markdown。';
+      pageDescription = '可直接操作的原理演示：布局、颜色、图形、数据处理、排序与请求控制。';
     } else if (selectedDemo) {
       pageTitle = `${selectedDemo.name} · 站内示例 · Vibe 工具集`;
       pageDescription = selectedDemo.description;

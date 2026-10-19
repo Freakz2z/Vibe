@@ -39,6 +39,9 @@ const DEMO_ICONS: Record<Demo['kind'], LucideIcon> = {
   kanban: Columns3,
   particles: Orbit,
   markdown: FileCode2,
+  contrast: Palette, bezier: Waves, grid: Layers, shadow: Layers, typography: PenLine,
+  regex: CodeXml, json: FileCode2, csv: ChartColumn, svgpath: PenLine, image: Palette,
+  flex: Columns3, noise: Orbit, sorting: ChartColumn, debounce: Waves, cache: Database,
 };
 
 interface IconProps {

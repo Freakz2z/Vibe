@@ -1,0 +1,13 @@
+{
+  "goose": "https://raw.githubusercontent.com/aaif-goose/goose/main/documentation/static/img/goose-logo-black.png",
+  "katex": "https://katex.org/img/katex-logo-black.svg",
+  "remark": "https://github.com/remarkjs.png?size=128",
+  "rehype": "https://github.com/rehypejs.png?size=128",
+  "observable-plot": "https://raw.githubusercontent.com/observablehq/plot/main/docs/public/plot.svg",
+  "visx": "https://raw.githubusercontent.com/airbnb/visx/master/assets/visx-geometry.png",
+  "taro": "https://github.com/NervJS.png?size=128",
+  "x6": "https://mdn.alipayobjects.com/huamei_qa8qxu/afts/img/A*A-lcQbVTpjwAAAAAAAAAAAAADmJ7AQ/original",
+  "react-three-fiber": "https://raw.githubusercontent.com/pmndrs/react-three-fiber/master/docs/logo.jpg",
+  "drei": "https://raw.githubusercontent.com/pmndrs/drei/master/docs/logo.jpg",
+  "marked": "https://raw.githubusercontent.com/markedjs/marked/master/docs/img/logo-black.svg"
+}

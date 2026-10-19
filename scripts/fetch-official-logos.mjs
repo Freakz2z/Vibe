@@ -29,6 +29,7 @@ const overrides={
  'chartjs':'https://www.chartjs.org/favicon.ico',
  'github-actions':'https://github.githubassets.com/favicons/favicon.svg',
 };
+Object.assign(overrides, fs.existsSync('assets/icons/overrides.json') ? JSON.parse(fs.readFileSync('assets/icons/overrides.json','utf8')) : {});
 const headers={'User-Agent':'VibeCatalog/1.0 (official brand assets; https://vibe.freakz2z.com)'};
 async function get(url){const r=await fetch(url,{headers,signal:AbortSignal.timeout(18000)});if(!r.ok)throw Error(`HTTP ${r.status}`);return r;}
 function inspect(bytes){
@@ -41,6 +42,7 @@ function inspect(bytes){
  if(bytes[0]===0&&bytes[1]===0&&bytes[2]===1&&bytes[3]===0)return ['ico','image/x-icon'];
  if(bytes.toString('ascii',0,4)==='RIFF'&&bytes.toString('ascii',8,12)==='WEBP')return ['webp','image/webp'];
  if(bytes[0]===255&&bytes[1]===216)return ['jpg','image/jpeg'];
+ if(bytes.toString('ascii',0,6)==='GIF89a'||bytes.toString('ascii',0,6)==='GIF87a')return ['gif','image/gif'];
  throw Error('Not a supported image');
 }
 async function run(tool){
@@ -49,11 +51,16 @@ async function run(tool){
  if(overrides[tool.id])candidates.push(overrides[tool.id]);
  try{
   const page=await get(tool.website); const html=await page.text();
-  const icons=[...html.matchAll(/<link\b[^>]*>/gi)].map(m=>m[0]).filter(s=>/rel\s*=\s*["'][^"']*(?:icon|apple-touch-icon)/i.test(s)).map(s=>{
-   const href=s.match(/href\s*=\s*["']([^"']+)/i)?.[1]?.replaceAll('&amp;','&');
+  const attr=(tag,name)=>{const match=tag.match(new RegExp('\\b'+name+'\\s*=\\s*(?:"([^"]*)"|\'([^\']*)\'|([^\\s>]+))','i'));return (match?.[1]??match?.[2]??match?.[3])?.replaceAll('&amp;','&');};
+  const icons=[...html.matchAll(/<link\b[^>]*>/gi)].map(m=>m[0]).filter(s=>/^(?:icon|shortcut icon|apple-touch-icon|mask-icon)$/i.test(attr(s,'rel')||'')).map(s=>{
+   const href=attr(s,'href');
    return {url:href?new URL(href,page.url).href:null,score:(/\.svg(?:\?|$)/i.test(href||'')?300:0)+Number(s.match(/sizes=["'](\d+)/i)?.[1]||0)};
   }).filter(x=>x.url).sort((a,b)=>b.score-a.score);
-  candidates.push(...icons.map(x=>x.url),new URL('/favicon.ico',page.url).href);
+  candidates.push(...icons.map(x=>x.url));
+  for(const m of html.matchAll(/<img\b[^>]*>/gi)){
+   const src=attr(m[0],'src');if(src&&/(?:logo|brand)[\w./-]*\.(?:svg|png|webp)(?:\?|$)/i.test(src)&&!src.startsWith('data:'))candidates.push(new URL(src,page.url).href);
+  }
+  candidates.push(new URL('favicon.ico',page.url).href,new URL('/favicon.ico',page.url).href);
  }catch(e){errors.push(`${tool.website}: ${e.message}`);candidates.push(new URL('/favicon.ico',tool.website).href);}
  for(const url of [...new Set(candidates)]){
   try{
@@ -63,7 +70,13 @@ async function run(tool){
    console.log(`${tool.id}: ${ext} ${bytes.length} ${r.url}`);return;
   }catch(e){errors.push(`${url}: ${e.message}`);}
  }
- ledger[tool.id]={name:tool.name,officialSite:tool.website,status:'unavailable',errors};console.log(`${tool.id}: UNAVAILABLE ${errors.join('; ')}`);
+ const previous=ledger[tool.id];
+ if(previous?.file&&fs.existsSync(previous.file)){
+  ledger[tool.id]={...previous,lastCheck:{checkedAt:new Date().toISOString(),errors}};
+ }else{
+  ledger[tool.id]={name:tool.name,officialSite:tool.website,status:'unavailable',errors,fallbackReason:previous?.fallbackReason||'官网和官方仓库未找到可确认、可单独使用的产品 Logo，保留文字标识。'};
+ }
+ console.log(`${tool.id}: UNAVAILABLE ${errors.join('; ')}`);
 }
 const queue=catalog.tools.filter(t=>!only.length||only.includes(t.id));
 await Promise.all(Array.from({length:5},async()=>{while(queue.length)await run(queue.shift());}));

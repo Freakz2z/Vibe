@@ -396,9 +396,9 @@ test('filters, search, favorites, demos and safe markdown', async ({ page }) => 
   );
   await expect(page.locator('.tool-card').first()).toBeVisible();
 
-  // Demos index and all six principle demos.
+  // Demos index and the original principle demos.
   await page.goto(`${BASE}/demos`);
-  await expect(page.locator('.demo-card')).toHaveCount(6);
+  await expect(page.locator('.demo-card')).toHaveCount(catalog.demos.length);
   expectCopyAbsent(
     await page.locator('.demos-page').innerText(),
     ['六个可以动手的小实验', '想让你在挑工具前先感受交互本身'],
@@ -812,4 +812,134 @@ test('dark theme remains readable with mobile filters', async ({ page }) => {
   await expect(sheet.locator('.filter-chip').first()).toBeVisible();
   await noOverflow(page);
   await page.screenshot({ path: `${shots}/accept-filter-dark-390.png` });
+});
+
+test('expanded catalog, demo search and rightmost source link', async ({ page }) => {
+  await page.goto(BASE);
+  const catalog = await liveCatalog(page);
+  expect(catalog.tools.length).toBeGreaterThan(200);
+  expect(catalog.demos.length).toBeGreaterThan(20);
+  const source = page.getByRole('link', {name: 'GitHub 开源仓库'});
+  await expect(source).toHaveAttribute('href', 'https://github.com/Freakz2z/Vibe');
+  await expect(source).toHaveAttribute('target', '_blank');
+  await expect(page.locator('.topbar__actions > :last-child')).toHaveClass(/topbar__github/);
+  await page.goto(`${BASE}/demos`);
+  await expect(page.locator('.demo-card')).toHaveCount(catalog.demos.length);
+  await page.getByRole('searchbox', {name: '搜索示例'}).fill('缓存');
+  await expect(page.locator('.demo-card')).toHaveCount(1);
+  await page.locator('.demo-card').click();
+  await expect(page).toHaveURL(/cache-lab$/);
+  await expect(page.getByRole('button', {name: '同时请求 3 次'})).toBeVisible();
+  await page.goto(`${BASE}/tools/codemirror`);
+  await expect(page.locator('.tool-detail-hero__actions a', {hasText: '源码'})).toHaveAttribute('href', 'https://code.haverbeke.berlin/codemirror/view');
+});
+
+test('expanded labs run at desktop and mobile widths without page overflow', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', e => errors.push(e.message));
+  await page.goto(BASE);
+  const catalog = await liveCatalog(page);
+  for (const width of [1280, 320]) {
+    await page.setViewportSize({width, height: 900});
+    for (const demo of catalog.demos) {
+      await page.goto(`${BASE}/demos/${demo.id}`);
+      await expect(page.locator('.demo-workspace[aria-label]')).toBeVisible();
+      await noOverflow(page);
+    }
+  }
+  expect(errors).toEqual([]);
+});
+
+test('expanded CSS and graphics labs respond to input', async ({ page }) => {
+  await page.goto(`${BASE}/demos/contrast-lab`);
+  await page.getByLabel('文字颜色', {exact: true}).fill('#000000');
+  await page.getByLabel('背景颜色', {exact: true}).fill('#ffffff');
+  await expect(page.locator('.lab-metric')).toHaveText('21.00 : 1');
+  await page.goto(`${BASE}/demos/grid-playground`);
+  await page.getByLabel('列数', {exact: true}).fill('4');
+  await expect(page.locator('.lab-code')).toContainText('repeat(4, minmax(0, 1fr))');
+  await page.goto(`${BASE}/demos/flex-playground`);
+  await page.getByLabel('排列方向').selectOption('column');
+  await expect(page.locator('.lab-flex')).toHaveCSS('flex-direction','column');
+  await page.goto(`${BASE}/demos/shadow-studio`);
+  await page.getByLabel('模糊半径', {exact:true}).fill('40');
+  await expect(page.locator('.lab-code')).toContainText('40px');
+  await page.goto(`${BASE}/demos/type-scale`);
+  await page.getByLabel('基础字号', {exact:true}).fill('20');
+  await expect(page.locator('.lab-code')).toContainText('--text-0: 20px');
+  await page.goto(`${BASE}/demos/svg-path`);
+  await page.getByLabel('控制点 X', {exact:true}).fill('300');
+  await expect(page.locator('.lab-code')).toContainText('Q 300 20');
+  await page.goto(`${BASE}/demos/bezier-editor`);
+  await page.getByRole('button',{name:'播放',exact:true}).click();
+  await expect.poll(()=>page.locator('.lab-bezier-ball').evaluate(el=>el.getAnimations().length)).toBeGreaterThan(0);
+  await page.goto(`${BASE}/demos/noise-texture`);
+  const initial = await page.getByRole('link',{name:'下载 PNG'}).getAttribute('href');
+  await page.getByLabel('随机种子', {exact:true}).fill('30');
+  await expect(page.getByRole('link',{name:'下载 PNG'})).not.toHaveAttribute('href',initial!);
+});
+
+test('expanded data labs parse user input and stop pathological regex', async ({ page }) => {
+  await page.goto(`${BASE}/demos/json-explorer`);
+  await page.getByLabel('JSON 输入').fill('{"safe":"<img onerror=alert(1)>"}');
+  await expect(page.locator('.lab-code')).toContainText('<img onerror=alert(1)>');
+  await expect(page.locator('.lab-code img')).toHaveCount(0);
+  await page.getByLabel('JSON 输入').fill('{bad');
+  await expect(page.getByRole('alert')).toBeVisible();
+  await page.goto(`${BASE}/demos/csv-explorer`);
+  await page.getByLabel('CSV 输入').fill('name,note\nVue,"a,b"\nReact,"a""b"');
+  await expect(page.locator('.lab-table tbody tr')).toHaveCount(2);
+  await expect(page.locator('.lab-table')).toContainText('a,b');
+  await expect(page.locator('.lab-code')).toContainText('a\\"b');
+  await page.goto(`${BASE}/demos/regex-lab`);
+  await expect(page.locator('.lab-matches li')).toHaveCount(3);
+  await page.getByLabel('正则规则').fill('[');
+  await expect(page.getByRole('alert')).toBeVisible();
+  await page.getByLabel('正则规则').fill('(a+)+$');
+  await page.getByLabel('测试文本').fill('a'.repeat(80)+'!');
+  await expect(page.getByRole('alert')).toContainText('超过 300ms');
+  await page.getByLabel('正则规则').fill('a+');
+  await expect(page.locator('.lab-matches li')).toHaveCount(1);
+});
+
+test('expanded sorting, debounce and cache perform real state transitions', async ({ page }) => {
+  await page.goto(`${BASE}/demos/sorting-lab`);
+  for (const algorithm of ['bubble','insertion']) {
+    await page.getByLabel('排序算法').selectOption(algorithm);
+    await page.getByRole('button',{name:'完成排序',exact:true}).click();
+    const values = (await page.locator('.lab-sort-bar').allTextContents()).map(Number);
+    expect(values).toEqual([...values].sort((a,b)=>a-b));
+    await expect(page.locator('.lab-status')).toContainText('排序完成');
+  }
+  await page.goto(`${BASE}/demos/debounce-lab`);
+  await page.getByRole('button',{name:'连续触发 10 次'}).click();
+  await expect(page.locator('.lab-stats > div').nth(0).locator('strong')).toHaveText('10');
+  await expect(page.locator('.lab-stats > div').nth(1).locator('strong')).toHaveText('1');
+  await page.goto(`${BASE}/demos/cache-lab`);
+  await page.getByRole('button',{name:'同时请求 3 次'}).click();
+  await expect(page.locator('.lab-stats > div').nth(0).locator('strong')).toHaveText('1');
+  await expect(page.locator('.lab-stats > div').nth(2).locator('strong')).toHaveText('2');
+  await expect(page.locator('.lab-status')).toContainText('模拟请求完成');
+  await page.getByRole('button',{name:'请求数据',exact:true}).click();
+  await expect(page.locator('.lab-stats > div').nth(1).locator('strong')).toHaveText('1');
+  await page.getByRole('button',{name:'清除缓存',exact:true}).click();
+  await page.getByRole('button',{name:'请求数据',exact:true}).click();
+  await expect(page.locator('.lab-stats > div').nth(0).locator('strong')).toHaveText('2');
+});
+
+test('expanded image lab processes selected images locally and supports dark mobile', async ({ page }) => {
+  const requests: string[]=[];
+  page.on('request',r=>{if(r.method()!=='GET')requests.push(r.url());});
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(`${BASE}/demos/image-export`);
+  await page.getByLabel('选择本地图片').setInputFiles(path.resolve(process.cwd(),'public/brand/logo.png'));
+  await expect(page.locator('.lab-image img')).toBeVisible();
+  await expect(page.getByRole('link',{name:'下载图片'})).toHaveAttribute('download','vibe-export.webp');
+  await page.getByLabel('输出格式').selectOption('image/png');
+  await expect(page.getByRole('link',{name:'下载图片'})).toHaveAttribute('download','vibe-export.png');
+  await page.evaluate(()=>window.localStorage.setItem('vibe-theme','dark'));
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme','dark');
+  await noOverflow(page);
+  expect(requests).toEqual([]);
 });

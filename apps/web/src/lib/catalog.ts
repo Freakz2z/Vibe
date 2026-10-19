@@ -43,6 +43,9 @@ export const demoKindLabels: Record<Demo['kind'], string> = {
   kanban: '拖拽排序',
   particles: 'Canvas 粒子',
   markdown: '安全解析',
+  contrast: '颜色对比', bezier: '缓动曲线', grid: '网格布局', shadow: '阴影样式', typography: '文字排版',
+  regex: '正则匹配', json: '数据格式', csv: '表格数据', svgpath: '矢量路径', image: '图片处理',
+  flex: '弹性布局', noise: '生成纹理', sorting: '算法过程', debounce: '事件控制', cache: '请求缓存',
 };
 
 export function formatUpdatedAt(value: string): string {

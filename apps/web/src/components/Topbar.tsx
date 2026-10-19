@@ -1,4 +1,4 @@
-import { Heart, Menu, Search } from 'lucide-react';
+import { Github, Heart, Menu, Search } from 'lucide-react';
 import type { ThemeMode } from '../hooks/useTheme';
 import { Brand } from './Brand';
 import { ThemeMenu } from './ThemeMenu';
@@ -60,6 +60,7 @@ export function Topbar({
             {favoriteCount > 0 ? <span className="topbar__favorite-count">{favoriteCount}</span> : null}
           </a>
           <ThemeMenu mode={mode} resolved={resolvedTheme} setMode={setThemeMode} />
+          <a className="icon-button topbar__github" href="https://github.com/Freakz2z/Vibe" target="_blank" rel="noopener noreferrer" aria-label="GitHub 开源仓库" title="GitHub 开源仓库"><Github size={19} aria-hidden="true" /></a>
         </div>
       </div>
     </header>

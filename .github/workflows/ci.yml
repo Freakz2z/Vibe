@@ -1,0 +1,36 @@
+name: Checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run seed:build
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npm run db:local
+      - run: npm run assets:local
+      - run: npx playwright install --with-deps chromium
+      - name: API and browser checks
+        run: |
+          npm run dev > /tmp/vibe-worker.log 2>&1 &
+          WORKER_PID=$!
+          trap 'kill "$WORKER_PID" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8787/api/health > /dev/null; then break; fi
+            sleep 1
+          done
+          npm run test:api
+          node --import tsx scripts/verify-logos.ts
+          npm run test:e2e
