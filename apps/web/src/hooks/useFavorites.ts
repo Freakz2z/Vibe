@@ -8,7 +8,9 @@ function readFavorites(): string[] {
     if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((value): value is string => typeof value === 'string');
+    return Array.from(
+      new Set(parsed.filter((value): value is string => typeof value === 'string')),
+    );
   } catch {
     return [];
   }

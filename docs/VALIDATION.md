@@ -3,7 +3,22 @@
 日期：2026-10-19（Asia/Shanghai）
 
 
-## 最新前端状态：恢复卡片布局，仅清理文案
+## 最新前端状态：筛选、详情与浏览逻辑优化
+
+2026-10-19，在恢复后的卡片版上完成用户本轮七项优化。前端实施与修订来自 Claude Code CLI 的 `deepseek-flash`，会话 `e0ecb767-8ee7-4821-bed4-72211e3dd0dc`；主代理负责官方素材、契约、D1/R2、集成与发布。
+
+- 桌面筛选按平台、费用分行；选中条件可单项移除，重置入口去重，实时结果数与 URL 同步。手机筛选使用独立面板，支持 Esc、焦点回收和背景滚动锁定。
+- 详情调整为简介、安装、适用场景、特点、示例；相关资料合并，控制行宽、字号与行距，长命令在自身区域滚动。
+- 侧栏移除编辑精选和收藏入口，Header 保留全站唯一收藏入口；分类与演示使用语义对应的 Lucide 图标。
+- 65 个官方工具 Logo 存入 R2，来源及 SHA-256 见 `assets/icons/sources.json`；Monaco Editor 未找到可确认的独立 Logo，保留文字标识。所有工具入口共用 Logo 组件，暗色保留可读底板，失败才回退。
+- 目录 → 详情 → 相关工具 → 返回目录恢复筛选和滚动；浏览器前进/后退及异步加载后恢复位置均有回归覆盖。收藏去重、取消和筛选空状态保持同步。
+- 保留暖色卡片与亮暗主题；未恢复宣传引导文案或 hover 位移。资源 404 使用 `no-store`，避免缺失素材响应进入缓存。
+- 类型检查、生产构建、3 个后端测试通过。连接本地真实 D1/R2 的浏览器回归 14/14 通过；只有 Logo 的少量专用失败地址使用测试夹具。
+- 正式域名接口检查与 65 个官方图标的 MIME、SHA-256、ETag 校验均通过，D1/R2 ready。迁移 `0005_catalog_update.sql` 已在本地和正式 D1 应用。
+- 正式域名浏览器回归 14/14 通过（3.2 分钟），24 项 API 检查通过，媒体缺失响应确认 `Cache-Control: no-store`。生产日志为本机 `artifacts/e2e-ux-production.log`、`artifacts/api-ux-production.log`、`artifacts/logos-production.json`。
+- 发布版本 `d0cda6ba-1dce-436c-b928-c6d7b6e7a56e`，构建 JS 243.41 kB / gzip 76.77 kB、CSS 83.67 kB / gzip 15.76 kB。
+
+## 上一版记录：恢复卡片布局，仅清理文案
 
 2026-10-19，按用户最新要求恢复仓库初版卡片布局，撤回工具行目录重做。当前前端基于提交 `2f41e1f`，界面小改由 Claude Code CLI 的 `deepseek-flash` 完成。作者会话：`c391045a-eead-4f1f-915c-2b6ee3de6682`。
 
@@ -15,13 +30,13 @@
 - 正式域名浏览器复测 7/7 通过（2.0 分钟），包含恢复的卡片、文案缺失、悬停位置与尺寸不变、320/390px、深色主题及原功能。
 - 正式域名 24 项接口/资源检查通过，D1/R2 均 ready。日志分别为本机 artifacts/e2e-copy-only-production.log 和 artifacts/api-copy-only-production.log。
 
-以下保留初版技术与验收记录，最新界面和发布版本以本节为准。
+以下保留初版技术与历史验收记录，最新界面和发布版本以上方最新状态为准。
 
 ## 正式部署
 
 - 正式地址：https://vibe.freakz2z.com
 - Cloudflare Worker：`vibe-cn`
-- 当前部署版本：`4cea7a4e-6e51-4e57-b916-37a97360d4c9`
+- 当前部署版本：`d0cda6ba-1dce-436c-b928-c6d7b6e7a56e`
 - D1：`vibe-catalog` / `d65cc446-0b9e-47de-b937-76915cbefe68`
 - R2：`vibe-assets`，通过 Worker `MEDIA` binding 读取。
 - 自定义域名已在 Cloudflare 返回 `enabled: true`，服务为 `vibe-cn`、环境为 `production`。

@@ -2,6 +2,7 @@ import { ArrowUpRight } from 'lucide-react';
 import type { Demo } from '../types';
 import { demoKindLabels } from '../lib/catalog';
 import { DemoThumb } from './DemoThumb';
+import { DemoKindIcon } from './icons';
 
 export function DemoCard({ demo }: { demo: Demo }) {
   return (
@@ -11,7 +12,10 @@ export function DemoCard({ demo }: { demo: Demo }) {
         <span className="demo-card__badge">原理演示</span>
       </div>
       <div className="demo-card__body">
-        <p className="demo-card__kind">{demoKindLabels[demo.kind]}</p>
+        <p className="demo-card__kind">
+          <DemoKindIcon kind={demo.kind} size={14} />
+          {demoKindLabels[demo.kind]}
+        </p>
         <h3>{demo.name}</h3>
         <p className="demo-card__description">{demo.description}</p>
         <div className="demo-card__footer">

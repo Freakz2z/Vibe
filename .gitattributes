@@ -1,0 +1,2 @@
+# Preserve official image bytes, including upstream line endings and final blanks.
+assets/icons/*.svg -text whitespace=cr-at-eol,-blank-at-eof

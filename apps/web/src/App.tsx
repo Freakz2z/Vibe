@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Catalog, Category, Tool } from './types';
 import { fetchCatalog } from './lib/api';
-import { filterTools, type ToolFilters } from './lib/catalog';
+import { filterTools, platformLabels, type ToolFilters } from './lib/catalog';
 import { navigate, useRoute, withCurrentSearch } from './lib/router';
 import { writeClipboard } from './lib/clipboard';
 import { useTheme } from './hooks/useTheme';
@@ -14,6 +14,7 @@ import { SearchDialog } from './components/SearchDialog';
 import { AboutDialog } from './components/AboutDialog';
 import { Toast, type ToastData } from './components/Toast';
 import { ErrorScreen, LoadingScreen } from './components/StartupScreens';
+import type { ActiveFilter, FilterKey } from './components/FilterBar';
 import { HomePage } from './pages/HomePage';
 import { ToolPage } from './pages/ToolPage';
 import { DemosPage } from './pages/DemosPage';
@@ -23,6 +24,9 @@ import { NotFoundPage } from './pages/NotFoundPage';
 const BASE_TITLE = 'Vibe 工具集 · 独立开发者的中文工具导航';
 const BASE_DESCRIPTION =
   'Vibe 工具集是一份面向独立开发者与 AI 编程创造者的中文工具导航：按分类浏览前端、动效、图表、后端、移动端与效率工具，支持搜索、平台筛选与收藏。';
+
+const PRICING_VALUES = ['开源免费', '免费使用', '免费增值', '付费'];
+const PLATFORM_VALUES = ['Web', 'Mobile', 'CLI'];
 
 function decodeSegment(segment: string): string | null {
   try {
@@ -35,14 +39,14 @@ function decodeSegment(segment: string): string | null {
 type LoadStatus = 'loading' | 'ready' | 'error';
 
 export default function App() {
-  const route = useRoute();
-  const pathname = route.pathname.length > 1 ? route.pathname.replace(/\/+$/, '') : '/';
-  const params = useMemo(() => new URLSearchParams(route.search), [route.search]);
-
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [loadStatus, setLoadStatus] = useState<LoadStatus>('loading');
   const [errorMessage, setErrorMessage] = useState('');
   const [attempt, setAttempt] = useState(0);
+  const route = useRoute(loadStatus === 'ready');
+
+  const pathname = route.pathname.length > 1 ? route.pathname.replace(/\/+$/, '') : '/';
+  const params = useMemo(() => new URLSearchParams(route.search), [route.search]);
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -138,12 +142,11 @@ export default function App() {
     return () => document.removeEventListener('click', onClick);
   }, []);
 
-  const previousPath = useRef(pathname);
+  // A URL change means the previous navigation surface should not linger.
   useEffect(() => {
-    if (previousPath.current === pathname) return;
-    previousPath.current = pathname;
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  }, [pathname]);
+    setDrawerOpen(false);
+    setSearchOpen(false);
+  }, [pathname, route.search]);
 
   const notify = useCallback((text: string, tone: ToastData['tone'] = 'default') => {
     toastId.current += 1;
@@ -192,10 +195,8 @@ export default function App() {
     const category = catalog?.categories.some((item) => item.id === categoryParam)
       ? categoryParam
       : '';
-    const platform = ['Web', 'Mobile', 'CLI'].includes(platformParam) ? platformParam : '';
-    const pricing = ['开源免费', '免费使用', '免费增值', '付费'].includes(pricingParam)
-      ? pricingParam
-      : '';
+    const platform = PLATFORM_VALUES.includes(platformParam) ? platformParam : '';
+    const pricing = PRICING_VALUES.includes(pricingParam) ? pricingParam : '';
 
     return {
       q: (params.get('q') ?? '').slice(0, 120),
@@ -203,7 +204,6 @@ export default function App() {
       platform,
       pricing,
       favorites: params.get('favorites') === '1',
-      featured: params.get('featured') === '1',
     };
   }, [catalog, params]);
 
@@ -222,6 +222,25 @@ export default function App() {
     return counts;
   }, [catalog]);
 
+  const activeCategory = filters.category
+    ? catalog?.categories.find((category) => category.id === filters.category)
+    : undefined;
+
+  const activeFilters = useMemo<ActiveFilter[]>(() => {
+    const list: ActiveFilter[] = [];
+    if (filters.q) list.push({ key: 'q', label: `搜索：${filters.q}` });
+    if (activeCategory) list.push({ key: 'category', label: `分类：${activeCategory.name}` });
+    if (filters.favorites) list.push({ key: 'favorites', label: '我的收藏' });
+    if (filters.platform) {
+      list.push({
+        key: 'platform',
+        label: `平台：${platformLabels[filters.platform as Tool['platforms'][number]]}`,
+      });
+    }
+    if (filters.pricing) list.push({ key: 'pricing', label: `费用：${filters.pricing}` });
+    return list;
+  }, [activeCategory, filters]);
+
   const toolMatch = /^\/tools\/([^/]+)$/.exec(pathname);
   const demoMatch = /^\/demos\/([^/]+)$/.exec(pathname);
   const requestedToolId = toolMatch ? decodeSegment(toolMatch[1]) : null;
@@ -234,11 +253,11 @@ export default function App() {
     ? catalog?.demos.find((demo) => demo.id === requestedDemoId)
     : undefined;
 
-  const selectedCategory: Category | undefined = selectedTool && catalog
+  const selectedToolCategory: Category | undefined = selectedTool && catalog
     ? catalog.categories.find((category) => category.id === selectedTool.categoryId)
     : undefined;
   const toolCategory: Category | undefined = selectedTool
-    ? selectedCategory ?? {
+    ? selectedToolCategory ?? {
         id: selectedTool.categoryId,
         name: '未分类',
         description: '',
@@ -260,13 +279,12 @@ export default function App() {
       .filter((tool): tool is Tool => Boolean(tool));
   }, [catalog, selectedDemo]);
 
-  const activeCategory = filters.category;
   let sidebarActive: SidebarActive = 'none';
   if (pathname === '/') {
-    if (filters.favorites) sidebarActive = 'favorites';
-    else if (filters.featured) sidebarActive = 'featured';
-    else if (filters.category) sidebarActive = 'category';
-    else sidebarActive = 'all';
+    if (filters.category) sidebarActive = 'category';
+    else if (!filters.q && !filters.platform && !filters.pricing && !filters.favorites) {
+      sidebarActive = 'all';
+    }
   } else if (pathname === '/demos' || pathname.startsWith('/demos/')) {
     sidebarActive = 'demos';
   }
@@ -275,11 +293,8 @@ export default function App() {
   if (pathname === '/') {
     if (filters.q) contextLabel = '搜索目录';
     else if (filters.favorites) contextLabel = '我的收藏';
-    else if (filters.featured) contextLabel = '编辑精选';
-    else if (selectedCategory) contextLabel = selectedCategory.name;
-    else if (filters.category) {
-      contextLabel = catalog?.categories.find((item) => item.id === filters.category)?.name ?? '分类';
-    }
+    else if (activeCategory) contextLabel = activeCategory.name;
+    else if (filters.platform || filters.pricing) contextLabel = '筛选结果';
   } else if (pathname === '/demos') {
     contextLabel = '站内示例';
   } else if (selectedDemo) {
@@ -301,12 +316,9 @@ export default function App() {
       if (filters.q) {
         pageTitle = `搜索“${filters.q}” · Vibe 工具集`;
         pageDescription = `在 Vibe 工具集中搜索“${filters.q}”的结果。`;
-      } else if (filters.category) {
-        const name = catalog.categories.find((category) => category.id === filters.category)?.name;
-        if (name) {
-          pageTitle = `${name} · Vibe 工具集`;
-          pageDescription = `浏览 Vibe 工具集中的${name}分类，按平台与授权筛选。`;
-        }
+      } else if (activeCategory) {
+        pageTitle = `${activeCategory.name} · Vibe 工具集`;
+        pageDescription = `浏览 Vibe 工具集中的${activeCategory.name}分类，按平台与授权筛选。`;
       } else if (filters.favorites) {
         pageTitle = '我的收藏 · Vibe 工具集';
         pageDescription = 'Vibe 工具集中的工具收藏。';
@@ -332,6 +344,79 @@ export default function App() {
     if (meta) meta.setAttribute('content', pageDescription);
   }, [pageDescription, pageTitle]);
 
+  const updateQuery = useCallback(
+    (updates: Record<string, string | null>) => {
+      const next = new URLSearchParams(route.search);
+      for (const [key, value] of Object.entries(updates)) {
+        if (value) next.set(key, value);
+        else next.delete(key);
+      }
+      const query = next.toString();
+      navigate(query ? `/?${query}` : '/', { scroll: 'preserve' });
+    },
+    [route.search],
+  );
+
+  const updatePlatform = useCallback(
+    (value: string) => updateQuery({ platform: value || null }),
+    [updateQuery],
+  );
+  const updatePricing = useCallback(
+    (value: string) => updateQuery({ pricing: value || null }),
+    [updateQuery],
+  );
+  const removeFilter = useCallback(
+    (key: FilterKey) => updateQuery({ [key]: null }),
+    [updateQuery],
+  );
+  const clearAllFilters = useCallback(() => {
+    navigate('/', { scroll: 'preserve' });
+  }, []);
+  const clearFavoriteFilters = useCallback(() => {
+    navigate('/?favorites=1', { scroll: 'preserve' });
+  }, []);
+
+  const goBackTo = useCallback((fallback: string, accepts: (from: string) => boolean) => {
+    const state = window.history.state as { vibeFrom?: unknown } | null;
+    const from = state && typeof state.vibeFrom === 'string' ? state.vibeFrom : '';
+    if (from && accepts(from)) {
+      window.history.back();
+      return;
+    }
+    navigate(fallback);
+  }, []);
+
+  const returnToDirectory = useCallback(
+    (fallback: string) => {
+      const state = window.history.state as {
+        vibeDirectory?: unknown;
+        vibeDirectoryDepth?: unknown;
+      } | null;
+      const directory = state?.vibeDirectory;
+      const depth = state?.vibeDirectoryDepth;
+      if (
+        typeof directory === 'string' &&
+        directory &&
+        typeof depth === 'number' &&
+        Number.isInteger(depth) &&
+        depth > 0
+      ) {
+        if (depth === 1) window.history.back();
+        else window.history.go(-depth);
+        return;
+      }
+      navigate(fallback);
+    },
+    [],
+  );
+
+  const returnToDemos = useCallback(
+    (fallback: string) => {
+      goBackTo(fallback, (from) => from === '/demos');
+    },
+    [goBackTo],
+  );
+
   if (loadStatus === 'loading') return <LoadingScreen />;
   if (loadStatus === 'error' || !catalog) {
     return (
@@ -345,53 +430,20 @@ export default function App() {
   const goHome = () => {
     setDrawerOpen(false);
     navigate('/');
-    window.scrollTo({ top: 0, behavior: 'auto' });
-  };
-  const goFeatured = () => {
-    setDrawerOpen(false);
-    navigate('/?featured=1');
-    window.scrollTo({ top: 0, behavior: 'auto' });
-  };
-  const goFavorites = () => {
-    setDrawerOpen(false);
-    navigate('/?favorites=1');
-    window.scrollTo({ top: 0, behavior: 'auto' });
   };
   const goDemos = () => {
     setDrawerOpen(false);
     navigate('/demos');
-    window.scrollTo({ top: 0, behavior: 'auto' });
   };
   const goCategory = (id: string) => {
     setDrawerOpen(false);
     navigate(`/?category=${encodeURIComponent(id)}`);
-    window.scrollTo({ top: 0, behavior: 'auto' });
-  };
-
-  const updatePlatform = (value: string) => {
-    const next = new URLSearchParams(route.search);
-    if (value) next.set('platform', value);
-    else next.delete('platform');
-    const query = next.toString();
-    navigate(query ? `/?${query}` : '/');
-  };
-  const updatePricing = (value: string) => {
-    const next = new URLSearchParams(route.search);
-    if (value) next.set('pricing', value);
-    else next.delete('pricing');
-    const query = next.toString();
-    navigate(query ? `/?${query}` : '/');
-  };
-  const clearFilters = () => {
-    navigate('/');
-    window.scrollTo({ top: 0, behavior: 'auto' });
   };
 
   const handleSearchAll = (query: string) => {
     setSearchOpen(false);
     if (query.trim()) navigate(`/?q=${encodeURIComponent(query.trim())}`);
     else navigate('/');
-    window.scrollTo({ top: 0, behavior: 'auto' });
   };
 
   const isLanding =
@@ -400,8 +452,7 @@ export default function App() {
     !filters.category &&
     !filters.platform &&
     !filters.pricing &&
-    !filters.favorites &&
-    !filters.featured;
+    !filters.favorites;
 
   let content;
   if (pathname === '/') {
@@ -413,18 +464,26 @@ export default function App() {
         isLanding={isLanding}
         favoriteSet={favoriteSet}
         searchSuffix={route.search}
+        activeFilters={activeFilters}
         onToggleFavorite={handleToggleFavorite}
         onCopyInstall={handleCopyInstall}
         onPlatformChange={updatePlatform}
         onPricingChange={updatePricing}
-        onClearFilters={clearFilters}
+        onRemoveFilter={removeFilter}
+        onClearAllFilters={clearAllFilters}
+        onClearFavoriteFilters={clearFavoriteFilters}
       />
     );
   } else if (pathname === '/demos') {
     content = <DemosPage demos={catalog.demos} />;
   } else if (demoMatch) {
     content = selectedDemo ? (
-      <DemoPage demo={selectedDemo} tools={demoTools} onCopy={handleCopy} />
+      <DemoPage
+        demo={selectedDemo}
+        tools={demoTools}
+        onCopy={handleCopy}
+        onBackToDemos={returnToDemos}
+      />
     ) : (
       <NotFoundPage
         title="没有找到这个示例"
@@ -440,12 +499,12 @@ export default function App() {
         category={toolCategory}
         demo={catalog.demos.find((demo) => demo.id === selectedTool.demoId)}
         relatedTools={relatedTools}
-        categories={catalog.categories}
         search={route.search}
         updatedAt={catalog.updatedAt}
         isFavorite={favoriteSet.has(selectedTool.id)}
         onToggleFavorite={handleToggleFavorite}
         onCopyInstall={handleCopyInstall}
+        onBackToDirectory={returnToDirectory}
       />
     ) : (
       <NotFoundPage
@@ -470,13 +529,10 @@ export default function App() {
           categories={catalog.categories}
           toolCounts={toolCounts}
           totalTools={catalog.tools.length}
-          favoriteCount={favorites.ids.length}
           demoCount={catalog.demos.length}
           active={sidebarActive}
-          activeCategory={activeCategory}
+          activeCategory={filters.category}
           onAll={goHome}
-          onFeatured={goFeatured}
-          onFavorites={goFavorites}
           onDemos={goDemos}
           onCategory={goCategory}
           onAbout={openAbout}
@@ -502,13 +558,10 @@ export default function App() {
               categories={catalog.categories}
               toolCounts={toolCounts}
               totalTools={catalog.tools.length}
-              favoriteCount={favorites.ids.length}
               demoCount={catalog.demos.length}
               active={sidebarActive}
-              activeCategory={activeCategory}
+              activeCategory={filters.category}
               onAll={goHome}
-              onFeatured={goFeatured}
-              onFavorites={goFavorites}
               onDemos={goDemos}
               onCategory={goCategory}
               onAbout={openAbout}

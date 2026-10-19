@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import { ArrowUpRight, Copy, Heart, Sparkles } from 'lucide-react';
 import type { Tool } from '../types';
 import { pricingTones, shortPlatformLabels } from '../lib/catalog';
+import { ToolLogo } from './ToolLogo';
 
 interface ToolCardProps {
   tool: Tool;
@@ -36,9 +37,7 @@ export function ToolCard({
       </a>
 
       <div className="tool-card__top">
-        <span className="tool-icon" aria-hidden="true">
-          {tool.icon}
-        </span>
+        <ToolLogo tool={tool} />
         <div className="tool-card__title-wrap">
           <div className="tool-card__title-row">
             <h3 id={titleId}>{tool.name}</h3>
@@ -117,9 +116,7 @@ export function FeaturedToolCard({ tool, categoryName, hrefSuffix = '' }: Featur
       style={{ '--tool-accent': tool.accent } as CSSProperties}
     >
       <div className="featured-tool__top">
-        <span className="tool-icon tool-icon--small" aria-hidden="true">
-          {tool.icon}
-        </span>
+        <ToolLogo tool={tool} className="tool-icon--small" />
         <span className="featured-tool__category">{categoryName}</span>
         <ArrowUpRight className="featured-tool__arrow" size={15} aria-hidden="true" />
       </div>

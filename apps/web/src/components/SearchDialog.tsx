@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Search, X } from 'lucide-react';
 import type { Category, Tool } from '../types';
 import { useDialog } from '../hooks/useDialog';
 import { toolMatches } from '../lib/catalog';
+import { CategoryIcon } from './icons';
+import { ToolLogo } from './ToolLogo';
 
 interface SearchDialogProps {
   open: boolean;
@@ -162,7 +164,9 @@ export function SearchDialog({
                       onClose();
                     }}
                   >
-                    <span aria-hidden="true">{category.icon}</span>
+                    <span aria-hidden="true">
+                      <CategoryIcon id={category.id} size={15} />
+                    </span>
                     {category.name}
                   </button>
                 ))}
@@ -189,13 +193,7 @@ export function SearchDialog({
                   onMouseEnter={() => setActiveIndex(index)}
                   onClick={() => selectTool(tool)}
                 >
-                  <span
-                    className="search-result__icon"
-                    style={{ '--result-accent': tool.accent } as CSSProperties}
-                    aria-hidden="true"
-                  >
-                    {tool.icon}
-                  </span>
+                  <ToolLogo tool={tool} className="search-result__logo" />
                   <span className="search-result__text">
                     <strong>{tool.name}</strong>
                     <span>{tool.tagline}</span>

@@ -1,21 +1,29 @@
-import type { CSSProperties } from 'react';
 import { ArrowLeft, ArrowUpRight, ExternalLink, Sparkles } from 'lucide-react';
 import type { Demo, Tool } from '../types';
 import { demoKindLabels } from '../lib/catalog';
 import { DemoRenderer } from '../demos/DemoRenderer';
 import type { DemoCopyHandler } from '../demos/types';
+import { DemoKindIcon } from '../components/icons';
+import { ToolLogo } from '../components/ToolLogo';
 
 interface DemoPageProps {
   demo: Demo;
   tools: Tool[];
   onCopy: DemoCopyHandler;
+  onBackToDemos: (fallback: string) => void;
 }
 
-export function DemoPage({ demo, tools, onCopy }: DemoPageProps) {
+export function DemoPage({ demo, tools, onCopy, onBackToDemos }: DemoPageProps) {
   return (
     <article className="page demo-page">
       <nav className="breadcrumb" aria-label="面包屑导航">
-        <a href="/demos">
+        <a
+          href="/demos"
+          onClick={(event) => {
+            event.preventDefault();
+            onBackToDemos('/demos');
+          }}
+        >
           <ArrowLeft size={14} aria-hidden="true" />
           站内示例
         </a>
@@ -26,7 +34,10 @@ export function DemoPage({ demo, tools, onCopy }: DemoPageProps) {
       <header className="demo-page__header">
         <div className="demo-page__meta">
           <span className="principle-badge">原理演示</span>
-          <span className="demo-kind-badge">{demoKindLabels[demo.kind]}</span>
+          <span className="demo-kind-badge">
+            <DemoKindIcon kind={demo.kind} size={13} />
+            {demoKindLabels[demo.kind]}
+          </span>
         </div>
         <h1>{demo.name}</h1>
         <p>{demo.description}</p>
@@ -34,13 +45,7 @@ export function DemoPage({ demo, tools, onCopy }: DemoPageProps) {
           <span className="demo-page__tools-label">关联工具</span>
           {tools.map((tool) => (
             <a className="tool-chip" href={`/tools/${tool.id}`} key={tool.id}>
-              <span
-                className="tool-chip__icon"
-                style={{ '--chip-accent': tool.accent } as CSSProperties}
-                aria-hidden="true"
-              >
-                {tool.icon}
-              </span>
+              <ToolLogo tool={tool} className="tool-chip__logo" />
               {tool.name}
             </a>
           ))}

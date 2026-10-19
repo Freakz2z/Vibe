@@ -4,7 +4,8 @@ import type { ToolFilters } from '../lib/catalog';
 import { formatUpdatedAt, groupTools } from '../lib/catalog';
 import { FeaturedToolCard, ToolCard } from '../components/ToolCard';
 import { DemoCard } from '../components/DemoCard';
-import { FilterBar } from '../components/FilterBar';
+import { FilterBar, type ActiveFilter, type FilterKey } from '../components/FilterBar';
+import { CategoryIcon } from '../components/icons';
 
 interface HomePageProps {
   catalog: Catalog;
@@ -13,27 +14,35 @@ interface HomePageProps {
   isLanding: boolean;
   favoriteSet: ReadonlySet<string>;
   searchSuffix: string;
+  activeFilters: ActiveFilter[];
   onToggleFavorite: (tool: Tool) => void;
   onCopyInstall: (tool: Tool) => void;
   onPlatformChange: (value: string) => void;
   onPricingChange: (value: string) => void;
-  onClearFilters: () => void;
+  onRemoveFilter: (key: FilterKey) => void;
+  onClearAllFilters: () => void;
+  onClearFavoriteFilters: () => void;
 }
 
 function EmptyDirectory({
   favorites,
   query,
-  onClear,
+  hasOtherFilters,
+  onClearAll,
+  onClearFavoriteFilters,
 }: {
   favorites: boolean;
   query: string;
-  onClear: () => void;
+  hasOtherFilters: boolean;
+  onClearAll: () => void;
+  onClearFavoriteFilters: () => void;
 }) {
-  const title = favorites
-    ? '这里还没有收藏'
-    : query
-      ? `没有找到“${query}”`
-      : '这一组合暂时没有匹配';
+  let title = '没有符合条件的工具';
+  if (favorites) {
+    title = hasOtherFilters ? '收藏中没有符合筛选条件的工具' : '这里还没有收藏';
+  } else if (query) {
+    title = `没有找到“${query}”`;
+  }
 
   return (
     <div className="empty-state">
@@ -41,9 +50,20 @@ function EmptyDirectory({
         {favorites ? <Heart size={24} /> : <Search size={24} />}
       </span>
       <h3>{title}</h3>
-      <button type="button" className="button button--secondary" onClick={onClear}>
-        清除所有筛选
-      </button>
+      <div className="empty-state__actions">
+        {favorites && hasOtherFilters ? (
+          <button type="button" className="button button--primary" onClick={onClearFavoriteFilters}>
+            清除筛选，查看全部收藏
+          </button>
+        ) : null}
+        <button
+          type="button"
+          className={`button ${favorites && hasOtherFilters ? 'button--quiet' : 'button--secondary'}`}
+          onClick={onClearAll}
+        >
+          {favorites ? '浏览全部工具' : '清除所有筛选'}
+        </button>
+      </div>
     </div>
   );
 }
@@ -58,10 +78,6 @@ function FeaturedSection({ catalog, searchSuffix }: { catalog: Catalog; searchSu
         <div>
           <p className="eyebrow">编辑精选</p>
         </div>
-        <a className="text-link" href="/?featured=1">
-          只看精选
-          <ArrowRight size={15} aria-hidden="true" />
-        </a>
       </div>
       <div className="featured-grid">
         {featured.map((tool) => (
@@ -105,31 +121,39 @@ export function HomePage({
   isLanding,
   favoriteSet,
   searchSuffix,
+  activeFilters,
   onToggleFavorite,
   onCopyInstall,
   onPlatformChange,
   onPricingChange,
-  onClearFilters,
+  onRemoveFilter,
+  onClearAllFilters,
+  onClearFavoriteFilters,
 }: HomePageProps) {
   const categoryNames = new Map(catalog.categories.map((category) => [category.id, category.name]));
   const groups = groupTools(tools, catalog.categories);
   const activeCategory = catalog.categories.find((category) => category.id === filters.category);
-  const hasFilters = Boolean(
-    filters.q || filters.category || filters.platform || filters.pricing || filters.favorites || filters.featured,
-  );
+  const hasFacetFilters = Boolean(filters.platform || filters.pricing);
 
   let heading = '完整目录';
   let headingDescription: string | undefined;
+  let eyebrow = '目录浏览';
   if (filters.q) {
     heading = `搜索“${filters.q}”`;
+    eyebrow = '搜索结果';
   } else if (filters.favorites) {
     heading = '我的收藏';
-  } else if (filters.featured) {
-    heading = '编辑精选';
+    eyebrow = '收藏';
   } else if (activeCategory) {
     heading = activeCategory.name;
     headingDescription = activeCategory.description;
+    eyebrow = '分类浏览';
+  } else if (hasFacetFilters) {
+    heading = '筛选结果';
+    eyebrow = '目录浏览';
   }
+
+  const favoriteFilterCount = activeFilters.filter((filter) => filter.key !== 'favorites').length;
 
   return (
     <div className="page page--home">
@@ -178,10 +202,12 @@ export function HomePage({
         </>
       ) : (
         <header className="browse-heading browse-heading--compact">
-          <p className="eyebrow">{filters.favorites ? '我的收藏' : filters.q ? '搜索结果' : '目录浏览'}</p>
+          <p className="eyebrow">{eyebrow}</p>
           <div className="browse-heading__title-row">
             <h1>{heading}</h1>
-            <span className="browse-heading__count">{tools.length} 个工具</span>
+            <span className="browse-heading__count" aria-live="polite">
+              共 {tools.length} 个工具
+            </span>
           </div>
           {headingDescription ? <p>{headingDescription}</p> : null}
         </header>
@@ -208,21 +234,29 @@ export function HomePage({
         <FilterBar
           platform={filters.platform}
           pricing={filters.pricing}
-          hasFilters={hasFilters}
+          activeFilters={activeFilters}
+          resultCount={tools.length}
           onPlatformChange={onPlatformChange}
           onPricingChange={onPricingChange}
-          onClear={onClearFilters}
+          onRemoveFilter={onRemoveFilter}
+          onClearAll={onClearAllFilters}
         />
 
         {tools.length === 0 ? (
-          <EmptyDirectory favorites={filters.favorites} query={filters.q} onClear={onClearFilters} />
+          <EmptyDirectory
+            favorites={filters.favorites}
+            query={filters.q}
+            hasOtherFilters={filters.favorites && favoriteFilterCount > 0}
+            onClearAll={onClearAllFilters}
+            onClearFavoriteFilters={onClearFavoriteFilters}
+          />
         ) : (
           <div className="tool-groups">
             {groups.map((group) => (
               <section className="tool-group" key={group.category.id} aria-labelledby={`group-${group.category.id}`}>
                 <div className="tool-group__head">
                   <span className="tool-group__icon" aria-hidden="true">
-                    {group.category.icon}
+                    <CategoryIcon id={group.category.id} size={15} />
                   </span>
                   <div>
                     <h3 id={`group-${group.category.id}`}>{group.category.name}</h3>

@@ -39,8 +39,8 @@ async function route(request:Request,env:Env):Promise<Response>{
  if(path.startsWith('/api/tools/')){let id:string;try{id=decodeURIComponent(path.slice(11));}catch{return json({error:'INVALID_TOOL_ID'},400,'no-store');}const row=await env.DB.prepare('SELECT payload FROM tools WHERE id=?').bind(id).first<{payload:string}>();return row?json({tool:parseTool(row)}):json({error:'TOOL_NOT_FOUND'},404);}
  if(path.startsWith('/api/'))return json({error:'NOT_FOUND'},404);
  if(path.startsWith('/media/')){
-  const key=validMediaKey(path);if(!key)return json({error:'NOT_FOUND'},404);
-  const object=await env.MEDIA.get(key);if(!object)return json({error:'NOT_FOUND'},404);
+  const key=validMediaKey(path);if(!key)return json({error:'NOT_FOUND'},404,'no-store');
+  const object=await env.MEDIA.get(key);if(!object)return json({error:'NOT_FOUND'},404,'no-store');
   const headers=new Headers();object.writeHttpMetadata(headers);headers.set('ETag',object.httpEtag);headers.set('Cache-Control','public, max-age=3600');
   if(request.headers.get('If-None-Match')===object.httpEtag)return new Response(null,{status:304,headers});
   return new Response(object.body,{headers});

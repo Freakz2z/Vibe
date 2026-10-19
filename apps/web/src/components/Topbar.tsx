@@ -56,6 +56,7 @@ export function Topbar({
             title="我的收藏"
           >
             <Heart size={18} aria-hidden="true" />
+            <span className="topbar__favorite-label">收藏</span>
             {favoriteCount > 0 ? <span className="topbar__favorite-count">{favoriteCount}</span> : null}
           </a>
           <ThemeMenu mode={mode} resolved={resolvedTheme} setMode={setThemeMode} />

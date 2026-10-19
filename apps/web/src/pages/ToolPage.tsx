@@ -2,28 +2,30 @@ import type { CSSProperties } from 'react';
 import type { Category, Demo, Tool } from '../types';
 import {
   ArrowLeft,
+  ArrowUpRight,
   Check,
   Copy,
   ExternalLink,
   Github,
   Heart,
   Sparkles,
-  ExternalLink as ExternalIcon,
 } from 'lucide-react';
 import { formatUpdatedAt, platformLabels, pricingTones } from '../lib/catalog';
 import { DemoThumb } from '../components/DemoThumb';
+import { CategoryIcon, DemoKindIcon } from '../components/icons';
+import { ToolLogo } from '../components/ToolLogo';
 
 interface ToolPageProps {
   tool: Tool;
   category: Category;
   demo?: Demo;
   relatedTools: Tool[];
-  categories: Category[];
   search: string;
   updatedAt: string;
   isFavorite: boolean;
   onToggleFavorite: (tool: Tool) => void;
   onCopyInstall: (tool: Tool) => void;
+  onBackToDirectory: (fallback: string) => void;
 }
 
 function displayHost(url: string): string {
@@ -39,15 +41,14 @@ export function ToolPage({
   category,
   demo,
   relatedTools,
-  categories,
-  search,
   updatedAt,
   isFavorite,
   onToggleFavorite,
   onCopyInstall,
+  onBackToDirectory,
+  search,
 }: ToolPageProps) {
   const backHref = search ? `/${search}` : '/';
-  const categoryNames = new Map(categories.map((item) => [item.id, item.name]));
 
   return (
     <article
@@ -55,7 +56,13 @@ export function ToolPage({
       style={{ '--tool-accent': tool.accent } as CSSProperties}
     >
       <nav className="breadcrumb" aria-label="面包屑导航">
-        <a href={backHref}>
+        <a
+          href={backHref}
+          onClick={(event) => {
+            event.preventDefault();
+            onBackToDirectory(backHref);
+          }}
+        >
           <ArrowLeft size={14} aria-hidden="true" />
           返回目录
         </a>
@@ -66,15 +73,13 @@ export function ToolPage({
       </nav>
 
       <header className="tool-detail-hero">
-        <div className="tool-detail-hero__icon tool-icon" aria-hidden="true">
-          {tool.icon}
-        </div>
+        <ToolLogo tool={tool} className="tool-detail-hero__icon" />
         <div className="tool-detail-hero__body">
           <div className="tool-detail-hero__meta">
             <a href={`/?category=${category.id}`} className="category-pill">
-              {category.icon} {category.name}
+              <CategoryIcon id={category.id} size={13} />
+              {category.name}
             </a>
-            <span className={`price price--${pricingTones[tool.pricing]}`}>{tool.pricing}</span>
             {tool.featured ? (
               <span className="featured-pill">
                 <Sparkles size={12} aria-hidden="true" />
@@ -84,7 +89,6 @@ export function ToolPage({
           </div>
           <h1>{tool.name}</h1>
           <p className="tool-detail-hero__tagline">{tool.tagline}</p>
-          <p className="tool-detail-hero__description">{tool.description}</p>
           <div className="tool-detail-hero__actions">
             <a
               className="button button--primary"
@@ -113,7 +117,7 @@ export function ToolPage({
               onClick={() => onToggleFavorite(tool)}
             >
               <Heart size={16} fill={isFavorite ? 'currentColor' : 'none'} aria-hidden="true" />
-              {isFavorite ? '已收藏' : '收藏到本机'}
+              {isFavorite ? '已收藏' : '收藏'}
             </button>
           </div>
         </div>
@@ -121,30 +125,15 @@ export function ToolPage({
 
       <div className="tool-detail-grid">
         <div className="tool-detail-main">
-          {demo ? (
-            <section className="tool-demo-callout" aria-labelledby="tool-demo-title">
-              <div className="tool-demo-callout__art">
-                <DemoThumb kind={demo.kind} />
-              </div>
-              <div className="tool-demo-callout__body">
-                <span className="principle-badge">原理演示</span>
-                <h2 id="tool-demo-title">{demo.name}</h2>
-                <p>{demo.description}</p>
-                <a className="text-link" href={`/demos/${demo.id}`}>
-                  打开站内示例
-                  <ExternalIcon size={14} aria-hidden="true" />
-                </a>
-              </div>
-            </section>
-          ) : null}
+          <section className="detail-section detail-section--intro" aria-labelledby="intro-title">
+            <h2 id="intro-title">简介</h2>
+            <p className="detail-prose">{tool.description}</p>
+          </section>
 
           {tool.install ? (
-            <section className="detail-section install-section" aria-labelledby="install-title">
+            <section className="detail-section" aria-labelledby="install-title">
               <div className="detail-section__heading">
-                <div>
-                  <p className="eyebrow">入手方式</p>
-                  <h2 id="install-title">安装命令</h2>
-                </div>
+                <h2 id="install-title">安装</h2>
                 <button
                   type="button"
                   className="copy-button"
@@ -161,27 +150,10 @@ export function ToolPage({
                 命令用于快速开始，具体版本与配置请以官方文档为准。
               </p>
             </section>
-          ) : (
-            <section className="detail-section" aria-labelledby="start-title">
-              <div className="detail-section__heading">
-                <div>
-                  <p className="eyebrow">入手方式</p>
-                  <h2 id="start-title">从官网文档开始</h2>
-                </div>
-              </div>
-              <p className="detail-paragraph">
-                这个工具主要通过官方网站或应用使用。
-              </p>
-            </section>
-          )}
+          ) : null}
 
           <section className="detail-section" aria-labelledby="use-cases-title">
-            <div className="detail-section__heading">
-              <div>
-                <p className="eyebrow">适用场景</p>
-                <h2 id="use-cases-title">可以把它放在哪里</h2>
-              </div>
-            </div>
+            <h2 id="use-cases-title">适用场景</h2>
             <ul className="detail-list">
               {tool.useCases.map((item) => (
                 <li key={item}>
@@ -195,12 +167,7 @@ export function ToolPage({
           </section>
 
           <section className="detail-section" aria-labelledby="highlights-title">
-            <div className="detail-section__heading">
-              <div>
-                <p className="eyebrow">亮点</p>
-                <h2 id="highlights-title">为什么值得了解</h2>
-              </div>
-            </div>
+            <h2 id="highlights-title">特点</h2>
             <ul className="detail-list detail-list--highlights">
               {tool.highlights.map((item) => (
                 <li key={item}>
@@ -212,25 +179,44 @@ export function ToolPage({
               ))}
             </ul>
           </section>
+
+          {demo ? (
+            <section className="detail-section detail-section--demo" aria-labelledby="demo-title">
+              <h2 id="demo-title">示例</h2>
+              <div className="tool-demo-callout">
+                <div className="tool-demo-callout__art">
+                  <DemoThumb kind={demo.kind} />
+                </div>
+                <div className="tool-demo-callout__body">
+                  <span className="principle-badge">
+                    <DemoKindIcon kind={demo.kind} size={12} />
+                    原理演示
+                  </span>
+                  <h3>{demo.name}</h3>
+                  <p>{demo.description}</p>
+                  <a className="text-link" href={`/demos/${demo.id}`}>
+                    打开示例
+                    <ArrowUpRight size={14} aria-hidden="true" />
+                  </a>
+                </div>
+              </div>
+            </section>
+          ) : null}
         </div>
 
-        <aside className="tool-detail-aside" aria-label="工具速览">
-          <div className="fact-card">
-            <h2>速览</h2>
+        <aside className="tool-detail-aside" aria-label="工具资料">
+          <section className="fact-card" aria-labelledby="resources-title">
+            <h2 id="resources-title">资料</h2>
             <dl>
-              <div>
-                <dt>分类</dt>
-                <dd>
-                  <a href={`/?category=${category.id}`}>{category.name}</a>
-                </dd>
-              </div>
               <div>
                 <dt>平台</dt>
                 <dd>{tool.platforms.map((platform) => platformLabels[platform]).join(' · ')}</dd>
               </div>
               <div>
-                <dt>授权</dt>
-                <dd>{tool.pricing}</dd>
+                <dt>费用</dt>
+                <dd>
+                  <span className={`price price--${pricingTones[tool.pricing]}`}>{tool.pricing}</span>
+                </dd>
               </div>
               <div>
                 <dt>收录更新</dt>
@@ -257,21 +243,22 @@ export function ToolPage({
                 </div>
               ) : null}
             </dl>
+            {tool.tags.length > 0 ? (
+              <div className="fact-card__tags">
+                <h3>标签</h3>
+                <div className="tool-card__tags">
+                  {tool.tags.map((tag) => (
+                    <span className="tag" key={tag}>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <p className="fact-card__note">
               价格与许可可能调整，请以官方页面为准。收录不代表推荐，也未声称逐一实测。
             </p>
-          </div>
-
-          <div className="tag-panel">
-            <h2>标签</h2>
-            <div className="tool-card__tags">
-              {tool.tags.map((tag) => (
-                <span className="tag" key={tag}>
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
+          </section>
         </aside>
       </div>
 
@@ -280,28 +267,26 @@ export function ToolPage({
           <div className="section-heading">
             <div>
               <p className="eyebrow">继续浏览</p>
-              <h2 id="related-title">同一分类里的其他工具</h2>
+              <h2 id="related-title">相关工具</h2>
             </div>
             <a className="text-link" href={`/?category=${category.id}`}>
               查看全部
-              <ExternalIcon size={14} aria-hidden="true" />
+              <ArrowUpRight size={14} aria-hidden="true" />
             </a>
           </div>
           <div className="related-list">
             {relatedTools.map((related) => (
-              <a className="related-item" href={`/tools/${related.id}`} key={related.id}>
-                <span
-                  className="tool-icon tool-icon--small"
-                  style={{ '--tool-accent': related.accent } as CSSProperties}
-                  aria-hidden="true"
-                >
-                  {related.icon}
-                </span>
+              <a
+                className="related-item"
+                href={`/tools/${related.id}${search}`}
+                key={related.id}
+              >
+                <ToolLogo tool={related} className="tool-icon--small" />
                 <span className="related-item__body">
                   <strong>{related.name}</strong>
                   <span>{related.tagline}</span>
                 </span>
-                <span className="related-item__meta">{categoryNames.get(related.categoryId) ?? ''}</span>
+                <ArrowUpRight className="related-item__arrow" size={14} aria-hidden="true" />
               </a>
             ))}
           </div>

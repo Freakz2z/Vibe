@@ -11,7 +11,8 @@
 - `shared/contracts.ts`：前后端 API 数据契约。
 - `data/catalog.json`：可维护的工具资料源，由 Claude Code CLI 编写。
 - `migrations/`：D1 表结构和内容迁移。
-- R2 `vibe-assets`：品牌等图片资源。通过本站 `/media/` 读取，存储桶无需公开。
+- `assets/icons/`：官方工具 Logo 原文件与来源、校验和清单。
+- R2 `vibe-assets`：品牌与工具 Logo。通过本站 `/media/` 读取，存储桶无需公开。
 
 ## 本地启动
 
@@ -36,10 +37,11 @@ npm test
 npm run build
 npm audit
 npm run test:api
+node --import tsx scripts/verify-logos.ts
 npm run test:e2e
 ```
 
-端到端测试默认连接 Vite 5173 的真实 API。检查构建后 Worker 时使用 `VIBE_TEST_BASE_URL=http://localhost:8787 npm run test:e2e`，检查线上时改为正式域名。只有显式设置 `VIBE_TEST_MOCK=1` 才使用隔离数据。首次运行浏览器测试需 `npx playwright install chromium`。
+端到端测试默认连接构建后 Worker 8787 的真实 D1/R2。检查 Vite 时设置 `VIBE_TEST_BASE_URL=http://127.0.0.1:5173`，检查线上时改为正式域名。只有显式设置 `VIBE_TEST_MOCK=1` 才使用隔离数据；Logo 加载失败测试仅覆盖少量专用测试 URL。首次运行浏览器测试需 `npx playwright install chromium`。
 
 ## 内容更新与部署
 
@@ -62,6 +64,7 @@ D1 数据库：`vibe-catalog`。R2：`vibe-assets`。自定义域名在 `wrangle
 - `GET /api/categories`、`GET /api/demos`。
 - `GET /api/health`：D1/R2 就绪检查，无凭据输出。
 - `GET /media/brand/logo.png`：R2 图片资源，支持 ETag。
+- `GET /media/icons/*`：官方工具 Logo，来源见 `assets/icons/sources.json`。
 - `GET /robots.txt`、`GET /sitemap.xml`。
 
 收藏只保存在访客当前浏览器，无跨设备同步。交互示例是教学原理演示，具体技术归属以页面标注为准。工具能力、授权和价格以各工具官网为准。站点不抓取或虚构实时排名。

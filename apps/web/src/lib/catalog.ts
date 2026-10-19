@@ -6,7 +6,6 @@ export interface ToolFilters {
   platform: string;
   pricing: string;
   favorites: boolean;
-  featured: boolean;
 }
 
 export const platformLabels: Record<Tool['platforms'][number], string> = {
@@ -83,7 +82,6 @@ export function filterTools(
     if (filters.platform && !tool.platforms.includes(filters.platform as Tool['platforms'][number])) return false;
     if (filters.pricing && tool.pricing !== filters.pricing) return false;
     if (filters.favorites && !favoriteIds.has(tool.id)) return false;
-    if (filters.featured && !tool.featured) return false;
     return toolMatches(tool, filters.q, categoryNames.get(tool.categoryId));
   });
 }

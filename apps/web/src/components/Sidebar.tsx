@@ -1,20 +1,18 @@
-import { Compass, Heart, Info, Sparkles, X } from 'lucide-react';
+import { Compass, Info, X } from 'lucide-react';
 import type { Category } from '../types';
 import { Brand } from './Brand';
+import { CategoryIcon, DemoEntryIcon } from './icons';
 
-export type SidebarActive = 'all' | 'featured' | 'favorites' | 'demos' | 'category' | 'none';
+export type SidebarActive = 'all' | 'demos' | 'category' | 'none';
 
 interface SidebarProps {
   categories: Category[];
   toolCounts: Map<string, number>;
   totalTools: number;
-  favoriteCount: number;
   demoCount: number;
   active: SidebarActive;
   activeCategory: string;
   onAll: () => void;
-  onFeatured: () => void;
-  onFavorites: () => void;
   onDemos: () => void;
   onCategory: (id: string) => void;
   onAbout: () => void;
@@ -28,13 +26,10 @@ export function Sidebar({
   categories,
   toolCounts,
   totalTools,
-  favoriteCount,
   demoCount,
   active,
   activeCategory,
   onAll,
-  onFeatured,
-  onFavorites,
   onDemos,
   onCategory,
   onAbout,
@@ -76,32 +71,11 @@ export function Sidebar({
           </button>
           <button
             type="button"
-            className={`sidebar__item${active === 'featured' ? ' is-active' : ''}`}
-            onClick={onFeatured}
-            aria-current={active === 'featured' ? 'page' : undefined}
-          >
-            <Sparkles size={16} aria-hidden="true" />
-            <span>编辑精选</span>
-          </button>
-          <button
-            type="button"
-            className={`sidebar__item${active === 'favorites' ? ' is-active' : ''}`}
-            onClick={onFavorites}
-            aria-current={active === 'favorites' ? 'page' : undefined}
-          >
-            <Heart size={16} aria-hidden="true" />
-            <span>我的收藏</span>
-            <span className="sidebar__count">{favoriteCount}</span>
-          </button>
-          <button
-            type="button"
             className={`sidebar__item${active === 'demos' ? ' is-active' : ''}`}
             onClick={onDemos}
             aria-current={active === 'demos' ? 'page' : undefined}
           >
-            <span className="sidebar__demo-icon" aria-hidden="true">
-              ◉
-            </span>
+            <DemoEntryIcon size={16} />
             <span>站内示例</span>
             <span className="sidebar__count">{demoCount}</span>
           </button>
@@ -120,7 +94,7 @@ export function Sidebar({
               aria-current={active === 'category' && activeCategory === category.id ? 'page' : undefined}
             >
               <span className="sidebar__category-icon" aria-hidden="true">
-                {category.icon}
+                <CategoryIcon id={category.id} size={15} />
               </span>
               <span>{category.name}</span>
               <span className="sidebar__count">{toolCounts.get(category.id) ?? 0}</span>
@@ -141,7 +115,7 @@ export function Sidebar({
               aria-current={active === 'category' && activeCategory === category.id ? 'page' : undefined}
             >
               <span className="sidebar__category-icon" aria-hidden="true">
-                {category.icon}
+                <CategoryIcon id={category.id} size={15} />
               </span>
               <span>{category.name}</span>
               <span className="sidebar__count">{toolCounts.get(category.id) ?? 0}</span>
