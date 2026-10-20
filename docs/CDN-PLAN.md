@@ -19,17 +19,18 @@ Workers、D1 和 R2 保留。新增 `_esaauth` 所有权校验 TXT、测试域�
 
 Worker 仅在专用回源域名上识别白名单 `X-Vibe-Forwarded-Host`；测试和直接回源页面带 `noindex`，canonical 继续指向正式站。访问统计允许测试域名的同源 POST，保留来源和请求体校验。
 
-## 已验证与待修复
+## 验证结果
 
 - 生产构建、类型检查、20 项后端单测通过。
 - 正式站和测试站各 20 项桌面/移动浏览器检查通过。
 - 测试站目录 API、27 项真实服务检查、3 项真实运行资源哈希与条件请求检查通过；D1/R2 ready，219 个工具、55 个示例。
 - Logo 和入口 JS 实际出现 ESA `X-Site-Cache-Status: HIT` / `Age`；HTML 保持 `private, no-store`，两次响应 CSP nonce 不同。
-- **压缩协商待修复**：入口 JS 被首次缓存成 zstd 后，向仅声明 gzip/deflate 的 curl 仍返回 zstd，导致 curl 61；新查询参数的冷请求可正确得到 gzip。现代浏览器回归通过不能替代此兼容性检查。需规范 ESA 回源 Accept-Encoding、清理旧压缩缓存，再交替验证不同编码的响应和内容。
-- **测试地址跳转待修复**：当前 ESA 请求头操作为“变更”，只覆盖已有请求头，未替缺失请求头创建值。无该头的 `/tools/react/` 会安全跳回正式站；已有任意该头时会被覆写为测试域名。应调整为可创建并覆盖的配置，再确认测试地址跳转仍留在测试域名。
-- 强制 HTTPS 尚未开启；有效证书已生效，待恢复控制台后开启并核对 HTTP Location。
-
-2026-10-20 的后续控制台操作因 Mac 锁屏暂停。以上三个问题未复验前，不切换正式域名。
+- **压缩协商已修复**：将 ESA 回源的 `Accept-Encoding` 固定为 `identity`，在边缘开启 Gzip/Brotli 并按客户端能力压缩，关闭 Zstd。测试目录旧缓存已直接清理，控制台刷新记录完成 100%。压缩后的入口 JS 解码内容与本地构建 SHA-256 一致。
+- **测试地址跳转已修复**：使用“添加”操作创建并覆盖 `X-Vibe-Forwarded-Host`；`/tools/react/` 保持跳转到测试域名下的无斜杠路径。
+- 已开启强制 HTTPS；HTTP 请求实际返回 301，Location 保留测试域名及原路径。
+- 已开启 HTTP/2 及 HTTP/2 回源，保留 HTTPS 443 与有效源站证书。
+- 停用 ESA“自适应性能优化”额外页面采集。该功能会在错误页面注入 `rum_common.js` 并触发本站 CSP 拦截。保留本站 CSP；19 项浏览器用例通过后，受影响的目录/错误页用例单独复测通过。未关闭安全防护。
+- 压缩协商专项脚本：`npm run test:cdn`，24 项检查已通过。对相同 JS/CSS 缓存键交替发送现代编码、identity、gzip、br 请求，检查协商、解码后的内容哈希、实际 ESA HIT，以及 HTTPS/斜杠跳转、CSP nonce 和统计 Origin 校验。脚本使用原始响应字节，避免 fetch 自动解码掩盖问题。
 
 ## 当前网络测速
 
@@ -37,11 +38,13 @@ Worker 仅在专用回源域名上识别白名单 `X-Vibe-Forwarded-Host`；测�
 
 | 内容 | Cloudflare 完整下载成功 | ESA 完整下载成功 | Cloudflare 成功样本下载中位数 | ESA 成功样本下载中位数 |
 | --- | --- | --- | --- | --- |
-| 首页 HTML 文档 | 3/7 | 7/7 | 12.100 秒 | 1.173 秒 |
-| Logo PNG | 6/7 | 7/7 | 10.399 秒 | 0.658 秒 |
-| 入口 JS | 5/7 | 0/7 | 8.417 秒 | 不可比较：7 次压缩解码失败 |
+| 首页 HTML 文档 | 7/7 | 7/7 | 9.247 秒 | 1.141 秒 |
+| Logo PNG | 3/7 | 7/7 | 3.279 秒 | 1.568 秒 |
+| 入口 JS | 3/7 | 7/7 | 11.384 秒 | 1.271 秒 |
 
-首页数字仅是 HTML 文档下载，不是浏览器完整首屏时间；中位数只包含完整成功样本，失败次数单列。测试表明当前线路有改善潜力，但压缩问题使现阶段不具备切换条件。原始记录保存在本机忽略目录 `artifacts/cdn-benchmark.json`，不能把 JS 仅收到响应头的耗时列为成功下载。
+这是修复压缩与协议配置后的第二轮测试。首页数字仅是 HTML 文档下载，不是浏览器完整首屏时间；中位数只包含完整成功样本，失败次数单列。原始记录保存在本机忽略目录 `artifacts/cdn-fixed-benchmark.json`；第一轮记录 `artifacts/cdn-benchmark.json` 保留，不能把第一轮 JS 解码失败的耗时当成成功下载。
+
+当前单网络样本显示改善；它不能证明全国三网均有相同收益。正式域名尚未切换，待用户决定。
 
 ## 缓存边界
 
@@ -58,10 +61,12 @@ Worker 仅在专用回源域名上识别白名单 `X-Vibe-Forwarded-Host`；测�
 
 ## 正式切换前
 
-1. 先解决上述压缩、跳转与 HTTP→HTTPS 问题，复验不同客户端、真实浏览器、统计与示例。
-2. 补充电信/联通/移动和晚高峰样本；免费境外 CDN 不保证所有地区更快。
+1. 确认压缩、跳转、真实浏览器、统计和示例验证通过。
+2. 建议补充电信/联通/移动和晚高峰样本；免费境外 CDN 不保证所有地区更快。
 3. 单独为正式域名创建 ESA 记录、有效证书、Host 转发规则，并保持测试域名 noindex。
 4. 再解除正式域名 Worker 自定义绑定、将其 DNS 改为正式 ESA CNAME，保留专用回源绑定。当前不执行此步骤。
 5. 核对正式域名 canonical/noindex、重定向、D1/R2、统计与运行资源；有异常恢复原 Worker 自定义域名。
 
 官方文档：[免费版](https://help.aliyun.com/zh/edge-security-acceleration/esa/product-overview/free-plan)、[套餐能力比较](https://help.aliyun.com/zh/edge-security-acceleration/esa/product-overview/package-function-comparison)、[接入地域与备案](https://help.aliyun.com/zh/edge-security-acceleration/esa/getting-started/add-your-website-to-esa)、[回源 SNI](https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/back-to-source-sni/)。
+
+回源请求头语义参见[官方说明](https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/modify-outgoing-request-header)；边缘压缩参见[文件压缩](https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/content-compression)。
