@@ -1,0 +1,11 @@
+{
+  "hostname": "vibe.freakz2z.com",
+  "mode": "temporary-healthy-edge-pool",
+  "authority": "sunny.ns.cloudflare.com",
+  "officialCname": "vibe.freakz2z.com.a1.initxx.com",
+  "ttl": 60,
+  "ipv4": ["163.181.78.163", "163.181.78.165", "163.181.78.171"],
+  "automaticRotation": false,
+  "selectedAt": "2026-10-20",
+  "reason": "321-location HTTP probe: 91/276 mainland failures; selected official nodes had 0 failures in that sample."
+}

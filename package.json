@@ -22,6 +22,7 @@
     "indexnow": "tsx scripts/submit-indexnow.ts",
     "test:api": "tsx scripts/verify-api.ts",
     "test:cdn": "tsx scripts/verify-cdn.ts",
+    "test:edge-routing": "tsx scripts/verify-edge-routing.ts",
     "check:links": "tsx scripts/check-links.ts",
     "assets:demos:local": "tsx scripts/sync-demo-assets.ts --local",
     "assets:demos:remote": "tsx scripts/sync-demo-assets.ts --remote",
