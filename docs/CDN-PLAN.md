@@ -1,6 +1,6 @@
-# 阿里云 ESA 免费版接入测试
+# 阿里云 ESA 免费版接入与回退
 
-更新：2026-10-20。免费版测试站已建立，**正式域名尚未切换到 ESA**。freakz2z.com 尚未 ICP 备案，本次选择“全球（不包含中国内地）”，实际样本命中香港节点，不能称为中国大陆节点加速。
+更新：2026-10-20。**正式域名已切换到 ESA 免费版**；测试域名保留。freakz2z.com 尚未 ICP 备案，本次选择“全球（不包含中国内地）”，实际样本命中香港节点，不能称为中国大陆节点加速。
 
 ## 当前配置
 
@@ -9,13 +9,16 @@
 | ESA 站点 | freakz2z.com，站点 ID `184586157250796`，CNAME 接入 |
 | 套餐 | 已有免费版资源；本次未购买付费套餐，自动续费关闭 |
 | 测试入口 | https://vibe-cdn-test.freakz2z.com/ |
-| ESA CNAME | `vibe-cdn-test.freakz2z.com.a1.initxx.com`，Cloudflare DNS only |
+| 正式 ESA CNAME | `vibe.freakz2z.com.a1.initxx.com`，Cloudflare DNS only |
+| 测试 ESA CNAME | `vibe-cdn-test.freakz2z.com.a1.initxx.com`，Cloudflare DNS only |
 | 回源 | `vibe-origin.freakz2z.com`，同一个 Cloudflare Worker |
 | 回源协议 | HTTPS 443，Host 跟随源站域名，SNI 跟随 Host |
-| 测试证书 | Let's Encrypt，控制台显示正常；有效 HTTPS 已验证 |
-| 原正式入口 | https://vibe.freakz2z.com/，仍由 Cloudflare Worker 自定义域名提供 |
+| 证书 | 正式域名与测试域名分别使用 Let's Encrypt，TLS 验证通过；DCV CNAME 保留用于续签 |
+| 正式入口 | https://vibe.freakz2z.com/ → ESA → HTTPS 专用源站 → Cloudflare Worker |
 
-Workers、D1 和 R2 保留。新增 `_esaauth` 所有权校验 TXT、测试域名 CNAME、测试证书托管 DCV CNAME，以及独立回源域名；没有修改根域、www 或其他服务的解析。
+Workers、D1 和 R2 保留。新增 `_esaauth` 所有权校验 TXT、正式及测试域名 CNAME、对应证书托管 DCV CNAME，以及独立回源域名；没有修改根域、www 或其他服务的解析。
+
+ESA 的 `Vibe-CDN-origin-headers` 仅匹配正式和测试域名，以动态 `http.host` 创建并覆盖 `X-Vibe-Forwarded-Host`，同时固定回源 `Accept-Encoding: identity`。`Vibe-CDN-HTTPS-origin` 对这两个域名强制 HTTPS 443 回源。
 
 Worker 仅在专用回源域名上识别白名单 `X-Vibe-Forwarded-Host`；测试和直接回源页面带 `noindex`，canonical 继续指向正式站。访问统计允许测试域名的同源 POST，保留来源和请求体校验。
 
@@ -30,7 +33,7 @@ Worker 仅在专用回源域名上识别白名单 `X-Vibe-Forwarded-Host`；测�
 - 已开启强制 HTTPS；HTTP 请求实际返回 301，Location 保留测试域名及原路径。
 - 已开启 HTTP/2 及 HTTP/2 回源，保留 HTTPS 443 与有效源站证书。
 - 停用 ESA“自适应性能优化”额外页面采集。该功能会在错误页面注入 `rum_common.js` 并触发本站 CSP 拦截。保留本站 CSP；19 项浏览器用例通过后，受影响的目录/错误页用例单独复测通过。未关闭安全防护。
-- 压缩协商专项脚本：`npm run test:cdn`，24 项检查已通过。对相同 JS/CSS 缓存键交替发送现代编码、identity、gzip、br 请求，检查协商、解码后的内容哈希、实际 ESA HIT，以及 HTTPS/斜杠跳转、CSP nonce 和统计 Origin 校验。脚本使用原始响应字节，避免 fetch 自动解码掩盖问题。
+- 压缩协商专项脚本：`npm run test:cdn`，24 项检查已通过。对相同 JS/CSS 缓存键交替发送现代编码、identity、gzip、br 请求，检查协商、解码后的内容哈希、实际 ESA HIT，以及 HTTPS/斜杠跳转、CSP nonce 和统计 Origin 校验。脚本使用原始响应字节，避免 fetch 自动解码掩盖问题。默认直连；需要独立检验功能时可用 `VIBE_TEST_PROXY` 显式指定代理，报告会记录传输模式。
 
 ## 当前网络测速
 
@@ -44,7 +47,7 @@ Worker 仅在专用回源域名上识别白名单 `X-Vibe-Forwarded-Host`；测�
 
 这是修复压缩与协议配置后的第二轮测试。首页数字仅是 HTML 文档下载，不是浏览器完整首屏时间；中位数只包含完整成功样本，失败次数单列。原始记录保存在本机忽略目录 `artifacts/cdn-fixed-benchmark.json`；第一轮记录 `artifacts/cdn-benchmark.json` 保留，不能把第一轮 JS 解码失败的耗时当成成功下载。
 
-当前单网络样本显示改善；它不能证明全国三网均有相同收益。正式域名尚未切换，待用户决定。
+以上是切换前的测试域名样本，不能证明全国三网均有相同收益。用户确认后已切换正式域名。
 
 ## 缓存边界
 
@@ -59,13 +62,32 @@ Worker 仅在专用回源域名上识别白名单 `X-Vibe-Forwarded-Host`；测�
 
 没有启用忽略源站缓存头、全部缓存 30 天的自动模板。缓存命中要看 ESA 的缓存头，不能把源站 `X-Vibe-Cache` 或 `CF-Cache-Status` 当成 ESA 命中证明。
 
-## 正式切换前
+## 正式切换记录与回退
 
-1. 确认压缩、跳转、真实浏览器、统计和示例验证通过。
-2. 建议补充电信/联通/移动和晚高峰样本；免费境外 CDN 不保证所有地区更快。
-3. 单独为正式域名创建 ESA 记录、有效证书、Host 转发规则，并保持测试域名 noindex。
-4. 再解除正式域名 Worker 自定义绑定、将其 DNS 改为正式 ESA CNAME，保留专用回源绑定。当前不执行此步骤。
-5. 核对正式域名 canonical/noindex、重定向、D1/R2、统计与运行资源；有异常恢复原 Worker 自定义域名。
+2026-10-20 用户确认“切换正式站”后：
+
+1. 先创建正式 ESA 记录、签发正式证书并配置 DCV。保持原 DNS 不动，使用 curl `--connect-to` 向 ESA 发送正式 Host/SNI 请求，证书校验、首页 canonical、无 noindex、斜杠跳转及 D1/R2 健康检查通过。
+2. `wrangler.jsonc` 仅保留 `vibe-origin.freakz2z.com` 自定义域名，使用 `wrangler triggers deploy` 解除原正式域名绑定。没有重建数据库、存储桶或 Worker 版本。
+3. 在 Cloudflare DNS 添加正式域名 CNAME → `vibe.freakz2z.com.a1.initxx.com`，DNS only。权威 DNS 与 ESA 控制台均确认已配置。
+4. 正式域名 API、20 项桌面/移动浏览器检查、27 项真实服务检查、3 项运行资源哈希/条件请求校验通过；真实 Edge 页面已打开，页脚统计可用。
+5. 正式站 24 项 CDN 协商、哈希、缓存、跳转、CSP nonce、索引和统计来源检查经显式代理通过，记录为 `artifacts/cdn-compatibility-production.json`，包含传输模式。这用于验证功能，不作为国内直连速度的证据。直连专项检查曾因连接/传输超时中断，原日志保留。
+
+**保留的回退配置：** Git 提交 `a1d736d` 中的 `wrangler.jsonc` 保留原正式域名与源站两个 Worker 自定义域名。需要回退时，在项目根目录恢复该文件并重新应用触发器：
+
+```sh
+git show a1d736d:wrangler.jsonc > wrangler.jsonc
+npx wrangler triggers deploy
+```
+
+此操作会恢复 Cloudflare 管理的正式域名 DNS 和 Worker 绑定；先确认 CLI 的变更目标只有 `vibe.freakz2z.com` / `vibe-origin.freakz2z.com`，不要改动其他服务。回退后再核对 HTTPS、API、页面与权威 DNS；ESA 配置和 DCV 可保留，不会因保留配置产生本次套餐外费用。之后应同步提交回退后的配置，防止下一次部署重新改变绑定。
+
+## 切换后的网络差异
+
+切换后直接访问正式域名的额外 5 轮样本保存在 `artifacts/cdn-live-benchmark.json`。正式域名首页 HTML 完整下载 5/5，中位数 15.948 秒；测试域名为 5/5、1.116 秒。两者均到 ESA 香港节点，不能把测试域名的 1 秒结果直接当成正式站效果。
+
+分阶段计时显示额外时间主要在 TCP 建连，源站处理仍约几十至几百毫秒。相同 IP、正式与测试域名交替探测中，当前网络到 `163.181.78.170` 均连接超时，其余三个被测地址均成功。原始记录在 `artifacts/cdn-node-probes.json`。这说明当前网络到部分 ESA 地址有可达性差异，不能宣称所有国内线路都已提速。没有将 DNS 固定到某个边缘 IP，也没有绕过 TLS 校验。
+
+切换初期的 API/运行资源连接超时在复测通过后仍保留原日志，不将其归为功能检查成功。建议结合实际访客网络和晚高峰体验判断是否保留；出现持续不可用时按上方配置回退。
 
 官方文档：[免费版](https://help.aliyun.com/zh/edge-security-acceleration/esa/product-overview/free-plan)、[套餐能力比较](https://help.aliyun.com/zh/edge-security-acceleration/esa/product-overview/package-function-comparison)、[接入地域与备案](https://help.aliyun.com/zh/edge-security-acceleration/esa/getting-started/add-your-website-to-esa)、[回源 SNI](https://help.aliyun.com/zh/edge-security-acceleration/esa/user-guide/back-to-source-sni/)。
 

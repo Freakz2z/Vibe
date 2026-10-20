@@ -9,6 +9,6 @@
  "assets":{"directory":"apps/web/dist","binding":"ASSETS","not_found_handling":"single-page-application","run_worker_first":true},
  "d1_databases":[{"binding":"DB","database_name":"vibe-catalog","database_id":"d65cc446-0b9e-47de-b937-76915cbefe68","migrations_dir":"migrations"}],
  "r2_buckets":[{"binding":"MEDIA","bucket_name":"vibe-assets"}],
- "routes":[{"pattern":"vibe.freakz2z.com","custom_domain":true},{"pattern":"vibe-origin.freakz2z.com","custom_domain":true}],
+ "routes":[{"pattern":"vibe-origin.freakz2z.com","custom_domain":true}],
  "observability":{"enabled":true}
 }
