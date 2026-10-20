@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { cachedPublicResponse } from '../src/edge-cache';
 import { bootstrapScript, safeJson } from '../src/bootstrap';
 
@@ -151,4 +152,30 @@ test('edge TTL does not replace the browser immutable policy on a cache hit', as
   assert.equal(second.response.headers.get('Cache-Control'), 'public, max-age=31536000, immutable');
   assert.equal(second.response.headers.get('X-Vibe-Client-Cache-Control'), null);
   assert.equal(await second.response.text(), 'wasm');
+});
+
+
+test('coalesced catalog reads never expose another request-owned response body', async () => {
+  const owner = new AsyncLocalStorage<string>();
+  class OwnedResponse extends Response {
+    constructor(body: BodyInit | null, private requestOwner = owner.getStore()) { super(body); }
+    clone(): Response { return new OwnedResponse(super.clone().body, this.requestOwner); }
+    text(): Promise<string> {
+      assert.equal(owner.getStore(), this.requestOwner, 'Workers response streams are request-owned');
+      return super.text();
+    }
+  }
+  const { ctx, tasks } = harness();
+  let reads = 0;
+  let finish!: () => void;
+  const gate = new Promise<void>(resolve => { finish = resolve; });
+  const load = async () => { reads++; await gate; return new OwnedResponse('shared-data'); };
+  const requests = ['a', 'b', 'c'].map(id => owner.run(id, async () => {
+    const result = await cachedPublicResponse('https://vibe.test', 'catalog', 'owner-check', 60, ctx, load);
+    return result.response.text();
+  }));
+  finish();
+  assert.deepEqual(await Promise.all(requests), ['shared-data', 'shared-data', 'shared-data']);
+  assert.equal(reads, 1);
+  await Promise.all(tasks);
 });

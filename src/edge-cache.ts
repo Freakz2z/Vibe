@@ -4,7 +4,8 @@ export interface CacheResult {
   response: Response;
   status: 'HIT' | 'MISS';
 }
-const inFlight = new Map<string, Promise<Response>>();
+interface SharedResponse { body: string; status: number; statusText: string; headers: [string, string][]; }
+const inFlight = new Map<string, Promise<SharedResponse>>();
 
 /** Public, complete 200 responses only. Keys exclude client headers and use the deployment revision. */
 export async function cachedPublicResponse(
@@ -55,7 +56,13 @@ export async function cachedPublicResponse(
   if (namespace !== 'catalog') return { response: await loadAndStore(), status: 'MISS' };
   let pending = inFlight.get(key.url);
   if (!pending) {
-    pending = loadAndStore();
+    // Workers streams belong to the originating request. Share only materialized catalog data,
+    // then create each Response in its own request context (cloning a shared stream is unsafe).
+    pending = loadAndStore().then(async response => {
+      const headers: [string, string][] = [];
+      response.headers.forEach((value, name) => headers.push([name, value]));
+      return { body: await response.text(), status: response.status, statusText: response.statusText, headers };
+    });
     inFlight.set(key.url, pending);
     void pending
       .finally(() => {
@@ -63,5 +70,6 @@ export async function cachedPublicResponse(
       })
       .catch(() => {});
   }
-  return { response: (await pending).clone(), status: 'MISS' };
+  const shared = await pending;
+  return { response: new Response(shared.body, { status: shared.status, statusText: shared.statusText, headers: shared.headers }), status: 'MISS' };
 }

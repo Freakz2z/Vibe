@@ -1,3 +1,6 @@
+import {visitorStats} from './visitors';
+import {escapeXml,pageSeo,sitemap} from './seo';
+import {INDEXNOW_KEY} from '../shared/indexing';
 import {cachedPublicResponse} from './edge-cache';
 import {bootstrapScript,initialThemeScript} from './bootstrap';
 import {renderHomePreview} from './home-preview';
@@ -38,7 +41,9 @@ async function snapshot(request:Request,env:Env,ctx:ExecutionContext):Promise<Ca
 async function route(request:Request,env:Env,ctx:ExecutionContext):Promise<Response>{
  const url=new URL(request.url);const path=url.pathname;const origin=env.PUBLIC_ORIGIN||url.origin;
  if(path.length>1&&path.endsWith('/')&&/^\/(tools|demos)(\/|$)/.test(path)){url.pathname=path.replace(/\/+$/,'');return Response.redirect(url.toString(),308);}
+ if(path==='/api/visitors')return visitorStats(request,env.DB,origin);
  if(request.method!=='GET'&&request.method!=='HEAD'){const response=json({error:'METHOD_NOT_ALLOWED'},405,'no-store');response.headers.set('Allow','GET, HEAD');return response;}
+ if(path==='/'+INDEXNOW_KEY+'.txt')return new Response(INDEXNOW_KEY,{headers:{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'public, max-age=3600'}});
  if(path==='/api/labs'||path.startsWith('/api/labs/'))return labFetch(request,env);
  if(path==='/api/health'){
   try {const [db,logo]=await Promise.all([env.DB.prepare('SELECT count(*) AS total FROM tools').first<{total:number}>(),env.MEDIA.head('brand/logo.png')]);
@@ -75,32 +80,30 @@ async function route(request:Request,env:Env,ctx:ExecutionContext):Promise<Respo
  }
  if(path==='/robots.txt')return new Response(`User-agent: *\nAllow: /\nDisallow: /api/\nSitemap: ${origin}/sitemap.xml\n`,{headers:{'Content-Type':'text/plain; charset=utf-8'}});
  if(path==='/sitemap.xml'){
-  const [tools,demos]=await env.DB.batch([env.DB.prepare('SELECT id FROM tools'),env.DB.prepare('SELECT id FROM demos')]);
-  const urls=['/','/demos',...(tools.results as {id:string}[]).map(r=>'/tools/'+encodeURIComponent(r.id)),...(demos.results as {id:string}[]).map(r=>'/demos/'+encodeURIComponent(r.id))];
-  return new Response(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(path=>`<url><loc>${origin}${path}</loc></url>`).join('')}</urlset>`,{headers:{'Content-Type':'application/xml; charset=utf-8'}});
+  const entry=await snapshot(request,env,ctx);
+  return new Response(sitemap(entry.data,origin),{headers:{'Content-Type':'application/xml; charset=utf-8','Cache-Control':'public, max-age=60'}});
  }
  let response=await env.ASSETS.fetch(request);
  let boot:Awaited<ReturnType<typeof snapshot>>|undefined;
  if(response.headers.get('Content-Type')?.includes('text/html')){
-  try{boot=await snapshot(request,env,ctx);}catch{/* Keep the existing retry/error UI if D1 is unavailable. */}
-  response=new HTMLRewriter().on('meta[property="og:image"], meta[name="twitter:image"]',{element(el){el.setAttribute('content',origin+'/media/brand/og.png');}}).on('head',{element(el){el.append('<link rel="canonical" href="'+origin+url.pathname+'"><meta property="og:url" content="'+origin+url.pathname+'">',{html:true});}}).transform(response);
- }
- if(path.startsWith('/tools/')&&response.headers.get('Content-Type')?.includes('text/html')){
-  if(!boot)throw new Error('CATALOG_UNAVAILABLE');
-  const tool=boot.data.tools.find(item=>item.id===path.slice(7));
-  if(!tool)return new Response(response.body,{status:404,headers:response.headers});
-  response=new HTMLRewriter().on('title',{element(el){el.setInnerContent(`${tool.name} · Vibe 工具集`);}}).on('meta[name="description"]',{element(el){el.setAttribute('content',tool.tagline);}}).on('meta[property="og:title"]',{element(el){el.setAttribute('content',`${tool.name} · Vibe 工具集`);}}).on('meta[property="og:description"]',{element(el){el.setAttribute('content',tool.tagline);}}).on('link[rel="canonical"]',{element(el){el.setAttribute('href',`${origin}/tools/${tool.id}`);}}).transform(response);
- }
- if(path.startsWith('/demos/')&&response.headers.get('Content-Type')?.includes('text/html')){
-  if(!boot)throw new Error('CATALOG_UNAVAILABLE');
-  const demo=boot.data.demos.find(item=>item.id===path.slice(7));
-  if(!demo)return new Response(response.body,{status:404,headers:response.headers});
-  response=new HTMLRewriter().on('title',{element(el){el.setInnerContent(demo.name+' · Vibe 工具集');}}).on('meta[name="description"], meta[property="og:description"]',{element(el){el.setAttribute('content',demo.description);}}).on('meta[property="og:title"]',{element(el){el.setAttribute('content',demo.name+' · Vibe 工具集');}}).transform(response);
+  try{boot=await snapshot(request,env,ctx);}catch(error){console.error('Page catalog unavailable',error instanceof Error?error.message:'unknown');return new Response(response.body,{status:503,headers:response.headers});}
  }
  if(response.headers.get('Content-Type')?.includes('text/html')&&path!=='/'&&path!=='/demos'&&!/^\/(tools|demos)\/[^/]+$/.test(path))return new Response(response.body,{status:404,headers:response.headers});
+ if(boot&&response.headers.get('Content-Type')?.includes('text/html')&&(
+  (path.startsWith('/tools/')&&!boot.data.tools.some(item=>path==='/tools/'+encodeURIComponent(item.id)))||
+  (path.startsWith('/demos/')&&!boot.data.demos.some(item=>path==='/demos/'+encodeURIComponent(item.id)))
+ ))return new Response(response.body,{status:404,headers:response.headers});
  if(boot&&response.status===200&&response.headers.get('Content-Type')?.includes('text/html')){
-  const isHome=path==='/'&&!['q','category','platform','pricing','favorites'].some(key=>url.searchParams.get(key));
-  response=new HTMLRewriter().on('head',{element(el){el.prepend(initialThemeScript,{html:true});}}).on('#root',{element(el){if(isHome&&boot!.home)el.setInnerContent(boot!.home,{html:true});}}).on('body',{element(el){el.append(bootstrapScript(boot!.data),{html:true});}}).transform(response);
+  const seo=pageSeo(boot.data,path,origin);
+  response=new HTMLRewriter()
+   .on('title',{element(el){el.setInnerContent(seo.title);}})
+   .on('meta[name="description"], meta[property="og:description"]',{element(el){el.setAttribute('content',seo.description);}})
+   .on('meta[property="og:title"]',{element(el){el.setAttribute('content',seo.title);}})
+   .on('meta[property="og:image"], meta[name="twitter:image"]',{element(el){el.setAttribute('content',origin+'/media/brand/og.png');}})
+   .on('head',{element(el){el.append('<link rel="canonical" href="'+escapeXml(seo.canonical)+'"><meta property="og:url" content="'+escapeXml(seo.canonical)+'">'+seo.structured,{html:true});}})
+   .transform(response);
+  const preview=path==='/'?boot.home:renderHomePreview(boot.data,path);
+  response=new HTMLRewriter().on('head',{element(el){el.prepend(initialThemeScript,{html:true});}}).on('#root',{element(el){if(preview)el.setInnerContent(preview,{html:true});}}).on('body',{element(el){el.append(bootstrapScript(boot!.data),{html:true});}}).transform(response);
   const headers=new Headers(response.headers);headers.set('X-Vibe-Catalog-Cache',boot.cache);
   response=new Response(response.body,{status:response.status,headers});
  }
@@ -123,7 +126,10 @@ export default {
    headers.delete('ETag');headers.delete('Last-Modified');
    response=new HTMLRewriter().on('script',{element(el){el.setAttribute('nonce',nonce);}}).transform(response);
   }
-  if(new URL(request.url).pathname.startsWith('/api/'))headers.set('X-Robots-Tag','noindex');
+  const pageUrl=new URL(request.url);
+  const canonicalHost=env.PUBLIC_ORIGIN?new URL(env.PUBLIC_ORIGIN).host:pageUrl.host;
+  if(response.status>=400||pageUrl.pathname.startsWith('/api/')||pageUrl.host!==canonicalHost||
+   (pageUrl.pathname==='/'&&['q','category','platform','pricing','favorites'].some(key=>pageUrl.searchParams.has(key))))headers.set('X-Robots-Tag','noindex');
   if(new URL(request.url).protocol==='https:')headers.set('Strict-Transport-Security','max-age=31536000');
   return new Response(request.method==='HEAD'?null:response.body,{status:response.status,headers});
  }

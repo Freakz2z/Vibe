@@ -340,7 +340,17 @@ export default function App({ initialCatalog = null }: { initialCatalog?: Catalo
     document.title = pageTitle;
     const meta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
     if (meta) meta.setAttribute('content', pageDescription);
-  }, [pageDescription, pageTitle]);
+    const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    const publicOrigin = canonical ? new URL(canonical.href).origin : window.location.origin;
+    if (canonical) canonical.href = publicOrigin + pathname;
+    document.querySelector('meta[property="og:url"]')?.setAttribute('content', publicOrigin + pathname);
+    document.querySelector('meta[property="og:title"]')?.setAttribute('content', pageTitle);
+    document.querySelector('meta[property="og:description"]')?.setAttribute('content', pageDescription);
+    // Structured data belongs to the server-rendered URL, so remove it after SPA navigation.
+    document.querySelectorAll('script[type="application/ld+json"]').forEach(element => {
+      if (!element.textContent?.includes(JSON.stringify(publicOrigin + pathname + '#webpage'))) element.remove();
+    });
+  }, [pageDescription, pageTitle, pathname]);
 
   const updateQuery = useCallback(
     (updates: Record<string, string | null>) => {

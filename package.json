@@ -19,6 +19,7 @@
     "assets:remote": "tsx scripts/sync-assets.ts --remote",
     "deploy": "npm run build && wrangler deploy",
     "test:e2e": "npm run test:e2e -w apps/web",
+    "indexnow": "tsx scripts/submit-indexnow.ts",
     "test:api": "tsx scripts/verify-api.ts",
     "check:links": "tsx scripts/check-links.ts",
     "assets:demos:local": "tsx scripts/sync-demo-assets.ts --local",

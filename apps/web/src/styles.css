@@ -6924,3 +6924,10 @@ body, .sidebar, .topbar, .site-footer {
 .home-preview-directory { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; min-height:180px; }
 .home-preview-directory > span { border:1px solid var(--line); border-radius:14px; background:var(--surface); }
 @media(max-width:760px) { .home-preview-directory { grid-template-columns:minmax(0,1fr); } .home-preview-directory > span:not(:first-child) { display:none; } }
+
+/* Static first paint is also usable when a crawler or visitor cannot run JavaScript. */
+.home-preview-links { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 12px; }
+.home-preview-links a { display: grid; gap: 6px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; }
+.home-preview-links span { color: var(--muted); font-size: .78rem; line-height: 1.6; }
+.site-footer__visitors span { font-variant-numeric: tabular-nums; }
+.site-footer__visitors .site-footer__separator { margin: 0 5px; opacity: .5; }
