@@ -7,7 +7,7 @@ export async function visitorHash(id: unknown): Promise<string | null> {
   const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('vibe-visitor-v1:' + id.toLowerCase()));
   return Array.from(new Uint8Array(bytes), byte => byte.toString(16).padStart(2, '0')).join('');
 }
-export async function visitorStats(request: Request, db: D1Database, publicOrigin = new URL(request.url).origin): Promise<Response> {
+export async function visitorStats(request: Request, db: D1Database, publicOrigin = new URL(request.url).origin, extraOrigins: readonly string[] = []): Promise<Response> {
   const reply = (data: unknown, status = 200) => Response.json(data, { status, headers: { 'Cache-Control': 'no-store' } });
   const day = visitorDay();
   if (request.method !== 'GET' && request.method !== 'HEAD' && request.method !== 'POST') {
@@ -17,7 +17,7 @@ export async function visitorStats(request: Request, db: D1Database, publicOrigi
   const writes: D1PreparedStatement[] = [];
   if (request.method === 'POST') {
     const origin = request.headers.get('Origin');
-    if ((!origin || ![publicOrigin, new URL(request.url).origin].includes(origin)) || request.headers.get('Sec-Fetch-Site') === 'cross-site') return reply({ error: 'INVALID_ORIGIN' }, 403);
+    if ((!origin || ![publicOrigin, new URL(request.url).origin, ...extraOrigins].includes(origin)) || request.headers.get('Sec-Fetch-Site') === 'cross-site') return reply({ error: 'INVALID_ORIGIN' }, 403);
     if (!request.headers.get('Content-Type')?.startsWith('application/json')) return reply({ error: 'JSON_REQUIRED' }, 415);
     // Limit the streamed body as well as Content-Length (which can be absent or inaccurate).
     const reader = request.body?.getReader(); let body = '';

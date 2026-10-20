@@ -1,3 +1,4 @@
+import {publicRequestHost,normalizedPageUrl,type PublicRouting} from './public-request';
 import {visitorStats} from './visitors';
 import {escapeXml,pageSeo,sitemap} from './seo';
 import {INDEXNOW_KEY} from '../shared/indexing';
@@ -8,7 +9,7 @@ import {demoAssets} from './demo-assets';
 import {labFetch} from './labs';
 import {matchesEntityTag,parseTool,queryFilters,validMediaKey} from './catalog';
 import type { Catalog,Category,Demo } from '../shared/contracts';
-interface Env { DB:D1Database; MEDIA:R2Bucket; ASSETS:Fetcher; PUBLIC_ORIGIN?:string; }
+interface Env extends PublicRouting { DB:D1Database; MEDIA:R2Bucket; ASSETS:Fetcher; PUBLIC_ORIGIN?:string; }
 const security:Record<string,string>={
  'X-Content-Type-Options':'nosniff', 'Referrer-Policy':'strict-origin-when-cross-origin',
  'X-Frame-Options':'DENY','Permissions-Policy':'camera=(), microphone=(), geolocation=()',
@@ -40,8 +41,8 @@ async function snapshot(request:Request,env:Env,ctx:ExecutionContext):Promise<Ca
 }
 async function route(request:Request,env:Env,ctx:ExecutionContext):Promise<Response>{
  const url=new URL(request.url);const path=url.pathname;const origin=env.PUBLIC_ORIGIN||url.origin;
- if(path.length>1&&path.endsWith('/')&&/^\/(tools|demos)(\/|$)/.test(path)){url.pathname=path.replace(/\/+$/,'');return Response.redirect(url.toString(),308);}
- if(path==='/api/visitors')return visitorStats(request,env.DB,origin);
+ if(path.length>1&&path.endsWith('/')&&/^\/(tools|demos)(\/|$)/.test(path)){return Response.redirect(normalizedPageUrl(request,env).toString(),308);}
+ if(path==='/api/visitors')return visitorStats(request,env.DB,origin,env.CDN_TEST_ORIGIN?[env.CDN_TEST_ORIGIN]:[]);
  if(request.method!=='GET'&&request.method!=='HEAD'){const response=json({error:'METHOD_NOT_ALLOWED'},405,'no-store');response.headers.set('Allow','GET, HEAD');return response;}
  if(path==='/'+INDEXNOW_KEY+'.txt')return new Response(INDEXNOW_KEY,{headers:{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'public, max-age=3600'}});
  if(path==='/api/labs'||path.startsWith('/api/labs/'))return labFetch(request,env);
@@ -128,7 +129,7 @@ export default {
   }
   const pageUrl=new URL(request.url);
   const canonicalHost=env.PUBLIC_ORIGIN?new URL(env.PUBLIC_ORIGIN).host:pageUrl.host;
-  if(response.status>=400||pageUrl.pathname.startsWith('/api/')||pageUrl.host!==canonicalHost||
+  if(response.status>=400||pageUrl.pathname.startsWith('/api/')||publicRequestHost(request,env)!==canonicalHost||
    (pageUrl.pathname==='/'&&['q','category','platform','pricing','favorites'].some(key=>pageUrl.searchParams.has(key))))headers.set('X-Robots-Tag','noindex');
   if(new URL(request.url).protocol==='https:')headers.set('Strict-Transport-Security','max-age=31536000');
   return new Response(request.method==='HEAD'?null:response.body,{status:response.status,headers});
