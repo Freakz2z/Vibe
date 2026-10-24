@@ -211,7 +211,7 @@ export default function TiptapLab({ onCopy }: { onCopy: DemoCopyHandler }) {
           <Stat label="全部节点" value={nodes} />
           <Stat label="字符数" value={snapshot?.words ?? 0} />
         </Stats>
-        <Code text={jsonText || '（编辑器尚未创建）'} onCopy={onCopy} label="getJSON() 输出" maxHeight={300} />
+        <Code text={jsonText || '（编辑器尚未创建）'} onCopy={onCopy} output label="getJSON() 输出" maxHeight={300} />
       </div>
     </Lab>
   );

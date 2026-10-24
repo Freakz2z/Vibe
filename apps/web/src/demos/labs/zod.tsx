@@ -215,7 +215,7 @@ export default function ZodLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       reset={() => setRaw(INITIAL)}
     >
       <div className="lab-layout">
-        <LabControls className="lab-controls">
+        <LabControls className="lab-controls" mode="inline">
           <p className="demo-caption">
             每次按键都会跑一次 <code>safeParse</code>；右侧的每条消息与 path 都直接来自 Zod，未经加工。
           </p>

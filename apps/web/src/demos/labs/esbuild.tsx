@@ -487,7 +487,7 @@ export default function EsbuildLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       <div className="lab-editor-grid lab-editor-grid--tight">
         <Code text={source} onCopy={onCopy} label="TS / TSX 源码" maxHeight={420} />
         {success ? (
-          <Code text={success.code} onCopy={onCopy} label="esbuild 输出" maxHeight={420} />
+          <Code text={success.code} onCopy={onCopy} output label="esbuild 输出" maxHeight={420} />
         ) : (
           <div className="lab-code">
             <div>

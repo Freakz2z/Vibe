@@ -318,7 +318,7 @@ export default function R2Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
                   <Code
                     text={report.hex}
                     onCopy={onCopy}
-                    label={`响应字节（${report.bytes} 字节）`}
+                    output label={`响应字节（${report.bytes} 字节）`}
                     maxHeight={200}
                   />
                 ) : null}

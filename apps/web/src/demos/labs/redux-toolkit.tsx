@@ -228,7 +228,7 @@ function ReduxToolkitInner({ onCopy }: { onCopy: DemoCopyHandler }) {
   const log = useActionLog();
   const dispatchCount = useDispatchCount();
 
-  const nextIndex = useMemo(() => total + 1000, [total]);
+  const nextIndex = useMemo(() => Math.max(1039, ...all.map(ticket => Number(ticket.id.slice(3)) || 0)) + 1, [all]);
 
   const snippet = useMemo(
     () =>
@@ -277,7 +277,7 @@ function ReduxToolkitInner({ onCopy }: { onCopy: DemoCopyHandler }) {
       }}
     >
       <div className="lab-layout">
-        <LabControls className="lab-controls">
+        <LabControls className="lab-controls" mode="inline">
           <p className="demo-caption">
             所有按钮都 dispatch 真实 action；右侧日志由中间件在 dispatch 链上记录，顺序即真实顺序。
           </p>
@@ -306,7 +306,7 @@ function ReduxToolkitInner({ onCopy }: { onCopy: DemoCopyHandler }) {
               className="button button--secondary button--small"
               onClick={() => {
                 const payload = Array.from({ length: 5 }, (_, k) => ({
-                  id: `TK-${nextIndex + k + 1}`,
+                  id: `TK-${nextIndex + k}`,
                   title: SUBJECTS[(nextIndex + k) % SUBJECTS.length],
                   region: REGIONS[(nextIndex + k) % REGIONS.length] as Ticket['region'],
                   priority: 'p2' as const,

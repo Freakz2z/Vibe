@@ -236,7 +236,7 @@ export default function QuillLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       <div className="lab-editor-grid lab-editor-grid--tight">
         <DataTable head={['#', 'op', 'attributes']} rows={opRows} caption="getContents().ops —— 真实 Delta 操作序列" />
         <div>
-          <Code text={contentsText || '（尚未初始化）'} onCopy={onCopy} label="getContents() JSON" maxHeight={300} />
+          <Code text={contentsText || '（尚未初始化）'} onCopy={onCopy} output label="getContents() JSON" maxHeight={300} />
           <div className="lab-quill__log-wrap">
             <DataTable
               head={['#', 'source', 'ops', '预览']}

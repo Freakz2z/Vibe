@@ -61,7 +61,7 @@ export function LabControls({children, className = 'lab-controls', mode = 'sheet
   const settings: ReactNode[] = [], actions: ReactNode[] = [], feedback: ReactNode[] = [];
   for (const child of flatten(children)) {
     if (isValidElement<{className?: string}>(child) && (child.type === Stats || child.type === ErrorNote || child.type === Status || child.props.className === 'lab-stats' || /__hint$|^lab-g6-detail$/.test(child.props.className || ''))) feedback.push(child);
-    else if (isValidElement<{className?: string}>(child) && (/__(actions|toolbar)$/.test(child.props.className || '') || (child.props.className === 'lab-options' && (mode === 'rich' || primary(child))))) actions.push(child);
+    else if (isValidElement<{className?: string; 'data-lab-actions'?: boolean}>(child) && (child.props['data-lab-actions'] || /__(actions|toolbar)$/.test(child.props.className || '') || (child.props.className === 'lab-options' && (mode === 'rich' || primary(child))))) actions.push(child);
     else settings.push(child);
   }
   const hasSettings = settings.some(child => isValidElement(child) && child.type !== 'p');
@@ -214,11 +214,13 @@ export function Code({
   onCopy,
   label = '代码',
   maxHeight,
+  output = false,
 }: {
   text: string;
   onCopy: DemoCopyHandler;
   label?: string;
   maxHeight?: number;
+  output?: boolean;
 }) {
   const content = (
     <div className="lab-code">
@@ -234,7 +236,7 @@ export function Code({
       </pre>
     </div>
   );
-  return IS_TOY ? <details className="toy-code"><summary>{label}</summary>{content}</details> : content;
+  return IS_TOY && !output ? <details className="toy-code"><summary>{label}</summary>{content}</details> : content;
 }
 
 /** Real error surface. Never fake a success to hide a failure. */

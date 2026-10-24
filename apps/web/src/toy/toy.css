@@ -115,6 +115,9 @@
 .toy-shell .lab-layout > .lab-stage, .toy-shell .lab-stage { min-height: 0; padding: 10px; overflow-x: auto; }
 .toy-shell .lab-layout--editor > .toy-editor-input { order: 0; width: 100%; display: flex; flex-direction: column; gap: 12px; }
 .toy-shell .lab-layout--editor > .lab-stage { order: 1; }
+.toy-shell .lab-layout:not(.lab-layout--editor) > .toy-editor-input { order: -1; display: flex; flex-direction: column; gap: 12px; padding: 0; }
+.toy-shell .lab-dnd-board { grid-template-columns: repeat(3, minmax(172px, 1fr)); min-width: 540px; }
+.toy-shell .lab-x6-canvas { height: 340px; }
 .toy-shell .lab-editor-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
 .toy-shell .lab-editor { min-height: 170px; max-height: 320px; line-height: 1.65; }
 .toy-shell .lab-layout--editor .lab-stage { max-height: 440px; overflow: auto; }

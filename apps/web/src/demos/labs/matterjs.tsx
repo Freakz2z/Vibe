@@ -98,6 +98,7 @@ export default function MatterjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       canvas.style.height = `${h}px`;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale((w * dpr) / VIEW_W, (h * dpr) / VIEW_H);
+      Matter.Mouse.setScale(mouse, { x: VIEW_W / w, y: VIEW_H / h });
     };
     resize();
     const observer = new ResizeObserver(resize);

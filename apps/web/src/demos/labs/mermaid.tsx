@@ -73,6 +73,7 @@ export default function MermaidLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   const colors = useThemeColors();
   const outputRef = useRef<HTMLDivElement>(null);
   const renderId = useStableId('mmd');
+  const renderSequence = useRef(0);
   const [sample, setSample] = useState<SampleKey>('flow');
   const [text, setText] = useState(SAMPLES.flow);
   const [error, setError] = useState<string | null>(null);
@@ -113,9 +114,10 @@ export default function MermaidLab({ onCopy }: { onCopy: DemoCopyHandler }) {
     let cancelled = false;
 
     // Mermaid parks a temporary <div id="d…"> in <body> when it throws; clean it.
+    const currentRenderId = `${renderId}-${++renderSequence.current}`;
     const clearTemp = () => {
-      document.getElementById(`d${renderId}`)?.remove();
-      document.getElementById(renderId)?.remove();
+      document.getElementById(`d${currentRenderId}`)?.remove();
+      document.getElementById(currentRenderId)?.remove();
     };
 
     const run = async () => {
@@ -123,7 +125,7 @@ export default function MermaidLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       clearTemp();
       host.replaceChildren();
       try {
-        const result = await mermaid.render(renderId, debounced);
+        const result = await mermaid.render(currentRenderId, debounced);
         if (cancelled) {
           clearTemp();
           return;

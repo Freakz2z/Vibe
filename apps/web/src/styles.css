@@ -6162,7 +6162,8 @@ kbd {
 .lab-dnd-col { min-width:0; padding:10px; border:1px solid var(--line); border-radius:14px; background:var(--surface); }
 .lab-dnd-col__head { display:flex; justify-content:space-between; gap:8px; margin-bottom:10px; color:var(--muted); font-size:.75rem; }
 .lab-dnd-col__list { display:flex; flex-direction:column; gap:8px; min-height:56px; }
-.lab-dnd-card { padding:10px; border:1px solid var(--line-strong); border-radius:10px; background:var(--surface-2); color:var(--ink); font-size:.76rem; touch-action:none; }
+.lab-dnd-card { display:flex; align-items:center; justify-content:space-between; gap:6px; padding:10px; border:1px solid var(--line-strong); border-radius:10px; background:var(--surface-2); color:var(--ink); font-size:.76rem; }
+.lab-dnd-handle { display:grid; place-items:center; flex:0 0 40px; width:40px; height:44px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--muted); touch-action:none; cursor:grab; }
 .lab-dnd-card[data-dragging="true"] { opacity:.4; }
 .lab-dnd-overlay { padding:10px; border:1px solid var(--accent); border-radius:10px; background:var(--surface); color:var(--ink); font-size:.76rem; box-shadow:0 10px 22px -14px var(--ink); }
 .lab-dnd-sr { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
@@ -6539,8 +6540,8 @@ kbd {
    Radix UI lab
    ========================================================= */
 
-.lab-radix-overlay { position:fixed; inset:0; background:color-mix(in srgb, var(--bg) 62%, transparent); backdrop-filter:blur(2px); }
-.lab-radix-content { position:fixed; top:50%; left:50%; width:min(440px, calc(100vw - 32px)); max-height:calc(100vh - 32px); overflow:auto; transform:translate(-50%,-50%); padding:20px; border:1px solid var(--line-strong); border-radius:14px; background:var(--surface); color:var(--ink); box-shadow:var(--shadow-lg); }
+.lab-radix-overlay { position:fixed; inset:0; z-index:120; background:color-mix(in srgb, var(--bg) 62%, transparent); backdrop-filter:blur(2px); }
+.lab-radix-content { position:fixed; z-index:121; top:50%; left:50%; width:min(440px, calc(100vw - 32px)); max-height:calc(100vh - 32px); overflow:auto; transform:translate(-50%,-50%); padding:20px; border:1px solid var(--line-strong); border-radius:14px; background:var(--surface); color:var(--ink); box-shadow:var(--shadow-lg); }
 .lab-radix-title { font-size:1.05rem; font-weight:650; }
 .lab-radix-desc { margin:8px 0 14px; color:var(--muted); font-size:.78rem; line-height:1.7; }
 .lab-radix-actions { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:12px; }
@@ -6731,7 +6732,8 @@ kbd {
 .lab-moveable-box { position:absolute; left:0; top:0; display:grid; place-content:center; gap:4px; border:1px solid var(--accent); border-radius:12px; background:var(--accent-soft); color:var(--accent-strong); text-align:center; }
 .lab-moveable-box strong { font-size:.8rem; }
 .lab-moveable-box small { font-size:.7rem; opacity:.85; }
-.lab-moveable-mount { position:absolute; inset:0; }
+.lab-moveable-mount { position:absolute; inset:0; pointer-events:none; }
+.lab-moveable-mount .moveable-control, .lab-moveable-mount .moveable-line { pointer-events:auto; }
 .lab-move-guide { position:absolute; left:50%; top:16px; bottom:16px; width:1px; background:var(--accent); opacity:.55; pointer-events:none; }
 .lab-move-hint { position:absolute; left:10px; bottom:8px; margin:0; color:var(--muted); font-size:.68rem; pointer-events:none; }
 .lab-readout { display:grid; grid-template-columns:repeat(auto-fit,minmax(112px,1fr)); gap:10px; margin:14px 0 0; }

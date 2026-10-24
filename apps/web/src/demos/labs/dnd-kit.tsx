@@ -1,5 +1,6 @@
 import { LabControls } from '../lab-kit';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { GripVertical } from 'lucide-react';
 import {
   DndContext,
   DragOverlay,
@@ -46,17 +47,16 @@ const SEED_COLUMNS: Record<ColumnId, string[]> = {
 };
 
 function SortableCard({ id, card }: { id: string; card: Card }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id });
   return (
     <div
       ref={setNodeRef}
       className="lab-dnd-card"
       data-dragging={isDragging}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      {...attributes}
-      {...listeners}
     >
-      {card.title}
+      <span>{card.title}</span>
+      <button type="button" ref={setActivatorNodeRef} className="lab-dnd-handle" {...attributes} {...listeners} aria-label={`拖动 ${card.title}`}><GripVertical size={18} aria-hidden="true" /></button>
     </div>
   );
 }
@@ -86,6 +86,7 @@ export default function DndKitLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   const [cards, setCards] = useState<Record<string, Card>>(SEED_CARDS);
   const [columns, setColumns] = useState<Record<ColumnId, string[]>>(SEED_COLUMNS);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const snapshot = useRef(columns);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -98,7 +99,14 @@ export default function DndKitLab({ onCopy }: { onCopy: DemoCopyHandler }) {
     return null;
   };
 
-  const onDragStart = ({ active }: DragStartEvent) => setActiveId(String(active.id));
+  const onDragStart = ({ active }: DragStartEvent) => {
+    snapshot.current = columns;
+    setActiveId(String(active.id));
+  };
+  const cancelDrag = () => {
+    setColumns(snapshot.current);
+    setActiveId(null);
+  };
 
   const onDragOver = ({ active, over }: DragOverEvent) => {
     if (!over) return;
@@ -115,8 +123,8 @@ export default function DndKitLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   };
 
   const onDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over) { cancelDrag(); return; }
     setActiveId(null);
-    if (!over) return;
     const column = findColumn(over.id);
     if (!column) return;
     const fromIndex = columns[column].indexOf(String(active.id));
@@ -195,7 +203,7 @@ export default function DndKitLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             <Stat label="列数" value={COLUMN_IDS.length} />
           </Stats>
           <p className="lab-motion-note">
-            <strong>键盘也能拖：</strong>用 Tab 聚焦到卡片，按空格（或回车）拿起，方向键移动，空格放下，Esc 取消。
+            <strong>键盘也能拖：</strong>用 Tab 聚焦拖动手柄，按空格（或回车）拿起，方向键移动，空格放下，Esc 取消。触屏按住手柄拖动，卡片正文区域可滚动。
             这是 KeyboardSensor + sortableKeyboardCoordinates 提供的真实能力，不是自绘的快捷键。
           </p>
         </LabControls>
@@ -207,7 +215,7 @@ export default function DndKitLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             onDragStart={onDragStart}
             onDragOver={onDragOver}
             onDragEnd={onDragEnd}
-            onDragCancel={() => setActiveId(null)}
+            onDragCancel={cancelDrag}
           >
             <div className="lab-dnd-board">
               {COLUMN_IDS.map((id) => (

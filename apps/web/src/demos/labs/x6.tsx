@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { IS_TOY } from '../../lib/runtime';
 import { Graph } from '@antv/x6';
 import type { Cell, Edge } from '@antv/x6';
 import type { DemoCopyHandler } from '../types';
 import { Code, ErrorNote, Lab, LabLayout, Select, Stat, Stats, Status, prettyJSON, useStableId, useThemeColors } from '../lab-kit';
 
 const X6_VERSION = '2.18.1';
+const NODE_WIDTH = IS_TOY ? 144 : 168;
 
 type NodeKind = 'gateway' | 'service' | 'queue' | 'db';
 
@@ -35,12 +37,15 @@ function nextId(prefix: string): string {
 export default function X6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
   const colors = useThemeColors();
   const hostRef = useRef<HTMLDivElement>(null);
+  const graphMountRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<Graph | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const [nodeKind, setNodeKind] = useState<NodeKind>('service');
   const [serialized, setSerialized] = useState('{}');
   const [loaded, setLoaded] = useState('');
   const [status, setStatus] = useState('从右侧端口拖到另一个节点即可连线。');
   const [tick, setTick] = useState(0);
+  const [revision, setRevision] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const themeKey = useStableId('x6');
 
@@ -53,11 +58,14 @@ export default function X6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
 
   useEffect(() => {
     const host = hostRef.current;
-    if (!host) return;
+    const mount = graphMountRef.current;
+    if (!host || !mount) return;
     let graph: Graph;
     try {
       graph = new Graph({
-        container: host,
+        container: mount,
+        width: host.clientWidth,
+        height: host.clientHeight,
         grid: { size: 14, type: 'dot', visible: true },
         panning: true,
         mousewheel: { enabled: false },
@@ -84,7 +92,7 @@ export default function X6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
         id,
         x,
         y,
-        width: 168,
+        width: NODE_WIDTH,
         height: 54,
         data: { kind, label: meta.label },
         markup: [
@@ -100,12 +108,12 @@ export default function X6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
             in: {
               position: { name: 'left' },
               markup: [{ tagName: 'circle', selector: 'portBody', attrs: { r: 8 } }],
-              attrs: { portBody: { fill: surface, stroke: line, strokeWidth: 2 } },
+              attrs: { portBody: { magnet: true, fill: surface, stroke: line, strokeWidth: 2 } },
             },
             out: {
               position: { name: 'right' },
               markup: [{ tagName: 'circle', selector: 'portBody', attrs: { r: 8 } }],
-              attrs: { portBody: { fill: accent, stroke: surface, strokeWidth: 2 } },
+              attrs: { portBody: { magnet: true, fill: accent, stroke: surface, strokeWidth: 2 } },
             },
           },
         },
@@ -117,10 +125,15 @@ export default function X6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
       return id;
     };
 
-    addNodeAt('gateway', 60, 50);
-    addNodeAt('service', 300, 50);
-    addNodeAt('queue', 540, 40);
-    addNodeAt('db', 300, 180);
+    if (IS_TOY) {
+      const x = Math.max(14, (host.clientWidth - NODE_WIDTH) / 2);
+      (['gateway', 'service', 'queue', 'db'] as const).forEach((kind, index) => addNodeAt(kind, x, 14 + index * 78));
+    } else {
+      addNodeAt('gateway', 60, 50);
+      addNodeAt('service', 300, 50);
+      addNodeAt('queue', 540, 40);
+      addNodeAt('db', 300, 180);
+    }
     setStatus('已创建 4 个带端口的节点。');
 
     // X6 created the edge on mouse-up; we now give it the real routing/marker.
@@ -147,7 +160,12 @@ export default function X6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
     graph.on('edge:connected', connected);
     graph.on('cell:click', cellClick);
     graph.on('blank:click', blankClick);
+    const modelChanged = () => setTick(value => value + 1);
+    graph.on('cell:added', modelChanged);
+    graph.on('cell:removed', modelChanged);
 
+    // X6 writes inline dimensions to its container. Observe an independent
+    // wrapper so border-box measurements cannot shrink the graph each cycle.
     const observer = new ResizeObserver(() => {
       graph.resize(Math.max(1, host.clientWidth), Math.max(1, host.clientHeight));
     });
@@ -158,21 +176,23 @@ export default function X6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
       graph.off('edge:connected', connected);
       graph.off('cell:click', cellClick);
       graph.off('blank:click', blankClick);
+      graph.off('cell:added', modelChanged);
+      graph.off('cell:removed', modelChanged);
       graph.dispose();
       graphRef.current = null;
     };
-  }, [themeKey, accent, ink, line, surface]);
+  }, [themeKey, accent, ink, line, surface, revision]);
 
   const addNode = useCallback((kind: NodeKind) => {
     const graph = graphRef.current;
     if (!graph) return;
-    const id = `${kind}-${Math.floor(performance.now() % 100000)}`;
+    const id = nextId(kind);
     const meta = KIND_META[kind];
     graph.addNode({
       id,
-      x: 40 + ((counter * 37) % 320),
+      x: IS_TOY ? Math.max(14, ((hostRef.current?.clientWidth ?? 320) - NODE_WIDTH) / 2) : 40 + ((counter * 37) % 320),
       y: 40 + ((counter * 53) % 180),
-      width: 168,
+      width: NODE_WIDTH,
       height: 54,
       data: { kind, label: meta.label },
       markup: [
@@ -185,8 +205,8 @@ export default function X6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
           { id: meta.ports[1], group: 'out' },
         ],
         groups: {
-          in: { position: { name: 'left' }, markup: [{ tagName: 'circle', selector: 'portBody', attrs: { r: 8 } }], attrs: { portBody: { fill: surface, stroke: line, strokeWidth: 2 } } },
-          out: { position: { name: 'right' }, markup: [{ tagName: 'circle', selector: 'portBody', attrs: { r: 8 } }], attrs: { portBody: { fill: accent, stroke: surface, strokeWidth: 2 } } },
+          in: { position: { name: 'left' }, markup: [{ tagName: 'circle', selector: 'portBody', attrs: { r: 8 } }], attrs: { portBody: { magnet: true, fill: surface, stroke: line, strokeWidth: 2 } } },
+          out: { position: { name: 'right' }, markup: [{ tagName: 'circle', selector: 'portBody', attrs: { r: 8 } }], attrs: { portBody: { magnet: true, fill: accent, stroke: surface, strokeWidth: 2 } } },
         },
       },
       attrs: {
@@ -300,14 +320,12 @@ export default function X6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
   );
 
   const reset = useCallback(() => {
-    const graph = graphRef.current;
-    if (!graph) return;
-    graph.clearCells();
+    setRevision(value => value + 1);
     setSelected(null);
     setSerialized('{}');
     setLoaded('');
     setError(null);
-    setStatus('画布已清空（graph.clearCells()）。新增节点或刷新页面可重新搭建。');
+    setStatus('正在恢复初始节点。');
     setTick((n) => n + 1);
   }, []);
 
@@ -321,8 +339,11 @@ export default function X6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
       <LabLayout
         controls={
           <>
-            <Select<NodeKind> label="新增节点类型" value="service" options={KINDS} onChange={addNode} />
-            <div className="lab-options">
+            <div className="lab-field" data-lab-actions>
+              <Select<NodeKind> label="新增节点类型" value={nodeKind} options={KINDS} onChange={setNodeKind} />
+              <button type="button" className="button button--primary button--small" onClick={() => addNode(nodeKind)}>新增节点</button>
+            </div>
+            <div className="lab-options" data-lab-actions>
               <button type="button" className="button button--secondary button--small" onClick={connectProgrammatically}>
                 程序化连线
               </button>
@@ -344,7 +365,7 @@ export default function X6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
         }
       >
         {error ? <ErrorNote onRetry={() => setError(null)}>{error}</ErrorNote> : null}
-        <div className="lab-x6-canvas" ref={hostRef} style={{ background: soft }} role="img" aria-label="X6 画布" />
+        <div className="lab-x6-canvas" ref={hostRef} style={{ background: soft }} role="img" aria-label="X6 画布"><div ref={graphMountRef} /></div>
         <div style={{ marginTop: 14 }}>
           <Stats>
             <Stat label="节点" value={nodes} />
@@ -356,7 +377,7 @@ export default function X6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
 
       <Code text={snippet} onCopy={onCopy} label="X6 调用" />
       <div style={{ marginTop: 22 }}>
-        <Code text={serialized} onCopy={onCopy} label="graph.toJSON()" maxHeight={280} />
+        <Code text={serialized} onCopy={onCopy} output label="graph.toJSON()" maxHeight={280} />
       </div>
     </Lab>
   );

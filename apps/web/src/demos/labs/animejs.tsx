@@ -153,6 +153,7 @@ export default function AnimejsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
                 if (!tl) return;
                 tl.restart();
                 tl.play();
+                setPaused(false);
               }}
             >
               重播
@@ -165,6 +166,7 @@ export default function AnimejsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
                 if (!tl) return;
                 tl.reverse();
                 tl.play();
+                setPaused(false);
               }}
             >
               倒放
@@ -175,6 +177,7 @@ export default function AnimejsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
               onClick={() => {
                 tlRef.current?.seek(0);
                 tlRef.current?.pause();
+                setPaused(true);
                 setTime(0);
               }}
             >

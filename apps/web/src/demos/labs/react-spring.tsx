@@ -22,9 +22,9 @@ function Ball({ tension, friction, motionOk }: BallProps) {
 
   const replay = () => {
     void api.start({
-      x: 78,
-      scale: 0.72,
-      rotate: 0,
+      from: { x: -78, scale: 0.72, rotate: -18 },
+      to: { x: 78, scale: 1, rotate: 0 },
+      reset: true,
       config: { tension, friction },
       immediate: !motionOk,
     });
@@ -65,7 +65,8 @@ export default function ReactSpringLab({ onCopy }: { onCopy: DemoCopyHandler }) 
     config: { tension, friction },
     delay: motionOk ? i * 55 : 0,
     immediate: !motionOk,
-  }), [tension, friction, motionOk]);
+    reset: true,
+  }), [tension, friction, motionOk, nonce]);
 
   const snippet = useMemo(
     () =>

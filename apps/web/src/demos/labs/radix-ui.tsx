@@ -118,6 +118,7 @@ export default function RadixLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             Radix 不提供任何样式，可访问性行为全部由它注入。下面用真实的 focusin 监听把焦点路径打印出来。
           </p>
 
+          <div className="lab-options">
           <Dialog.Root open={open} onOpenChange={setOpen}>
             <Dialog.Trigger asChild>
               <button type="button" ref={triggerRef} className="button button--primary button--small">
@@ -152,6 +153,7 @@ export default function RadixLab({ onCopy }: { onCopy: DemoCopyHandler }) {
               </Dialog.Content>
             </Dialog.Portal>
           </Dialog.Root>
+          </div>
 
           <div className="lab-radix-keys">
             <strong>键盘提示</strong>

@@ -271,7 +271,7 @@ export default function PrettierLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       <div className="lab-editor-grid lab-editor-grid--tight">
         <Code text={source} onCopy={onCopy} label="输入源码" maxHeight={420} />
         {formatted ? (
-          <Code text={formatted.output} onCopy={onCopy} label="Prettier 输出" maxHeight={420} />
+          <Code text={formatted.output} onCopy={onCopy} output label="Prettier 输出" maxHeight={420} />
         ) : (
           <div className="lab-code">
             <div>

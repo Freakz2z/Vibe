@@ -669,7 +669,7 @@ export default function LottieWebLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             onChange={jumpTo}
             hint="拖动即 goToAndStop(frame, true)，会真的停在该帧。"
           />
-          <div className="lab-lottie-frames">
+          <div className="lab-lottie-frames" data-lab-actions>
             <button type="button" className="button button--secondary button--small" onClick={() => jumpTo(frame - 1)}>
               ◀ 上一帧
             </button>

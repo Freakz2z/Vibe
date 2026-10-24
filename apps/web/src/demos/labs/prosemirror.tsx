@@ -301,7 +301,7 @@ export default function ProsemirrorLab({ onCopy }: { onCopy: DemoCopyHandler }) 
           rows={rows.map((r) => [String(r.id), String(r.steps), r.docChanged ? '是' : '否', r.labels, r.preview])}
           caption="最近 25 个事务（新→旧）"
         />
-        <Code text={stepJson} onCopy={onCopy} label="step.toJSON()" maxHeight={320} />
+        <Code text={stepJson} onCopy={onCopy} output label="step.toJSON()" maxHeight={320} />
       </div>
       {rows.length === 0 ? <Status>事务日志为空。在编辑器里输入，或点上方任意按钮。</Status> : null}
     </Lab>

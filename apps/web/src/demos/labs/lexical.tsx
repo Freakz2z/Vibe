@@ -325,7 +325,7 @@ export default function LexicalLab({ onCopy }: { onCopy: DemoCopyHandler }) {
 
       <div className="lab-editor-grid lab-editor-grid--tight">
         <DataTable head={['#', '长度', '该历史状态的内容']} rows={historyRows} caption="undo 栈（最新在最上）" />
-        <Code text={outline.join('\n')} onCopy={onCopy} label="当前 EditorState 节点树" maxHeight={300} />
+        <Code text={outline.join('\n')} onCopy={onCopy} output label="当前 EditorState 节点树" maxHeight={300} />
       </div>
       {undoDepth === 0 ? <Status>还没有历史条目：输入几个字后就会入栈。</Status> : null}
     </Lab>

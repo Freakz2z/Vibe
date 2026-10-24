@@ -79,7 +79,7 @@ export default function HonoLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   return (
     <Lab title="Hono 路由与中间件" badge={<span className="demo-live-badge">Cloudflare Workers</span>} reset={() => { setName('小明'); setGreeting('你好'); setSubPath('greet'); setStatus(null); }}>
       <div className="lab-layout">
-        <LabControls className="lab-controls">
+        <LabControls className="lab-controls" mode="inline">
           <TextField label="路由参数 name" value={name} onChange={setName} placeholder="路径参数" />
           <TextField label="查询参数 greeting" value={greeting} onChange={setGreeting} placeholder="查询参数" />
           <Select

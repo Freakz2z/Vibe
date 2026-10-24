@@ -1,5 +1,5 @@
 import { LabControls } from '../lab-kit';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import Moveable from 'react-moveable';
 import type { DemoCopyHandler } from '../types';
 import { Code, Lab, Range, Status } from '../lab-kit';
@@ -23,7 +23,7 @@ const INITIAL: BoxState = { x: 40, y: 30, width: 170, height: 120, rotate: 0 };
  * Every readout comes from the Moveable event object itself.
  */
 export default function MoveableLab({ onCopy }: { onCopy: DemoCopyHandler }) {
-  const boxRef = useRef<HTMLDivElement>(null);
+  const [target, setTarget] = useState<HTMLDivElement | null>(null);
   const guideRef = useRef<HTMLDivElement>(null);
   const moveableRef = useRef<Moveable>(null);
 
@@ -39,22 +39,14 @@ export default function MoveableLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   const reset = useCallback(() => {
     setBox(INITIAL);
     setLastEvent('已重置');
+    requestAnimationFrame(() => moveableRef.current?.updateRect());
   }, []);
-
-  // Moveable measures the element itself; we only mirror the event values back onto
-  // the element as a transform, so there is no layout feedback loop.
-  useEffect(() => {
-    const element = boxRef.current;
-    if (!element) return;
-    element.style.transform = `translate(${box.x}px, ${box.y}px) rotate(${box.rotate}deg)`;
-    element.style.width = `${box.width}px`;
-    element.style.height = `${box.height}px`;
-  }, [box]);
 
   const snippet = `import Moveable from 'react-moveable';
 
 <Moveable
-  target={boxRef.current}
+  target={target}
+  container={target?.parentElement}
   draggable={draggable}
   resizable={resizable}
   rotatable={rotatable}
@@ -63,9 +55,20 @@ export default function MoveableLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   snapGridHeight={${grid}}
   elementGuidelines={${useGuidelines} ? [guideRef.current] : []}
   bounds={{ left: 0, top: 0, right: ${FIELD_W}, bottom: ${FIELD_H} }}
-  onDrag={(e) => setBox((b) => ({ ...b, x: e.left, y: e.top }))}
-  onResize={(e) => setBox((b) => ({ ...b, width: e.width, height: e.height }))}
-  onRotate={(e) => setBox((b) => ({ ...b, rotate: e.rotate }))}
+  onDragStart={(e) => e.set([box.x, box.y])}
+  onDrag={(e) => {
+    e.target.style.transform = e.transform;
+    setBox((b) => ({ ...b, x: e.beforeTranslate[0], y: e.beforeTranslate[1] }));
+  }}
+  onResize={(e) => {
+    // 同步写尺寸，随后再更新 React 读数。
+    Object.assign(e.target.style, { width: e.width + 'px', height: e.height + 'px', transform: e.drag.transform });
+    setBox((b) => ({ ...b, width: e.width, height: e.height, x: e.drag.beforeTranslate[0], y: e.drag.beforeTranslate[1] }));
+  }}
+  onRotate={(e) => {
+    e.target.style.transform = e.drag.transform;
+    setBox((b) => ({ ...b, rotate: e.rotate }));
+  }}
 />`;
 
   return (
@@ -105,7 +108,7 @@ export default function MoveableLab({ onCopy }: { onCopy: DemoCopyHandler }) {
           <div className="lab-moveable-scroll">
             <div className="lab-moveable-canvas" style={{ width: FIELD_W, height: FIELD_H }}>
               <div ref={guideRef} className="lab-move-guide" />
-              <div ref={boxRef} className="lab-moveable-box">
+              <div ref={setTarget} className="lab-moveable-box" style={{ transform: `translate(${box.x}px, ${box.y}px) rotate(${box.rotate}deg)`, width: box.width, height: box.height }}>
                 <strong>可拖动</strong>
                 <small>
                   {Math.round(box.width)} × {Math.round(box.height)}
@@ -114,7 +117,8 @@ export default function MoveableLab({ onCopy }: { onCopy: DemoCopyHandler }) {
               <div className="lab-moveable-mount">
                 <Moveable
                   ref={moveableRef}
-                  target={boxRef.current}
+                  target={target}
+                  container={target?.parentElement}
                   draggable={draggable}
                   resizable={resizable}
                   rotatable={rotatable}
@@ -123,18 +127,34 @@ export default function MoveableLab({ onCopy }: { onCopy: DemoCopyHandler }) {
                   snapGridHeight={snap ? grid : 0}
                   elementGuidelines={useGuidelines && guideRef.current ? [guideRef.current] : []}
                   bounds={{ left: 0, top: 0, right: FIELD_W, bottom: FIELD_H }}
-                  onDragStart={() => setLastEvent('onDragStart')}
+                  onDragStart={(event) => {
+                    event.set([box.x, box.y]);
+                    setLastEvent('onDragStart');
+                  }}
                   onDrag={(event) => {
-                    setBox((current) => ({ ...current, x: event.left, y: event.top }));
+                    event.target.style.transform = event.transform;
+                    setBox((current) => ({ ...current, x: event.beforeTranslate[0], y: event.beforeTranslate[1] }));
                     setLastEvent('onDrag');
                   }}
-                  onResizeStart={() => setLastEvent('onResizeStart')}
+                  onResizeStart={(event) => {
+                    event.dragStart && event.dragStart.set([box.x, box.y]);
+                    setLastEvent('onResizeStart');
+                  }}
                   onResize={(event) => {
-                    setBox((current) => ({ ...current, width: event.width, height: event.height }));
+                    // Moveable reads the new dimensions before this callback
+                    // returns; React's batched state commit is too late for it.
+                    event.target.style.width = `${event.width}px`;
+                    event.target.style.height = `${event.height}px`;
+                    event.target.style.transform = event.drag.transform;
+                    setBox((current) => ({ ...current, width: event.width, height: event.height, x: event.drag.beforeTranslate[0], y: event.drag.beforeTranslate[1] }));
                     setLastEvent('onResize');
                   }}
-                  onRotateStart={() => setLastEvent('onRotateStart')}
+                  onRotateStart={(event) => {
+                    event.set(box.rotate);
+                    setLastEvent('onRotateStart');
+                  }}
                   onRotate={(event) => {
+                    event.target.style.transform = event.drag.transform;
                     setBox((current) => ({ ...current, rotate: event.rotate }));
                     setLastEvent('onRotate');
                   }}
