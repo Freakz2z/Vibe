@@ -1,8 +1,9 @@
+import { apiUrl } from '../../lib/runtime';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DemoCopyHandler } from '../types';
 import { Code, DataTable, ErrorNote, Lab, LabLayout, Range, Stat, Stats, Status } from '../lab-kit';
 
-const OBJECT_URL = '/api/labs/r2';
+const OBJECT_URL = apiUrl('/api/labs/r2');
 
 interface HeadInfo {
   status: number;
@@ -102,7 +103,7 @@ export default function R2Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
     controllerRef.current = controller;
     setHeadError(null);
     try {
-      const response = await fetch(OBJECT_URL, { method: 'HEAD', signal: controller.signal, cache: 'no-store' });
+      const response = await fetch(apiUrl(OBJECT_URL), { method: 'HEAD', signal: controller.signal, cache: 'no-store' });
       // 竞态守卫：只有最新的一次请求可以写状态。
       if (controller.signal.aborted || controllerRef.current !== controller || !mountedRef.current) return;
       setHeadStatus(response.status);
@@ -146,7 +147,7 @@ export default function R2Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
       // 撤销旧图并同步清空 state：不能留下一张已撤销的预览。
       clearImage();
       try {
-        const response = await fetch(OBJECT_URL, { method: 'GET', headers, signal: controller.signal, cache: 'no-store' });
+        const response = await fetch(apiUrl(OBJECT_URL), { method: 'GET', headers, signal: controller.signal, cache: 'no-store' });
         const buffer = await response.arrayBuffer();
         if (controller.signal.aborted || controllerRef.current !== controller || !mountedRef.current) return;
 

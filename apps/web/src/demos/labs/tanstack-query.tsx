@@ -1,3 +1,4 @@
+import { apiUrl } from '../../lib/runtime';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { DemoCopyHandler } from '../types';
@@ -91,7 +92,7 @@ function keyIdOf(key: string, delay: number, fail: boolean): string {
 
 /** 唯一的 URL 构造入口：真实请求与代码片段共用它，保证编码完全一致。 */
 function buildUrl(key: string, delay: number, fail: boolean): string {
-  return `/api/labs/query?key=${encodeURIComponent(key)}&delay=${delay}&fail=${fail ? 1 : 0}`;
+  return apiUrl(`/api/labs/query?key=${encodeURIComponent(key)}&delay=${delay}&fail=${fail ? 1 : 0}`);
 }
 
 interface NetApi {
@@ -191,7 +192,7 @@ function QueryBody({ onCopy, net }: { onCopy: DemoCopyHandler; net: NetApi }) {
       const requestUrl = buildUrl(k, d, f === 1);
       const logId = net.record({ scope: 'main', keyId: keyIdOf(k, d, f === 1), url: requestUrl, round: 0 });
       try {
-        const response = await fetch(requestUrl, {
+        const response = await fetch(apiUrl(requestUrl), {
           signal, // 切 key / 卸载都由 SDK 中止在途请求
           cache: 'no-store',
           headers: { Accept: 'application/json' },
@@ -441,7 +442,7 @@ function DedupeStage({ onCopy, net }: { onCopy: DemoCopyHandler; net: NetApi }) 
       const requestUrl = buildUrl('dedupe', delay, false);
       const logId = net.record({ scope: 'dedupe', keyId: keyIdOf('dedupe', delay, false), url: requestUrl, round: batch });
       try {
-        const response = await fetch(requestUrl, { signal, cache: 'no-store', headers: { Accept: 'application/json' } });
+        const response = await fetch(apiUrl(requestUrl), { signal, cache: 'no-store', headers: { Accept: 'application/json' } });
         net.settle(logId, { status: response.status });
         if (!response.ok) throw new Error(`后端返回 HTTP ${response.status}`);
         return (await response.json()) as QueryPayload;

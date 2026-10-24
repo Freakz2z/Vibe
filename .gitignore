@@ -22,3 +22,5 @@ apps/web/qa-shots-minimax/
 apps/web/test-results-*/
 
 shared/generated/
+
+dist-toy/

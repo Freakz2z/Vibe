@@ -1,3 +1,4 @@
+import { apiUrl } from '../../lib/runtime';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DemoCopyHandler } from '../types';
 import { Code, DataTable, ErrorNote, Lab, Range, Select, Status, prettyJSON } from '../lab-kit';
@@ -41,7 +42,7 @@ export default function KyselyLab({ onCopy }: { onCopy: DemoCopyHandler }) {
     setData(null);
     try {
       const params = new URLSearchParams({ region, minimum: String(minimum) });
-      const response = await fetch(`/api/labs/kysely?${params}`, { signal: controller.signal, cache: 'no-store' });
+      const response = await fetch(apiUrl(`/api/labs/kysely?${params}`), { signal: controller.signal, cache: 'no-store' });
       if (!response.ok) throw new Error(`请求失败（HTTP ${response.status}）`);
       const payload = (await response.json()) as KyselyResponse;
       if (controller.signal.aborted) return;

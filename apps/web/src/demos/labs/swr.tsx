@@ -1,3 +1,4 @@
+import { apiUrl } from '../../lib/runtime';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useSWR from 'swr';
 import type { DemoCopyHandler } from '../types';
@@ -44,7 +45,7 @@ interface RequestRecord {
 }
 
 function buildUrl(key: string, delay: number, fail: boolean): string {
-  return `/api/labs/query?key=${encodeURIComponent(key)}&delay=${delay}&fail=${fail ? 1 : 0}`;
+  return apiUrl(`/api/labs/query?key=${encodeURIComponent(key)}&delay=${delay}&fail=${fail ? 1 : 0}`);
 }
 
 /**
@@ -83,7 +84,7 @@ export default function SwrLab({ onCopy }: { onCopy: DemoCopyHandler }) {
     const controller = new AbortController();
     controllersRef.current.add(controller);
     try {
-      const response = await fetch(url, { signal: controller.signal, cache: 'no-store', headers: { Accept: 'application/json' } });
+      const response = await fetch(apiUrl(url), { signal: controller.signal, cache: 'no-store', headers: { Accept: 'application/json' } });
       if (mountedRef.current) {
         setLogs((prev) => [...prev, { cacheKey: url, status: response.status, at: Date.now() }].slice(-40));
       }

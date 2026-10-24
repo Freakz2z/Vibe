@@ -1,3 +1,4 @@
+import { routeHref } from '../lib/runtime';
 import type { CSSProperties } from 'react';
 import type { Category, Demo, Tool } from '../types';
 import {
@@ -60,7 +61,7 @@ export function ToolPage({
     >
       <nav className="breadcrumb" aria-label="面包屑导航">
         <a
-          href={backHref}
+          href={routeHref(backHref)}
           onClick={(event) => {
             event.preventDefault();
             onBackToDirectory(backHref);
@@ -70,7 +71,7 @@ export function ToolPage({
           返回目录
         </a>
         <span aria-hidden="true">/</span>
-        <a href={`/?category=${category.id}`}>{category.name}</a>
+        <a href={routeHref(`/?category=${category.id}`)}>{category.name}</a>
         <span aria-hidden="true">/</span>
         <span aria-current="page">{tool.name}</span>
       </nav>
@@ -79,7 +80,7 @@ export function ToolPage({
         <ToolLogo tool={tool} className="tool-detail-hero__icon" />
         <div className="tool-detail-hero__body">
           <div className="tool-detail-hero__meta">
-            <a href={`/?category=${category.id}`} className="category-pill">
+            <a href={routeHref(`/?category=${category.id}`)} className="category-pill">
               <CategoryIcon id={category.id} size={13} />
               {category.name}
             </a>
@@ -192,7 +193,7 @@ export function ToolPage({
                   </span>
                   <h3>{demo.name}</h3>
                   <p>{demo.description}</p>
-                  <a className="text-link" href={`/demos/${demo.id}`}>
+                  <a className="text-link" href={routeHref(`/demos/${demo.id}`)}>
                     打开示例
                     <ArrowUpRight size={14} aria-hidden="true" />
                   </a>
@@ -267,7 +268,7 @@ export function ToolPage({
               <p className="eyebrow">继续浏览</p>
               <h2 id="related-title">相关工具</h2>
             </div>
-            <a className="text-link" href={`/?category=${category.id}`}>
+            <a className="text-link" href={routeHref(`/?category=${category.id}`)}>
               查看全部
               <ArrowUpRight size={14} aria-hidden="true" />
             </a>
@@ -276,7 +277,7 @@ export function ToolPage({
             {relatedTools.map((related) => (
               <a
                 className="related-item"
-                href={`/tools/${related.id}${search}`}
+                href={routeHref(`/tools/${related.id}${search}`)}
                 key={related.id}
               >
                 <ToolLogo tool={related} className="tool-icon--small" />

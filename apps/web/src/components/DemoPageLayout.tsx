@@ -1,3 +1,4 @@
+import { routeHref } from '../lib/runtime';
 import type { ReactNode } from 'react';
 import { ArrowLeft, ArrowUpRight, BookOpen, ExternalLink, Sparkles } from 'lucide-react';
 import type { Demo, Tool } from '../types';
@@ -19,7 +20,7 @@ export function DemoPageLayout({ demo, tools, children, onBackToDemos }: DemoPag
     <article className="page demo-page">
       <nav className="breadcrumb" aria-label="面包屑导航">
         <a
-          href="/demos"
+          href={routeHref('/demos')}
           onClick={(event) => {
             event.preventDefault();
             onBackToDemos('/demos');
@@ -45,7 +46,7 @@ export function DemoPageLayout({ demo, tools, children, onBackToDemos }: DemoPag
         <div className="demo-page__tools" aria-label="主工具">
           <span className="demo-page__tools-label">主工具</span>
           {stackTool ? (
-            <a className="tool-chip" href={`/tools/${stackTool.id}`}>
+            <a className="tool-chip" href={routeHref(`/tools/${stackTool.id}`)}>
               <ToolLogo tool={stackTool} className="tool-chip__logo" />
               {stackTool.name}
             </a>
@@ -64,12 +65,12 @@ export function DemoPageLayout({ demo, tools, children, onBackToDemos }: DemoPag
       {children}
 
       <div className="demo-page__footer-links">
-        <a className="button button--secondary" href="/demos">
+        <a className="button button--secondary" href={routeHref('/demos')}>
           <Sparkles size={15} aria-hidden="true" />
           看其他示例
         </a>
         {stackTool ? (
-          <a className="button button--quiet" href={`/tools/${stackTool.id}`}>
+          <a className="button button--quiet" href={routeHref(`/tools/${stackTool.id}`)}>
             了解 {stackTool.name}
             <ExternalLink size={14} aria-hidden="true" />
           </a>

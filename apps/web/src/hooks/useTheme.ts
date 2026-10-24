@@ -1,9 +1,10 @@
+import { IS_TOY } from '../lib/runtime';
 import { useCallback, useEffect, useState } from 'react';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 export type ResolvedTheme = 'light' | 'dark';
 
-const STORAGE_KEY = 'vibe-theme';
+const STORAGE_KEY = IS_TOY ? 'vibe-toy-theme-v1' : 'vibe-theme';
 
 function readStoredMode(): ThemeMode {
   try {

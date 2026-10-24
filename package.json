@@ -27,7 +27,9 @@
     "assets:demos:local": "tsx scripts/sync-demo-assets.ts --local",
     "assets:demos:remote": "tsx scripts/sync-demo-assets.ts --remote",
     "test:labs": "tsx scripts/verify-labs.ts",
-    "test:demo-assets": "tsx scripts/verify-demo-assets.ts"
+    "test:demo-assets": "tsx scripts/verify-demo-assets.ts",
+    "build:toy": "tsx scripts/prepare-toy.ts && npm run typecheck -w apps/web && npm exec -w apps/web -- vite build --mode toy && tsx scripts/package-toy.ts",
+    "preview:toy": "tsx scripts/preview-toy.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "latest",

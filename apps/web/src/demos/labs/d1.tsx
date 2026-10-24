@@ -1,3 +1,4 @@
+import { apiUrl } from '../../lib/runtime';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { DemoCopyHandler } from '../types';
 import { Code, DataTable, ErrorNote, Lab, LabLayout, Segmented, Select, Stat, Stats, Status } from '../lab-kit';
@@ -108,7 +109,7 @@ export default function D1Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
   }, []);
 
   useEffect(() => {
-    const url = `/api/labs/d1?view=${view}&region=${encodeURIComponent(region)}&status=${status}`;
+    const url = apiUrl(`/api/labs/d1?view=${view}&region=${encodeURIComponent(region)}&status=${status}`);
     const controller = new AbortController();
     controllerRef.current?.abort();
     controllerRef.current = controller;
@@ -116,7 +117,7 @@ export default function D1Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
     setLoading(true);
     setErrorText(null);
 
-    fetch(url, { signal: controller.signal, cache: 'no-store', headers: { Accept: 'application/json' } })
+    fetch(apiUrl(url), { signal: controller.signal, cache: 'no-store', headers: { Accept: 'application/json' } })
       .then(async (response) => {
         if (!response.ok) {
           const body = await response.text();

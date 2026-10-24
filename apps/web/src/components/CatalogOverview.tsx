@@ -1,3 +1,4 @@
+import { routeHref } from '../lib/runtime';
 import {
   ArrowDown,
   ArrowUpRight,
@@ -49,7 +50,7 @@ export function CatalogOverview({ catalog }: { catalog: Catalog }) {
             可运行示例
           </dt>
           <dd>
-            <a href="/demos" aria-label={`浏览 ${catalog.demos.length} 个站内示例`}>
+            <a href={routeHref('/demos')} aria-label={`浏览 ${catalog.demos.length} 个站内示例`}>
               {catalog.demos.length}
               <span>个</span>
               <ArrowUpRight size={16} aria-hidden="true" />
@@ -99,7 +100,7 @@ export function CatalogOverview({ catalog }: { catalog: Catalog }) {
               {categories.map(({ category, tools, demos }) => (
                 <tr key={category.id}>
                   <th scope="row">
-                    <a href={`/?category=${encodeURIComponent(category.id)}`}>
+                    <a href={routeHref(`/?category=${encodeURIComponent(category.id)}`)}>
                       <CategoryIcon id={category.id} size={15} />
                       <span>{category.name}</span>
                     </a>
@@ -127,7 +128,7 @@ export function CatalogOverview({ catalog }: { catalog: Catalog }) {
             <ul className="catalog-distribution">
               {pricing.map(({ label, count }) => (
                 <li key={label}>
-                  <a href={`/?pricing=${encodeURIComponent(label)}`}>
+                  <a href={routeHref(`/?pricing=${encodeURIComponent(label)}`)}>
                     <span>{label}</span>
                     <span className="catalog-distribution__track" aria-hidden="true">
                       <span
@@ -151,7 +152,7 @@ export function CatalogOverview({ catalog }: { catalog: Catalog }) {
             <ul className="catalog-platforms">
               {platforms.map(({ value, count }) => (
                 <li key={value}>
-                  <a href={`/?platform=${value}`}>
+                  <a href={routeHref(`/?platform=${value}`)}>
                     <span>{platformLabels[value]}</span>
                     <strong>{count}</strong>
                     <ArrowUpRight size={13} aria-hidden="true" />

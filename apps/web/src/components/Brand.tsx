@@ -1,3 +1,4 @@
+import { assetUrl, IS_TOY } from '../lib/runtime';
 import { useState } from 'react';
 
 interface BrandProps {
@@ -5,7 +6,9 @@ interface BrandProps {
 }
 
 export function Brand({ compact = false }: BrandProps) {
-  const [logoSrc, setLogoSrc] = useState('/media/brand/logo.png');
+  const [logoSrc, setLogoSrc] = useState(assetUrl('/media/brand/logo.png'));
+
+  const fallback = IS_TOY ? new URL('./brand/logo.png', new URL('./', window.location.href)).href : '/brand/logo.png';
 
   return (
     <span className={`brand${compact ? ' brand--compact' : ''}`}>
@@ -16,7 +19,7 @@ export function Brand({ compact = false }: BrandProps) {
           width="36"
           height="36"
           onError={() => {
-            if (!logoSrc.startsWith('/brand/')) setLogoSrc('/brand/logo.png');
+            if (logoSrc !== fallback) setLogoSrc(fallback);
           }}
         />
       </span>

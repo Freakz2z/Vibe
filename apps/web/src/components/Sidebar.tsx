@@ -1,3 +1,4 @@
+import { routeHref } from '../lib/runtime';
 import { House, X } from 'lucide-react';
 import type { Category } from '../types';
 import { Brand } from './Brand';
@@ -37,7 +38,7 @@ export function Sidebar({
   return (
     <div className="sidebar__inner">
       <div className="sidebar__top">
-        <a className="sidebar__brand-link" href="/" aria-label="Vibe 工具集首页" onClick={onRequestClose}>
+        <a className="sidebar__brand-link" href={routeHref('/')} aria-label="Vibe 工具集首页" onClick={onRequestClose}>
           <Brand />
         </a>
         {onRequestClose ? (

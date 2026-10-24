@@ -1,3 +1,4 @@
+import { IS_TOY } from '../../lib/runtime';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -404,7 +405,7 @@ export default function LeafletLab({ onCopy }: { onCopy: DemoCopyHandler }) {
         `const map = L.map(host, { crs: L.CRS.EPSG3857, minZoom: 0, maxZoom: 8 });`,
         `new L.Control.Attribution({ prefix: false }).addAttribution('Natural Earth 110m · Public Domain').addTo(map);`,
         ``,
-        `// 同源取本站 R2 上的 Natural Earth 110m 国家边界（177 个要素，可中止）`,
+        IS_TOY ? '// 同源加载随包分发的 Natural Earth 110m 国家边界（177 个要素）' : `// 同源取本站 R2 上的 Natural Earth 110m 国家边界（177 个要素，可中止）`,
         `const controller = new AbortController();`,
         `const res = await fetch('${LEAFLET_GEOJSON_URL}', { signal: controller.signal });`,
         `const countries = await res.json();   // properties: { name, continent, pop, iso }`,
@@ -464,7 +465,7 @@ export default function LeafletLab({ onCopy }: { onCopy: DemoCopyHandler }) {
 
         {loading && !error ? (
           <div className="lab-leaflet-overlay" role="status">
-            <span>正在从本站 R2 加载 Natural Earth 110m 国家边界…</span>
+            <span>{IS_TOY ? '正在加载包内国家边界…' : '正在从本站 R2 加载 Natural Earth 110m 国家边界…'}</span>
             <code>{LEAFLET_GEOJSON_URL}</code>
           </div>
         ) : null}

@@ -1,3 +1,4 @@
+import { IS_TOY } from '../lib/runtime';
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AlertTriangle, Check, Copy, RotateCcw } from 'lucide-react';
 import type { DemoCopyHandler } from './types';
@@ -39,7 +40,7 @@ export function Lab({
 export function LabLayout({ controls, children, layout = 'split' }: { controls: ReactNode; children: ReactNode; layout?: 'split' | 'toolbar' | 'editor' }) {
   return (
     <div className={`lab-layout lab-layout--${layout}`}>
-      <div className="lab-controls">{controls}</div>
+      {IS_TOY ? <details className="toy-controls"><summary>参数与操作</summary><div className="lab-controls">{controls}</div></details> : <div className="lab-controls">{controls}</div>}
       <div className="lab-stage">{children}</div>
     </div>
   );
@@ -176,7 +177,7 @@ export function Code({
   label?: string;
   maxHeight?: number;
 }) {
-  return (
+  const content = (
     <div className="lab-code">
       <div>
         <span>{label}</span>
@@ -190,6 +191,7 @@ export function Code({
       </pre>
     </div>
   );
+  return IS_TOY ? <details className="toy-code"><summary>{label}</summary>{content}</details> : content;
 }
 
 /** Real error surface. Never fake a success to hide a failure. */

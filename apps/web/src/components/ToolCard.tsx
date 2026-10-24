@@ -1,3 +1,4 @@
+import { routeHref } from '../lib/runtime';
 import type { CSSProperties } from 'react';
 import { ArrowUpRight, Copy, Heart } from 'lucide-react';
 import type { Tool } from '../types';
@@ -30,7 +31,7 @@ export function ToolCard({
     >
       <a
         className="tool-card__hit"
-        href={`/tools/${tool.id}${hrefSuffix}`}
+        href={routeHref(`/tools/${tool.id}${hrefSuffix}`)}
         aria-labelledby={titleId}
       >
         <span className="sr-only">查看详情</span>

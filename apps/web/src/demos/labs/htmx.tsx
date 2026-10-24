@@ -1,3 +1,4 @@
+import { IS_TOY, apiUrl, API_ORIGIN, routeHref } from '../../lib/runtime';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import htmx from 'htmx.org';
 import type { DemoCopyHandler } from '../types';
@@ -8,7 +9,8 @@ import { Code, Lab, LabLayout, Stat, Stats, Status } from '../lab-kit';
 htmx.config.allowEval = false;
 htmx.config.allowScriptTags = false;
 // 只允许同源请求，杜绝任何人往 hx-get 里塞外站地址。
-htmx.config.selfRequestsOnly = true;
+htmx.config.selfRequestsOnly = !IS_TOY;
+htmx.config.withCredentials = false;
 
 /**
  * 这段标记由 htmx 全权接管：请求、解析 HTML、替换 DOM 全部是 htmx 自己做的。
@@ -32,7 +34,7 @@ const MARKUP = [
   '<div id="lab-htmx-results" class="lab-htmx__results">',
   '  <p class="lab-htmx__hint">还没有发过请求。在上方输入内容，htmx 会自己发 GET 请求，并把后端返回的 HTML 片段换进这里。</p>',
   '</div>',
-].join('');
+ ].join('').replaceAll('/api/labs/htmx/search', apiUrl('/api/labs/htmx/search'));
 
 interface HtmxRequestDetail {
   xhr: XMLHttpRequest;
@@ -43,7 +45,11 @@ interface HtmxRequestDetail {
 }
 
 function isTrustedHtmxRequest(url: string): boolean {
-  return url.startsWith('/api/labs/htmx/search');
+  try {
+    const parsed = new URL(url, window.location.href);
+    return parsed.origin === (IS_TOY ? API_ORIGIN : window.location.origin)
+      && parsed.pathname === (IS_TOY ? '/api/toy/labs/htmx/search' : '/api/labs/htmx/search');
+  } catch { return false; }
 }
 
 /**
@@ -99,6 +105,7 @@ export default function HtmxLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       const url = detail.xhr.responseURL || '';
       if (!isTrustedHtmxRequest(url)) return;
       if (!mountedRef.current) return;
+      if (IS_TOY) rootRef.current?.querySelectorAll<HTMLAnchorElement>('a[href^="/tools/"]').forEach(a => {a.href = routeHref(a.getAttribute('href')!);});
       setSwaps((n) => n + 1);
     };
 
@@ -116,6 +123,8 @@ export default function HtmxLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       setErrorText(`后端返回 HTTP ${detail.xhr.status}。htmx 对非 2xx 响应不会交换内容，#lab-htmx-results 保持上一次的成功片段。`);
     };
 
+    const validateUrl = (event: Event) => { if (!isTrustedHtmxRequest(String((event as CustomEvent).detail?.url || ''))) event.preventDefault(); };
+    document.body.addEventListener('htmx:validateUrl', validateUrl);
     document.body.addEventListener('htmx:beforeRequest', onBeforeRequest);
     document.body.addEventListener('htmx:afterRequest', onAfterRequest);
     document.body.addEventListener('htmx:afterSwap', onAfterSwap);
@@ -123,6 +132,7 @@ export default function HtmxLab({ onCopy }: { onCopy: DemoCopyHandler }) {
 
     return () => {
       mountedRef.current = false;
+      document.body.removeEventListener('htmx:validateUrl', validateUrl);
       document.body.removeEventListener('htmx:beforeRequest', onBeforeRequest);
       document.body.removeEventListener('htmx:afterRequest', onAfterRequest);
       document.body.removeEventListener('htmx:afterSwap', onAfterSwap);
@@ -136,7 +146,7 @@ export default function HtmxLab({ onCopy }: { onCopy: DemoCopyHandler }) {
     if (!target) return;
     const path = `/api/labs/htmx/search?q=${'x'.repeat(90)}`;
     setLastUrl(path);
-    void htmx.ajax('get', path, { target, swap: 'innerHTML' });
+    void htmx.ajax('get', apiUrl(path), { target, swap: 'innerHTML' });
   }, []);
 
   const htmxVersion = htmx.version;
@@ -171,7 +181,7 @@ export default function HtmxLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             </div>
             <Status>
               这块内容来自本站后端，属于可信来源。即便如此，htmx 的配置依然禁止执行表达式与插入 script 标签，
-              请求也被限制为同源。
+              {IS_TOY ? '请求仅允许访问目录站的只读接口。' : '请求也被限制为同源。'}
             </Status>
             <div className="lab-options">
               <button type="button" className="button button--secondary button--small" onClick={triggerBadRequest}>

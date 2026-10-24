@@ -1,3 +1,4 @@
+import { IS_TOY, routeHref } from './runtime';
 import { useEffect, useLayoutEffect, useState } from 'react';
 
 export interface RouteState {
@@ -14,7 +15,7 @@ type HistoryState = Record<string, unknown> & {
 };
 
 const NAVIGATION_EVENT = 'vibe:navigation';
-const SCROLL_STORAGE_KEY = 'vibe-scroll-positions';
+const SCROLL_STORAGE_KEY = IS_TOY ? 'vibe-toy-scroll-positions' : 'vibe-scroll-positions';
 const scrollPositions = new Map<string, number>();
 let activeKey: string | null = null;
 let pendingRestore: number | null = null;
@@ -22,6 +23,14 @@ let keySeed = 0;
 let initialized = false;
 
 function readRoute(): RouteState {
+  if (IS_TOY) {
+    const query = new URLSearchParams(window.location.search);
+    const initial = query.get('tool') ? '/tools/' + encodeURIComponent(query.get('tool')!)
+      : query.get('demo') ? '/demos/' + encodeURIComponent(query.get('demo')!) : '/';
+    const logical = window.location.hash.startsWith('#/') ? window.location.hash.slice(1) : initial;
+    const url = new URL(logical, 'https://vibe.invalid');
+    return { pathname: url.pathname, search: url.search, hash: url.hash };
+  }
   return {
     pathname: window.location.pathname,
     search: window.location.search,
@@ -114,9 +123,11 @@ export function useRoute(ready = true): RouteState {
 
     window.addEventListener(NAVIGATION_EVENT, syncNavigation);
     window.addEventListener('popstate', syncPopState);
+    if (IS_TOY) window.addEventListener('hashchange', syncNavigation);
     return () => {
       window.removeEventListener(NAVIGATION_EVENT, syncNavigation);
       window.removeEventListener('popstate', syncPopState);
+      if (IS_TOY) window.removeEventListener('hashchange', syncNavigation);
     };
   }, []);
 
@@ -135,7 +146,8 @@ export function navigate(
   href: string,
   options: { replace?: boolean; scroll?: 'top' | 'preserve' } = {},
 ): void {
-  const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  const currentRoute = readRoute();
+  const current = `${currentRoute.pathname}${currentRoute.search}${currentRoute.hash}`;
   if (href === current) {
     if (options.scroll === 'top') window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     return;
@@ -148,7 +160,7 @@ export function navigate(
   const previousState = currentHistoryState();
   const destination = new URL(href, window.location.href);
   const targetIsDirectory = destination.pathname === '/';
-  const currentIsDirectory = window.location.pathname === '/';
+  const currentIsDirectory = currentRoute.pathname === '/';
 
   let directory =
     typeof previousState.vibeDirectory === 'string' ? previousState.vibeDirectory : undefined;
@@ -177,9 +189,9 @@ export function navigate(
       : {}),
   };
   if (options.replace) {
-    window.history.replaceState(state, '', href);
+    window.history.replaceState(state, '', routeHref(href));
   } else {
-    window.history.pushState(state, '', href);
+    window.history.pushState(state, '', routeHref(href));
   }
 
   activeKey = nextKey;

@@ -1,6 +1,7 @@
+import { IS_TOY } from '../lib/runtime';
 import { useCallback, useEffect, useState } from 'react';
 
-const STORAGE_KEY = 'vibe-favorites';
+const STORAGE_KEY = IS_TOY ? 'vibe-toy-favorites-v1' : 'vibe-favorites';
 
 function readFavorites(): string[] {
   try {

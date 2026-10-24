@@ -1,3 +1,4 @@
+import { IS_TOY } from '../lib/runtime';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, ListFilter, SlidersHorizontal, X } from 'lucide-react';
 import type { Tool } from '../types';
@@ -20,6 +21,8 @@ interface FilterBarProps {
   onPricingChange: (value: string) => void;
   onRemoveFilter: (key: FilterKey) => void;
   onClearAll: () => void;
+  onApply?: (platform: string, pricing: string) => void;
+  previewCount?: (platform: string, pricing: string) => number;
 }
 
 const PLATFORMS: { value: string; label: string }[] = [
@@ -149,7 +152,12 @@ export function FilterBar({
   onPricingChange,
   onRemoveFilter,
   onClearAll,
+  onApply,
+  previewCount,
 }: FilterBarProps) {
+  const [draftPlatform, setDraftPlatform] = useState(platform);
+  const [draftPricing, setDraftPricing] = useState(pricing);
+  const draftCount = IS_TOY && previewCount ? previewCount(draftPlatform, draftPricing) : resultCount;
   const [sheetOpen, setSheetOpen] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -170,8 +178,8 @@ export function FilterBar({
   }, [closeSheet, sheetOpen]);
 
   const handleClearAll = () => {
-    onClearAll();
-    closeSheet();
+    if (IS_TOY) { setDraftPlatform(''); setDraftPricing(''); }
+    else { onClearAll(); closeSheet(); }
   };
 
   return (
@@ -183,7 +191,7 @@ export function FilterBar({
           ref={triggerRef}
           aria-haspopup="dialog"
           aria-expanded={sheetOpen}
-          onClick={() => setSheetOpen(true)}
+          onClick={() => { setDraftPlatform(platform); setDraftPricing(pricing); setSheetOpen(true); }}
         >
           <ListFilter size={16} aria-hidden="true" />
           筛选
@@ -254,38 +262,39 @@ export function FilterBar({
             </div>
             <div className="filter-sheet__body">
               <p className="filter-sheet__status" role="status" aria-live="polite">
-                共 {resultCount} 个工具
+                共 {draftCount} 个工具
               </p>
-              <ActiveFilterList
+              {!IS_TOY ? <ActiveFilterList
                 activeFilters={activeFilters}
                 onRemoveFilter={onRemoveFilter}
                 onClearAll={onClearAll}
                 compact
                 showReset={false}
-              />
+              /> : null}
               <FilterGroups
-                platform={platform}
-                pricing={pricing}
+                platform={IS_TOY ? draftPlatform : platform}
+                pricing={IS_TOY ? draftPricing : pricing}
                 idPrefix="mobile"
-                onPlatformChange={onPlatformChange}
-                onPricingChange={onPricingChange}
+                onPlatformChange={IS_TOY ? setDraftPlatform : onPlatformChange}
+                onPricingChange={IS_TOY ? setDraftPricing : onPricingChange}
               />
             </div>
             <div className="filter-sheet__foot">
-              {activeFilters.length > 0 ? (
+              {IS_TOY || activeFilters.length > 0 ? (
                 <button type="button" className="button button--quiet" onClick={handleClearAll}>
-                  全部重置
+                  {IS_TOY ? '重置平台与费用' : '全部重置'}
                 </button>
               ) : null}
               <button
                 type="button"
                 className="button button--primary"
                 onClick={() => {
+                  if (IS_TOY) onApply?.(draftPlatform, draftPricing);
                   closeSheet();
                   triggerRef.current?.focus({ preventScroll: true });
                 }}
               >
-                查看 {resultCount} 个工具
+                {IS_TOY ? '应用' : '查看'} {draftCount} 个工具
               </button>
             </div>
           </div>

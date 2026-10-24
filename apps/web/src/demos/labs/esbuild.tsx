@@ -1,3 +1,4 @@
+import { assetUrl, IS_TOY } from '../../lib/runtime';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as esbuild from 'esbuild-wasm';
 import type { TransformFailure, TransformOptions, TransformResult } from 'esbuild-wasm';
@@ -31,7 +32,7 @@ import {
  * - 因为与页面同源，esbuild 可以直接 `WebAssembly.instantiateStreaming` 拉取它：
  *   没有 CDN、没有跨域请求、也没有打包进主 chunk。
  */
-const WASM_URL = '/media/demos/esbuild/esbuild_e2b4b98297e0.wasm';
+const WASM_URL = assetUrl('/media/demos/esbuild/esbuild_e2b4b98297e0.wasm');
 
 /**
  * `esbuild.initialize()` 成功之后不能再次调用，所以 promise 在模块作用域内记忆化，
@@ -49,7 +50,7 @@ function ready(): Promise<string> {
     // 用 `Promise.resolve().then(...)` 包一层：这样 `initialize()` 的同步 throw
     // 也会变成 rejection，而不是从 `ready()` 里直接抛出去。
     bootstrap = Promise.resolve()
-      .then(() => esbuild.initialize({ wasmURL: WASM_URL, worker: false }))
+      .then(() => esbuild.initialize({ wasmURL: assetUrl(WASM_URL), worker: false }))
       .then(() => esbuild.version)
       .catch((err: unknown) => {
         // esbuild 自己在初始化失败时会把内部的 initializePromise 清空（允许重新
@@ -295,7 +296,7 @@ export default function EsbuildLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       [
         `import * as esbuild from 'esbuild-wasm';`,
         ``,
-        `// WASM 二进制来自 assets/demos/manifest.json，由本站 R2 在 /media/ 下提供（application/wasm）`,
+        IS_TOY ? '// WASM 二进制随 Toy 包分发，来源和 SHA-256 见 assets/demos/manifest.json' : `// WASM 二进制来自 assets/demos/manifest.json，由本站 R2 在 /media/ 下提供（application/wasm）`,
         `const wasmURL = '${WASM_URL}';`,
         ``,
         `// worker: false —— 不创建 blob: worker，WASM 服务跑在主线程`,
@@ -412,7 +413,7 @@ export default function EsbuildLab({ onCopy }: { onCopy: DemoCopyHandler }) {
               </button>
             </div>
             <Status>
-              WASM 二进制登记在 <code>assets/demos/manifest.json</code>，由本站 R2 在 <code>/media/</code> 下以
+              WASM 二进制登记在 <code>assets/demos/manifest.json</code>，{IS_TOY ? '随 Toy 包分发，以' : <>由本站 R2 在 <code>/media/</code> 下以</>}
               <code> application/wasm </code>提供；initialize 传入这个同源 URL 并显式关闭 worker。
             </Status>
           </>

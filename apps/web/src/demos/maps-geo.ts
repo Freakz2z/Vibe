@@ -1,3 +1,4 @@
+import { assetUrl } from '../lib/runtime';
 /**
  * Shared, honest loading layer for the two map labs.
  *
@@ -22,8 +23,8 @@ export interface CountryProperties {
 export type CountryFeature = GeoJSON.Feature<GeoJSON.Geometry, CountryProperties>;
 export type CountryCollection = GeoJSON.FeatureCollection<GeoJSON.Geometry, CountryProperties>;
 
-export const LEAFLET_GEOJSON_URL = '/media/demos/leaflet/countries_60bc5282.geojson';
-export const MAPLIBRE_GEOJSON_URL = '/media/demos/maplibre-gl/countries_60bc5282.geojson';
+export const LEAFLET_GEOJSON_URL = assetUrl('/media/demos/leaflet/countries_60bc5282.geojson');
+export const MAPLIBRE_GEOJSON_URL = assetUrl('/media/demos/maplibre-gl/countries_60bc5282.geojson');
 
 export const CONTINENTS = [
   '全部',
@@ -74,7 +75,7 @@ export interface LoadedCountries {
  * the real HTTP status instead of quietly rendering nothing.
  */
 export async function loadCountries(url: string, signal: AbortSignal): Promise<LoadedCountries> {
-  const response = await fetch(url, { signal, headers: { Accept: 'application/geo+json, application/json' } });
+  const response = await fetch(assetUrl(url), { signal, headers: { Accept: 'application/geo+json, application/json' } });
   if (!response.ok) throw new Error(`HTTP ${response.status} ${response.statusText || ''}`.trim());
   const text = await response.text();
   const parsed = JSON.parse(text) as CountryCollection;

@@ -1,3 +1,4 @@
+import { routeHref } from '../lib/runtime';
 import { ArrowLeft, Compass } from 'lucide-react';
 
 interface NotFoundPageProps {
@@ -22,11 +23,11 @@ export function NotFoundPage({
       <h1>{title}</h1>
       <p>{description}</p>
       <div className="notfound-page__actions">
-        <a className="button button--primary" href={backHref}>
+        <a className="button button--primary" href={routeHref(backHref)}>
           <ArrowLeft size={15} aria-hidden="true" />
           {backLabel}
         </a>
-        <a className="button button--secondary" href="/demos">
+        <a className="button button--secondary" href={routeHref('/demos')}>
           <Compass size={15} aria-hidden="true" />
           看看站内示例
         </a>

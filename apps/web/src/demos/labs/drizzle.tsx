@@ -1,3 +1,4 @@
+import { apiUrl } from '../../lib/runtime';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DemoCopyHandler } from '../types';
 import { Code, DataTable, ErrorNote, Lab, Select, Status, prettyJSON } from '../lab-kit';
@@ -45,7 +46,7 @@ export default function DrizzleLab({ onCopy }: { onCopy: DemoCopyHandler }) {
     setData(null);
     try {
       const params = new URLSearchParams({ region, status });
-      const response = await fetch(`/api/labs/drizzle?${params}`, { signal: controller.signal, cache: 'no-store' });
+      const response = await fetch(apiUrl(`/api/labs/drizzle?${params}`), { signal: controller.signal, cache: 'no-store' });
       if (!response.ok) throw new Error(`请求失败（HTTP ${response.status}）`);
       const payload = (await response.json()) as DrizzleResponse;
       if (controller.signal.aborted) return;

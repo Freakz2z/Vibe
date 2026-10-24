@@ -1,3 +1,4 @@
+import { routeHref } from '../lib/runtime';
 import { useMemo, useState } from 'react';
 import type { Demo, Tool } from '../types';
 import { DemoCard } from '../components/DemoCard';
@@ -49,7 +50,7 @@ export function DemosPage({ demos, tools }: { demos: Demo[]; tools: Tool[] }) {
       )}
 
       <aside className="demo-page-note">
-        <a className="text-link" href="/">
+        <a className="text-link" href={routeHref('/')}>
           回到工具目录
         </a>
       </aside>

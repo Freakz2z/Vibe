@@ -1,3 +1,4 @@
+import { routeHref } from '../lib/runtime';
 import { ArrowUpRight } from 'lucide-react';
 import type { Demo, Tool } from '../types';
 import { DemoThumb } from './LabThumb';
@@ -7,7 +8,7 @@ import { stackLabel } from '../lib/catalog';
 
 export function DemoCard({ demo, tool }: { demo: Demo; tool?: Tool }) {
   return (
-    <a className="demo-card" href={`/demos/${demo.id}`}>
+    <a className="demo-card" href={routeHref(`/demos/${demo.id}`)}>
       <div className="demo-card__visual">
         <DemoThumb stack={demo.stack} />
         <span className="demo-card__badge">{demo.kind === 'service' ? '本站接口' : '可操作'}</span>

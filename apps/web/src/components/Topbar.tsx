@@ -1,3 +1,4 @@
+import { routeHref } from '../lib/runtime';
 import { Github, Heart, Menu, Search } from 'lucide-react';
 import type { ThemeMode } from '../hooks/useTheme';
 import { Brand } from './Brand';
@@ -37,7 +38,7 @@ export function Topbar({
             <Menu size={20} aria-hidden="true" />
           </button>
           <span className="topbar__context">{contextLabel}</span>
-          <a className="topbar__mobile-brand" href="/" aria-label="Vibe 工具集首页">
+          <a className="topbar__mobile-brand" href={routeHref('/')} aria-label="Vibe 工具集首页">
             <Brand compact />
           </a>
         </div>
@@ -51,7 +52,7 @@ export function Topbar({
         <div className="topbar__actions">
           <a
             className="icon-button topbar__favorite-link"
-            href="/?favorites=1"
+            href={routeHref('/?favorites=1')}
             aria-label={`我的收藏${favoriteCount ? `，${favoriteCount} 个` : ''}`}
             title="我的收藏"
           >

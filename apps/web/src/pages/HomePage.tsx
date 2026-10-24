@@ -1,7 +1,9 @@
+import { IS_TOY } from '../lib/runtime';
+import { ToyOverview } from '../toy/Chrome';
 import { Heart, Search } from 'lucide-react';
 import type { Catalog, Tool } from '../types';
 import type { ToolFilters } from '../lib/catalog';
-import { groupTools } from '../lib/catalog';
+import { filterTools, groupTools } from '../lib/catalog';
 import { ToolCard } from '../components/ToolCard';
 import { FilterBar, type ActiveFilter, type FilterKey } from '../components/FilterBar';
 import { CatalogOverview } from '../components/CatalogOverview';
@@ -19,6 +21,7 @@ interface HomePageProps {
   onCopyInstall: (tool: Tool) => void;
   onPlatformChange: (value: string) => void;
   onPricingChange: (value: string) => void;
+  onApplyFilters?: (platform: string, pricing: string) => void;
   onRemoveFilter: (key: FilterKey) => void;
   onClearAllFilters: () => void;
   onClearFavoriteFilters: () => void;
@@ -80,6 +83,7 @@ export function HomePage({
   onCopyInstall,
   onPlatformChange,
   onPricingChange,
+  onApplyFilters,
   onRemoveFilter,
   onClearAllFilters,
   onClearFavoriteFilters,
@@ -122,7 +126,7 @@ export function HomePage({
           {headingDescription ? <p>{headingDescription}</p> : null}
         </header>
 
-      {isLanding ? <CatalogOverview catalog={catalog} /> : null}
+      {isLanding ? IS_TOY ? <ToyOverview catalog={catalog} /> : <CatalogOverview catalog={catalog} /> : null}
 
       <section
         className={`home-section directory-section${isLanding ? '' : ' directory-section--results'}`}
@@ -138,6 +142,8 @@ export function HomePage({
           resultCount={tools.length}
           onPlatformChange={onPlatformChange}
           onPricingChange={onPricingChange}
+          onApply={onApplyFilters}
+          previewCount={(platform, pricing) => filterTools(catalog.tools, catalog.categories, {...filters, platform, pricing}, favoriteSet).length}
           onRemoveFilter={onRemoveFilter}
           onClearAll={onClearAllFilters}
         />

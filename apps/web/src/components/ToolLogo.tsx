@@ -1,3 +1,4 @@
+import { assetUrl } from '../lib/runtime';
 import { useEffect, useState } from 'react';
 import type { Tool } from '../types';
 
@@ -13,7 +14,7 @@ interface ToolLogoProps {
 function localIconSource(value: string | undefined): string | undefined {
   if (!value) return undefined;
   const path = value.split(/[?#]/, 1)[0];
-  return path.startsWith('/media/icons/') ? value : undefined;
+  return path.startsWith('/media/icons/') ? assetUrl(value) : undefined;
 }
 
 export function ToolLogo({ tool, className = '' }: ToolLogoProps) {

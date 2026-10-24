@@ -1,3 +1,5 @@
+import { IS_TOY } from './lib/runtime';
+import { ToyHeader, ToyNav, ToyCategories, ToyStageMode } from './toy/Chrome';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Catalog, Category, Tool } from './types';
 import { fetchCatalog } from './lib/api';
@@ -124,7 +126,11 @@ export default function App({ initialCatalog = null }: { initialCatalog?: Catalo
       const anchor = target.closest('a');
       if (!anchor) return;
       const href = anchor.getAttribute('href');
-      if (!href || href.startsWith('#') || anchor.target || anchor.hasAttribute('download')) return;
+      if (!href || anchor.target || anchor.hasAttribute('download')) return;
+      if (href.startsWith('#') && !href.startsWith('#/')) {
+        if (IS_TOY) { event.preventDefault(); document.getElementById(href.slice(1))?.scrollIntoView(); }
+        return;
+      }
 
       let url: URL;
       try {
@@ -138,7 +144,7 @@ export default function App({ initialCatalog = null }: { initialCatalog?: Catalo
       event.preventDefault();
       setSearchOpen(false);
       setDrawerOpen(false);
-      navigate(`${url.pathname}${url.search}${url.hash}`);
+      navigate(IS_TOY && url.hash.startsWith('#/') ? url.hash.slice(1) : `${url.pathname}${url.search}${url.hash}`);
     };
 
     document.addEventListener('click', onClick);
@@ -309,6 +315,7 @@ export default function App({ initialCatalog = null }: { initialCatalog?: Catalo
 
   let pageTitle = BASE_TITLE;
   let pageDescription = BASE_DESCRIPTION;
+  if (IS_TOY && pathname === '/categories') { contextLabel = '分类'; pageTitle = '分类 · Vibe 工具集'; }
   if (catalog) {
     if (pathname === '/') {
       if (filters.q) {
@@ -340,6 +347,7 @@ export default function App({ initialCatalog = null }: { initialCatalog?: Catalo
     document.title = pageTitle;
     const meta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
     if (meta) meta.setAttribute('content', pageDescription);
+    if (IS_TOY) return;
     const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     const publicOrigin = canonical ? new URL(canonical.href).origin : window.location.origin;
     if (canonical) canonical.href = publicOrigin + pathname;
@@ -477,11 +485,14 @@ export default function App({ initialCatalog = null }: { initialCatalog?: Catalo
         onCopyInstall={handleCopyInstall}
         onPlatformChange={updatePlatform}
         onPricingChange={updatePricing}
+        onApplyFilters={(platform, pricing) => updateQuery({ platform: platform || null, pricing: pricing || null })}
         onRemoveFilter={removeFilter}
         onClearAllFilters={clearAllFilters}
         onClearFavoriteFilters={clearFavoriteFilters}
       />
     );
+  } else if (IS_TOY && pathname === '/categories') {
+    content = <ToyCategories catalog={catalog} />;
   } else if (pathname === '/demos') {
     content = <DemosPage demos={catalog.demos} tools={catalog.tools} />;
   } else if (demoMatch) {
@@ -527,7 +538,7 @@ export default function App({ initialCatalog = null }: { initialCatalog?: Catalo
   }
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${IS_TOY ? ' toy-shell' : ''}`}>
       <a className="skip-link" href="#main-content">
         跳到主要内容
       </a>
@@ -579,7 +590,7 @@ export default function App({ initialCatalog = null }: { initialCatalog?: Catalo
       ) : null}
 
       <div className="main-shell">
-        <Topbar
+        {IS_TOY ? <ToyHeader title={contextLabel} logical={pathname + route.search} onSearch={openSearch} mode={theme.mode} resolved={theme.resolved} setMode={theme.setMode} notify={notify} /> : <Topbar
           contextLabel={contextLabel}
           favoriteCount={favorites.ids.length}
           mode={theme.mode}
@@ -587,13 +598,15 @@ export default function App({ initialCatalog = null }: { initialCatalog?: Catalo
           onOpenMenu={() => setDrawerOpen(true)}
           onOpenSearch={openSearch}
           setThemeMode={theme.setMode}
-        />
+        />}
         <main id="main-content" className="content" tabIndex={-1} ref={motionRef}>
+          {IS_TOY && selectedDemo ? <div className="toy-stage-mode"><ToyStageMode notify={notify} /></div> : null}
           {content}
         </main>
         <Footer updatedAt={catalog.updatedAt} />
       </div>
 
+      {IS_TOY ? <ToyNav pathname={pathname} search={route.search} count={favorites.ids.length} /> : null}
       <SearchDialog
         open={searchOpen}
         tools={catalog.tools}

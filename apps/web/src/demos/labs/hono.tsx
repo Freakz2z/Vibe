@@ -1,3 +1,4 @@
+import { apiUrl } from '../../lib/runtime';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DemoCopyHandler } from '../types';
 import { Code, DataTable, ErrorNote, Lab, Select, Status, TextField, prettyJSON } from '../lab-kit';
@@ -15,7 +16,7 @@ type Probe =
   | { kind: 'ok'; data: GreetResponse; status: number; router: string; requestId: string }
   | { kind: 'error'; message: string; status: number | null };
 
-const BASE = '/api/labs/hono';
+const BASE = apiUrl('/api/labs/hono');
 
 /**
  * Hono: every response here comes from a real Hono app running on Workers.
@@ -39,7 +40,7 @@ export default function HonoLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       const encoded = encodeURIComponent(name.trim().slice(0, 40));
       const params = new URLSearchParams({ greeting: greeting.trim().slice(0, 40) });
       const url = `${BASE}/${subPath === 'greet' ? `greet/${encoded}` : subPath}?${params}`;
-      const response = await fetch(url, { signal: controller.signal, cache: 'no-store' });
+      const response = await fetch(apiUrl(url), { signal: controller.signal, cache: 'no-store' });
       const router = response.headers.get('X-Demo-Router') ?? '—';
       const requestId = response.headers.get('X-Request-Id') ?? '—';
 
