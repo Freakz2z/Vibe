@@ -17,7 +17,7 @@ export function DemoPageLayout({ demo, tools, children, onBackToDemos }: DemoPag
   const stackTool = tools[0];
 
   return (
-    <article className="page demo-page">
+    <article className="page demo-page" data-stack={demo.stack}>
       <nav className="breadcrumb" aria-label="面包屑导航">
         <a
           href={routeHref('/demos')}

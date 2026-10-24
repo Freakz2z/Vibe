@@ -63,6 +63,7 @@ export default function KatexLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       reset={() => setTex(DEFAULT_TEX)}
     >
       <LabLayout
+        layout="editor"
         controls={
           <>
             <p className="demo-caption">

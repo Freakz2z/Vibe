@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import autoAnimate from '@formkit/auto-animate';
 import { useAutoAnimate } from '@formkit/auto-animate/react';
@@ -120,7 +121,7 @@ export default function AutoAnimateLab({ onCopy }: { onCopy: DemoCopyHandler }) 
       }}
     >
       <div className="lab-layout">
-        <div className="lab-controls">
+        <LabControls className="lab-controls">
           <Select<GroupFilter>
             label="过滤分组"
             value={filter}
@@ -172,7 +173,7 @@ export default function AutoAnimateLab({ onCopy }: { onCopy: DemoCopyHandler }) 
           </Stats>
           <p className="lab-motion-note">切到某个分组会一次性移除大半节点，剩下的会补位 —— 这正是 auto-animate 计算 FLIP 的场景。</p>
           {!motionOk ? <Status>系统开启了「减少动态效果」，过渡时长已设为 0；DOM 变更照常发生。</Status> : null}
-        </div>
+        </LabControls>
 
         <div className="lab-stage">
           <div className="lab-auto-list" ref={listRef}>

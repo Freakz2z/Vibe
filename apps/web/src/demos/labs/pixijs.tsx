@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { useEffect, useMemo, useRef, useState } from 'react';
 // Official CSP polyfills replace runtime code generation with static uniform synchronizers.
 import 'pixi.js/unsafe-eval';
@@ -208,7 +209,7 @@ export default function PixijsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       }}
     >
       <div className="lab-layout lab-layout--toolbar">
-        <div className="lab-controls">
+        <LabControls className="lab-controls">
           <Select<Blend> label="混合模式" value={blend} options={BLENDS} onChange={setBlend} />
           <Range label="精灵数量" value={count} min={500} max={MAX_SPRITES} step={100} onChange={setCount} />
           <Range
@@ -225,7 +226,7 @@ export default function PixijsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
           </p>
           {!motionOk ? <Status>系统开启了「减少动态效果」，ticker 已停止，只绘制一帧静态图。</Status> : null}
           {error ? <ErrorNote onRetry={() => setNonce((n) => n + 1)}>{error}</ErrorNote> : null}
-        </div>
+        </LabControls>
 
         <div className="lab-stage">
           <div className="lab-pixi-viewport" ref={hostRef} />

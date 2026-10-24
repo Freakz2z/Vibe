@@ -1,3 +1,4 @@
+import { IS_TOY } from '../../lib/runtime';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Graph } from '@antv/g6';
 import type { GraphData, IElementEvent } from '@antv/g6';
@@ -5,9 +6,15 @@ import type { DemoCopyHandler } from '../types';
 import { Code, DataTable, ErrorNote, Lab, LabLayout, Segmented, Stat, Stats, Status, useStableId, useThemeColors } from '../lab-kit';
 
 const G6_VERSION = '5.0.49';
-type LayoutKey = 'force' | 'dagre';
+type LayoutKey = 'force' | 'dagre' | 'grid';
+const DEFAULT_LAYOUT: LayoutKey = IS_TOY ? 'grid' : 'force';
+const layoutOptions = (key: LayoutKey) => key === 'grid'
+  ? {type: 'grid', preventOverlap: true, nodeSize: 32, nodeSpacing: 22}
+  : key === 'force' ? { type: 'force', preventOverlap: true, nodeSize: 32, linkDistance: 96, nodeStrength: -32 }
+  : { type: 'dagre', rankdir: 'LR', nodesep: 16, ranksep: 68 };
 
 const LAYOUTS: readonly (readonly [LayoutKey, string])[] = [
+  ...(IS_TOY ? [['grid', '网格布局'] as const] : []),
   ['force', '力导向'],
   ['dagre', '有向分层'],
 ];
@@ -57,7 +64,8 @@ export default function G6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
   const colors = useThemeColors();
   const hostRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<Graph | null>(null);
-  const [layout, setLayout] = useState<LayoutKey>('force');
+  const [layout, setLayout] = useState<LayoutKey>(DEFAULT_LAYOUT);
+  const [revision, setRevision] = useState(0);
   const [selected, setSelected] = useState<string | null>('gw');
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -105,6 +113,7 @@ export default function G6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
     const host = hostRef.current;
     if (!host) return;
     let cancelled = false;
+    setReady(false);
     const graph = new Graph({
       container: host,
       data: buildData(),
@@ -112,10 +121,7 @@ export default function G6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
       animation: false,
       node: { style: { cursor: 'pointer' } },
       edge: { style: { endArrow: true } },
-      layout:
-        layout === 'force'
-          ? { type: 'force', preventOverlap: true, nodeSize: 32, linkDistance: 96, nodeStrength: -32 }
-          : { type: 'dagre', rankdir: 'LR', nodesep: 16, ranksep: 68 },
+      layout: layoutOptions(layout),
       behaviors: ['drag-canvas', 'zoom-canvas', 'drag-element', 'click-select'],
     });
     graphRef.current = graph;
@@ -157,27 +163,18 @@ export default function G6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
         if (!graph.destroyed) graph.destroy();
       });
     };
-  }, [buildData, layout, themeKey]);
+  }, [buildData, layout, revision, themeKey]);
 
   const switchLayout = (next: LayoutKey) => {
+    // The effect renders the new layout. Running graph.layout() on the old
+    // instance as well races its asynchronous work against effect cleanup.
     setLayout(next);
-    const graph = graphRef.current;
-    if (!graph || graph.destroyed) return;
-    graph.setLayout(
-      next === 'force'
-        ? { type: 'force', preventOverlap: true, nodeSize: 32, linkDistance: 96, nodeStrength: -32 }
-        : { type: 'dagre', rankdir: 'LR', nodesep: 16, ranksep: 68 },
-    );
-    graph.layout();
-    graph.fitView();
   };
 
   const reset = () => {
     setSelected('gw');
-    switchLayout('force');
-    setLayout('force');
-    const graph = graphRef.current;
-    if (graph && !graph.destroyed) graph.fitView();
+    switchLayout(DEFAULT_LAYOUT);
+    setRevision(value => value + 1);
   };
 
   const current = SERVICES.find((s) => s.id === selected) ?? null;
@@ -200,7 +197,7 @@ export default function G6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
         `  autoFit: 'view',`,
         `  node: { style: { cursor: 'pointer' } },`,
         `  edge: { style: { endArrow: true } },`,
-        `  layout: { type: '${layout}', preventOverlap: true, linkDistance: 96 },`,
+        `  layout: ${JSON.stringify(layoutOptions(layout))},`,
         `  behaviors: ['drag-canvas', 'zoom-canvas', 'drag-element', 'click-select'],`,
         `});`,
         ``,
@@ -215,7 +212,7 @@ export default function G6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
   );
 
   return (
-    <Lab title="AntV G6 力导向关系图" badge={<span className="demo-live-badge">G6 {G6_VERSION}</span>} reset={reset}>
+    <Lab title={IS_TOY ? "AntV G6 关系图布局" : "AntV G6 力导向关系图"} badge={<span className="demo-live-badge">G6 {G6_VERSION}</span>} reset={reset}>
       <LabLayout
         controls={
           <>

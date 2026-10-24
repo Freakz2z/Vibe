@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { useMemo, useSyncExternalStore } from 'react';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import {
@@ -276,7 +277,7 @@ function ReduxToolkitInner({ onCopy }: { onCopy: DemoCopyHandler }) {
       }}
     >
       <div className="lab-layout">
-        <div className="lab-controls">
+        <LabControls className="lab-controls">
           <p className="demo-caption">
             所有按钮都 dispatch 真实 action；右侧日志由中间件在 dispatch 链上记录，顺序即真实顺序。
           </p>
@@ -380,7 +381,7 @@ function ReduxToolkitInner({ onCopy }: { onCopy: DemoCopyHandler }) {
           <Status tone="ok">
             selectTotal = {total}；最近一次批量操作：{lastBulk}
           </Status>
-        </div>
+        </LabControls>
 
         <div className="lab-stage">
           <Stats>

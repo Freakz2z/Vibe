@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as paper from 'paper';
 import type { DemoCopyHandler } from '../types';
@@ -213,7 +214,7 @@ export default function PaperjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       }}
     >
       <div className="lab-layout">
-        <div className="lab-controls">
+        <LabControls className="lab-controls">
           <Select<Op> label="布尔运算" value={op} options={OP_OPTIONS} onChange={setOp} />
           <Select<Kind> label="形状 A 类型" value={a.kind} options={KIND_OPTIONS} onChange={(v) => setA((p) => ({ ...p, kind: v }))} />
           <Range label="形状 A 大小" value={a.size} min={40} max={280} step={5} unit=" px" onChange={(v) => setA((p) => ({ ...p, size: v }))} />
@@ -222,7 +223,7 @@ export default function PaperjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
 
           <p className="lab-paper-meta">直接在画布上拖动两个形状的重心，Paper.js 会重新计算布尔路径。</p>
           {error ? <p className="lab-error">{error}</p> : null}
-        </div>
+        </LabControls>
 
         <div className="lab-stage">
           <div className="lab-paper-wrap">

@@ -1,3 +1,4 @@
+import { IS_TOY } from '../../lib/runtime';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { format as prettierFormat } from 'prettier/standalone';
 import * as babelPlugin from 'prettier/plugins/babel';
@@ -237,6 +238,7 @@ export default function PrettierLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             <span>源码（可编辑）</span>
             <textarea
               className="lab-editor"
+              wrap={IS_TOY ? 'off' : undefined}
               rows={14}
               spellCheck={false}
               value={source}

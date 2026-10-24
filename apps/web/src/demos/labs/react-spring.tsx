@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { useMemo, useState, type CSSProperties } from 'react';
 import { animated, useSpring, useSprings } from '@react-spring/web';
 import type { DemoCopyHandler } from '../types';
@@ -103,7 +104,7 @@ export default function ReactSpringLab({ onCopy }: { onCopy: DemoCopyHandler }) 
       }}
     >
       <div className="lab-layout">
-        <div className="lab-controls">
+        <LabControls className="lab-controls">
           <Range
             label="张力 tension"
             value={tension}
@@ -156,7 +157,7 @@ export default function ReactSpringLab({ onCopy }: { onCopy: DemoCopyHandler }) 
             </button>
           </div>
           {!motionOk ? <Status>系统开启了「减少动态效果」，弹簧改为 immediate 直达终态。</Status> : null}
-        </div>
+        </LabControls>
 
         <div className="lab-stage">
           <div className="lab-spring-grid">

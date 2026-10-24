@@ -1,3 +1,4 @@
+import { IS_TOY } from '../../lib/runtime';
 import { useMemo, useState } from 'react';
 import * as tsModule from 'typescript';
 import type { CompilerHost, CompilerOptions, Diagnostic } from 'typescript';
@@ -333,6 +334,7 @@ export default function TypescriptLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             <span>/main.ts（可编辑）</span>
             <textarea
               className="lab-editor"
+              wrap={IS_TOY ? 'off' : undefined}
               rows={16}
               spellCheck={false}
               value={source}

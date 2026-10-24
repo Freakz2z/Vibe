@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { Fragment, useMemo, useState, type ReactNode } from 'react';
 import markdownit from 'markdown-it';
 import type { Token } from 'markdown-it';
@@ -349,7 +350,7 @@ export default function MarkdownItLab({ onCopy }: { onCopy: DemoCopyHandler }) {
           )}
         </div>
       </LabLayout>
-      <div className="lab-config lab-config--options">
+      <LabControls className="lab-config lab-config--options">
         {(Object.keys(OPTION_LABEL) as OptionKey[]).map((key) => (
           <div key={key} className="lab-field">
             <span>{OPTION_LABEL[key]}</span>
@@ -364,7 +365,7 @@ export default function MarkdownItLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             <small className="lab-field__rule">{OPTION_HINT[key]}</small>
           </div>
         ))}
-      </div>
+      </LabControls>
 
       <Stats>
         <Stat label="block token 数" value={tokens.length} />

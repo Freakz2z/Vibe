@@ -15,6 +15,7 @@ export function ToyHeader({title, logical, onSearch, mode, resolved, setMode, no
   title: string; logical: string; onSearch: () => void; mode: ThemeMode; resolved: 'light' | 'dark';
   setMode: (mode: ThemeMode) => void; notify: (text: string) => void;
 }) {
+  const inDemo = logical.startsWith('/demos/');
   const [qr, setQr] = useState('');
   const [canShare, setCanShare] = useState(false);
   const [canQr, setCanQr] = useState(false);
@@ -42,16 +43,17 @@ export function ToyHeader({title, logical, onSearch, mode, resolved, setMode, no
         {/^\/(tools|demos)\//.test(logical) ? <button className="icon-button" aria-label="返回上一页" onClick={() => window.history.state?.vibeFrom ? window.history.back() : navigate(logical.startsWith('/demos/') ? '/demos' : '/')}><ArrowLeft size={20}/></button> : <a href={routeHref('/')} aria-label="Vibe 工具集首页"><Brand compact /></a>}
         <span className="toy-header__title">{title}</span>
         <div className="toy-header__actions">
+          {inDemo ? <button className="icon-button" aria-label="搜索工具" onClick={onSearch}><Search size={19}/></button> : null}
           <ThemeMenu mode={mode} resolved={resolved} setMode={setMode}/>
           <button className="icon-button" aria-label="分享当前页面" onClick={() => void share()}><Share2 size={19}/></button>
-          {canQr ? <button className="icon-button" disabled={busy} aria-label="页面二维码" onClick={async () => {
+          {canQr && !inDemo ? <button className="icon-button" disabled={busy} aria-label="页面二维码" onClick={async () => {
             setBusy(true);
             try { const data = await window.toy!.getQrCode({path: sharePath(logical), size: 320}); setQr(data.base64); }
             catch { notify('二维码暂不可用'); } finally { setBusy(false); }
           }}><QrCode size={19}/></button> : null}
         </div>
       </div>
-      <button className="toy-search" onClick={onSearch}><Search size={18}/><span>搜索工具、分类或关键词</span></button>
+      {!inDemo ? <button className="toy-search" onClick={onSearch}><Search size={18}/><span>搜索工具、分类或关键词</span></button> : null}
     </header>
     {qr ? <div className="toy-modal-backdrop" onClick={e => {if (e.target === e.currentTarget) close();}}><div className="toy-qr" role="dialog" aria-modal="true" aria-label="当前页面二维码" tabIndex={-1} ref={qrRef}><button className="icon-button" onClick={close} aria-label="关闭二维码"><X size={20}/></button><h2>手机扫码打开</h2><img src={qr} alt="当前 Toy 页面的二维码" width="280" height="280"/></div></div> : null}
   </>;

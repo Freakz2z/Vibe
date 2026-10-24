@@ -6,6 +6,7 @@
   --font-display: var(--font-sans);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
+:root[data-edition="toy"], :root[data-edition="toy"][data-theme] body { min-width: 0; }
 .toy-shell { display: block; padding: 0 max(0px, var(--toy-safe-right)) 0 max(0px, var(--toy-safe-left)); }
 .toy-shell .sidebar, .toy-shell .drawer-backdrop { display: none; }
 .toy-shell .main-shell { margin: 0; min-width: 0; padding-bottom: calc(78px + var(--toy-safe-bottom)); }
@@ -65,16 +66,10 @@
 .toy-shell .demo-workspace { border-radius: 16px; overflow: hidden; min-width: 0; }
 .toy-shell .lab-layout { display: flex; flex-direction: column; gap: 0; min-height: 0; }
 .toy-shell .lab-layout > .lab-stage { order: 0; min-width: 0; min-height: 240px; width: 100%; overflow-x: auto; padding: 16px 12px; }
-.toy-controls { order: 1; border-top: 1px solid var(--line); background: var(--surface); }
-.toy-controls > summary, .toy-code > summary { cursor: pointer; padding: 15px 16px; min-height: 48px; font-weight: 650; font-size: 14px; color: var(--ink-soft); }
-.toy-controls .lab-controls { border: none; padding: 16px; width: 100%; max-height: 60dvh; overflow-y: auto; }
 .toy-code { border-top: 1px solid var(--line); }
 .toy-code .lab-code { margin: 0; border-radius: 0; }
 .toy-shell .demo-toolbar { gap: 8px; padding: 15px; flex-wrap: wrap; }
 .toy-shell .demo-toolbar h2 { font-size: 16px; }
-.toy-shell .lab-stats { display: flex; flex-wrap: wrap; gap: 8px; }
-.toy-shell .lab-stat { flex: 1 1 110px; min-width: 0; padding: 12px; }
-.toy-shell .lab-stat strong { font-size: 22px; overflow-wrap: anywhere; }
 .toy-shell input:not([type="range"]):not([type="checkbox"]), .toy-shell textarea, .toy-shell select { font-size: 16px; }
 .toy-shell .lab-stage canvas { max-width: 100%; }
 .toy-shell .lab-editor { max-width: 100%; }
@@ -104,3 +99,80 @@
 @media (prefers-reduced-motion: reduce) {
   .toy-shell *, .toy-shell *::before, .toy-shell *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+
+/* Example layouts: one horizontal gutter, a compact stage, and separate settings. */
+.toy-shell .content:has(.demo-page) { padding: 18px 12px 12px; }
+.toy-shell .demo-page { padding: 0 0 24px; }
+.toy-shell .demo-page > .breadcrumb, .toy-shell .demo-page__tools { display: none; }
+.toy-shell .demo-page__header { margin-bottom: 16px; }
+.toy-shell .demo-page__header h1 { margin: 8px 0 0; font-size: 23px; }
+.toy-shell .demo-page__header > p { margin: 8px 0 0; line-height: 1.65; }
+.toy-shell .demo-workspace.lab { padding: 12px; overflow: visible; }
+.toy-shell .demo-toolbar { display: block; margin-bottom: 14px; padding: 0; }
+.toy-shell .demo-toolbar h2 { font-size: 15px; line-height: 1.45; }
+.toy-shell .lab-toolbar-actions { justify-content: space-between; margin-top: 8px; gap: 8px; }
+.toy-shell .lab-layout { gap: 12px; }
+.toy-shell .lab-layout > .lab-stage, .toy-shell .lab-stage { min-height: 0; padding: 10px; overflow-x: auto; }
+.toy-shell .lab-layout--editor > .toy-editor-input { order: 0; width: 100%; display: flex; flex-direction: column; gap: 12px; }
+.toy-shell .lab-layout--editor > .lab-stage { order: 1; }
+.toy-shell .lab-editor-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.toy-shell .lab-editor { min-height: 170px; max-height: 320px; line-height: 1.65; }
+.toy-shell .lab-layout--editor .lab-stage { max-height: 440px; overflow: auto; }
+.toy-shell .toy-code { margin-top: 12px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); }
+.toy-shell .toy-code > summary { padding: 12px; }
+.toy-shell .toy-code .lab-code { border: 0; }
+.toy-shell .lab-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(95px, 100%), 1fr)); gap: 8px; width: 100%; }
+.toy-shell .lab-stats > div { min-width: 0; padding: 12px 8px; gap: 6px; }
+.toy-shell .lab-stats strong { font-size: clamp(18px, 4.5vw, 23px); line-height: 1.3; }
+.toy-shell .lab-stats > [data-format="text"] { grid-column: 1/-1; padding: 12px; }
+.toy-shell .lab-stats > [data-format="text"] strong { font-size: 13px; line-height: 1.65; }
+.toy-shell .lab-stats > [data-wide="true"] { grid-column: 1/-1; }
+.toy-control-bar { order: -1; display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; width: 100%; }
+.toy-control-bar .button { padding-inline: 12px; font-size: 12px; }
+.toy-quick-actions { margin-right: auto; }
+.toy-quick-actions .lab-options { margin: 0; gap: 8px; }
+.toy-control-feedback { order: 2; width: 100%; min-width: 0; }
+.toy-control-feedback .lab-stats { margin-top: 4px; }
+.toy-parameter-backdrop { position: fixed; inset: 0; z-index: 95; display: flex; align-items: center; justify-content: center; background: #0006; padding: max(16px, var(--toy-safe-top)) max(16px, var(--toy-safe-right)) max(16px, var(--toy-safe-bottom)) max(16px, var(--toy-safe-left)); }
+.toy-parameter-sheet { width: 100%; max-width: 640px; max-height: min(76dvh, 760px); display: flex; flex-direction: column; border-radius: 22px; background: var(--surface); color: var(--ink); box-shadow: var(--shadow-overlay); outline: none; }
+.toy-parameter-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.toy-parameter-head h2 { font-size: 17px; }
+.toy-parameter-head .button { min-width: 68px; min-height: 44px; }
+.toy-parameter-body { padding: 18px 16px; overflow-y: auto; overscroll-behavior: contain; min-height: 0; }
+.toy-parameter-body .lab-controls { display: flex; flex-direction: column; gap: 18px; padding: 0; margin: 0; max-height: none; overflow: visible; }
+.toy-parameter-body .lab-options { margin: 0; }
+.toy-parameter-body .lab-options label { display: inline-flex; align-items: center; min-height: 40px; }
+.toy-parameter-body .lab-field, .toy-parameter-body .range-field { font-size: 14px; }
+.toy-parameter-body .lab-status { font-size: 13px; margin: 0; }
+.toy-shell .lab-three-viewport, .toy-shell .lab-pixi-viewport, .toy-shell .lab-matter-viewport { height: clamp(260px, 74vw, 360px); }
+.toy-shell .lab-carousel-stage { margin: 12px 0 0; }
+.toy-shell .lab-carousel-footer { gap: 12px; margin-top: 12px; }
+.toy-shell .lab-carousel-footer .lab-options { gap: 6px; }
+.toy-shell .lab-carousel-footer .button { padding-inline: 11px; font-size: 12px; }
+.toy-shell .lab-table-wrap { margin-top: 12px; max-height: 320px; }
+.toy-shell .lab-table { font-size: 12px; }
+.toy-shell .lab-table th, .toy-shell .lab-table td { padding: 10px 8px; min-width: 82px; }
+.toy-shell .lab-state__views { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.toy-shell .lab-motion-note { font-size: 12px; line-height: 1.65; }
+.toy-shell .lab-steps { gap: 8px; margin: 14px 0; }
+.toy-shell .demo-page__footer-links { gap: 8px; margin-top: 18px; }
+@media(min-width:700px) {
+  .toy-shell .lab-stats { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+  .toy-shell .lab-editor-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .toy-shell .lab-layout--editor { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; }
+}
+.toy-shell .lab-stage .lab-stage { padding: 0; border: 0; border-radius: 0; min-height: 0; background: none; }
+.toy-shell .lab-editor { white-space: pre; overflow-wrap: normal; word-break: normal; overflow: auto; }
+.toy-shell .lab-editor:not(.lab-editor--short) { height: min(36dvh, 280px); max-height: 320px; }
+.toy-shell .lab-rich, .toy-shell .lab-codemirror__frame .cm-editor, .toy-shell .ProseMirror, .toy-shell .lab-lexical__input, .toy-shell .ql-editor { max-height: 340px; overflow: auto; }
+.toy-shell .lab-codemirror__frame .cm-scroller { overflow: auto; }
+.toy-shell .toy-quick-actions { display: flex; flex-direction: column; gap: 6px; min-width: 0; max-width: 100%; }
+.toy-shell .toy-quick-actions:has([class*="__toolbar"], [class*="__actions"]) { width: 100%; flex-basis: 100%; }
+.toy-shell .toy-quick-actions [class*="__toolbar"], .toy-shell .toy-quick-actions [class*="__actions"], .toy-shell .lab-lexical__toolbar { display: flex; flex-wrap: nowrap; gap: 6px; overflow-x: auto; padding-block: 3px; scrollbar-width: thin; }
+.toy-shell .toy-quick-actions [class*="__toolbar"] button, .toy-shell .toy-quick-actions [class*="__actions"] button, .toy-shell .lab-lexical__toolbar button { flex: 0 0 auto; min-height: 40px; min-width: 40px; font-size: 12px; }
+.toy-shell .lab-table thead th { position: sticky; top: 0; z-index: 1; }
+.toy-shell .lab-stats[data-toy-columns="1"] { grid-template-columns: minmax(0, 1fr); }
+.toy-shell .lab-stats[data-toy-columns="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.toy-shell .lab-stats[data-toy-columns="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.toy-shell .toy-control-feedback .lab-g6-detail { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px 10px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; }
+.toy-shell .toy-control-feedback .lab-g6-detail strong { grid-column: 1/-1; }

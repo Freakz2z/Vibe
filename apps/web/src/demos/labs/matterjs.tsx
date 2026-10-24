@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as Matter from 'matter-js';
 import type { DemoCopyHandler } from '../types';
@@ -273,7 +274,7 @@ export default function MatterjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       }}
     >
       <div className="lab-layout">
-        <div className="lab-controls">
+        <LabControls className="lab-controls">
           <Range
             label="重力 Y"
             value={gravityY}
@@ -304,7 +305,7 @@ export default function MatterjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
           </Stats>
           <p className="lab-matter-legend">用鼠标按住任意方块或小球拖动 —— 那是 MouseConstraint 在施力，不是把坐标直接改掉。</p>
           {!motionOk ? <Status>系统开启了「减少动态效果」，仿真循环已停止；按钮生成刚体仍然可用。</Status> : null}
-        </div>
+        </LabControls>
 
         <div className="lab-stage">
           <div className="lab-matter-viewport" ref={hostRef}>

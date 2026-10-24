@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import type { DemoCopyHandler } from '../types';
@@ -254,7 +255,7 @@ export default function ThreejsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       }}
     >
       <div className="lab-layout">
-        <div className="lab-controls">
+        <LabControls className="lab-controls">
           <Range label="实例数量" value={count} min={200} max={4000} step={100} onChange={setCount} hint="改数量会重建 InstancedMesh 并重新分配实例缓冲。" />
           <Range label="动画速度" value={speed} min={0} max={4} step={0.1} unit=" 倍" onChange={setSpeed} />
           <div className="lab-options">
@@ -281,7 +282,7 @@ export default function ThreejsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             <Stat label="实测帧耗时" value={`${frameMs.toFixed(1)} ms`} />
           </Stats>
           <p className="lab-motion-note">帧耗时是本机 requestAnimationFrame 间隔的指数滑动平均，含提交与合成开销，不是渲染器内部的数字。</p>
-        </div>
+        </LabControls>
 
         <div className="lab-stage">
           <div className="lab-three-viewport" ref={hostRef}>

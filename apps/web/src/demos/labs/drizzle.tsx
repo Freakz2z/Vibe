@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { apiUrl } from '../../lib/runtime';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DemoCopyHandler } from '../types';
@@ -82,14 +83,14 @@ export default function DrizzleLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       reset={reset}
     >
       <div className="lab-layout">
-        <div className="lab-controls">
+        <LabControls className="lab-controls">
           <Select label="地区 region" value={region} options={REGIONS.map((r) => [r, r === 'all' ? '全部' : r])} onChange={setRegion} />
           <Select label="状态 status" value={status} options={STATUSES.map((s) => [s, s === 'all' ? '全部' : s])} onChange={setStatus} />
           <p className="lab-field__rule">
             订单与客户两张表由 Drizzle 的关系查询连接，可选条件会真正进入 SQL 的 WHERE 子句。结果为虚构示例订单。
           </p>
           {error ? <ErrorNote onRetry={() => void load()}>{error}</ErrorNote> : null}
-        </div>
+        </LabControls>
 
         <div className="lab-stage">
           {pending ? <Status>查询中…</Status> : null}

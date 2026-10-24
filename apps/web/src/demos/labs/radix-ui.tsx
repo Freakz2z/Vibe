@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Tabs from '@radix-ui/react-tabs';
@@ -112,7 +113,7 @@ export default function RadixLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       }}
     >
       <div className="lab-layout">
-        <div className="lab-controls">
+        <LabControls className="lab-controls">
           <p className="demo-caption">
             Radix 不提供任何样式，可访问性行为全部由它注入。下面用真实的 focusin 监听把焦点路径打印出来。
           </p>
@@ -194,7 +195,7 @@ export default function RadixLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             </label>
             <small>当前 checked = {String(checked)}</small>
           </div>
-        </div>
+        </LabControls>
 
         <div className="lab-stage">
           <div className="lab-radix-tabs-wrap">

@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Swiper from 'swiper';
 import { A11y, Autoplay, Keyboard, Pagination } from 'swiper/modules';
@@ -106,7 +107,7 @@ export default function SwiperLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       }}
     >
       <div className="lab-layout">
-        <div className="lab-controls">
+        <LabControls className="lab-controls">
           <Range
             label="每屏可见张数"
             value={slidesPerView}
@@ -144,7 +145,7 @@ export default function SwiperLab({ onCopy }: { onCopy: DemoCopyHandler }) {
           </Stats>
           <p className="lab-motion-note">用鼠标拖拽或直接按键盘 ← →（先点一下轮播区域取得焦点）。上面的 realIndex 来自 Swiper 实例，不是自己记的页码。</p>
           {!motionOk ? <Status>系统开启了「减少动态效果」，autoplay 被强制关闭，其余交互不受影响。</Status> : null}
-        </div>
+        </LabControls>
 
         <div className="lab-stage">
           <div className="lab-swiper-box">

@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { apiUrl } from '../../lib/runtime';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DemoCopyHandler } from '../types';
@@ -74,7 +75,7 @@ export default function KyselyLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       }}
     >
       <div className="lab-layout">
-        <div className="lab-controls">
+        <LabControls className="lab-controls">
           <Select label="地区 region" value={region} options={REGIONS.map((r) => [r, r === 'all' ? '全部' : r])} onChange={setRegion} />
           <Range
             label="最低金额门槛"
@@ -87,7 +88,7 @@ export default function KyselyLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             hint="对应 SQL 的 HAVING sum(total_cents) >= ?"
           />
           <p className="lab-field__rule">门槛提高到较高数值时，部分地区会被 HAVING 过滤掉，可以看到返回行数真实减少。</p>
-        </div>
+        </LabControls>
 
         <div className="lab-stage">
           {error ? <ErrorNote onRetry={() => void load()}>{error}</ErrorNote> : null}

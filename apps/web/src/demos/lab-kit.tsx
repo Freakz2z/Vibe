@@ -1,6 +1,8 @@
+import { createPortal } from 'react-dom';
+import { useDialog } from '../hooks/useDialog';
 import { IS_TOY } from '../lib/runtime';
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
-import { AlertTriangle, Check, Copy, RotateCcw } from 'lucide-react';
+import { Children, Fragment, isValidElement, useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
+import { AlertTriangle, Check, Copy, RotateCcw, SlidersHorizontal } from 'lucide-react';
 import type { DemoCopyHandler } from './types';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 
@@ -37,10 +39,51 @@ export function Lab({
   );
 }
 
-export function LabLayout({ controls, children, layout = 'split' }: { controls: ReactNode; children: ReactNode; layout?: 'split' | 'toolbar' | 'editor' }) {
+/** Keep editable source inline; mobile settings live in a bounded dialog. */
+export function LabControls({children, className = 'lab-controls', mode = 'sheet'}: {
+  children: ReactNode; className?: string; mode?: 'inline' | 'sheet' | 'rich';
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  const close = useCallback(() => setOpen(false), []);
+  useDialog(IS_TOY && open, ref, close);
+  if (!IS_TOY) return <div className={className}>{children}</div>;
+  if (mode === 'inline') return <div className={`${className} toy-editor-input`}>{children}</div>;
+
+  const flatten = (nodes: ReactNode): ReactNode[] => Children.toArray(nodes).flatMap(child =>
+    isValidElement<{children?: ReactNode}>(child) && child.type === Fragment
+      ? flatten(child.props.children) : [child]);
+  const primary = (node: ReactNode): boolean => {
+    if (!isValidElement<{className?: string; children?: ReactNode}>(node)) return false;
+    return Boolean(node.props.className?.includes('button--primary')) || Children.toArray(node.props.children).some(primary);
+  };
+  const settings: ReactNode[] = [], actions: ReactNode[] = [], feedback: ReactNode[] = [];
+  for (const child of flatten(children)) {
+    if (isValidElement<{className?: string}>(child) && (child.type === Stats || child.type === ErrorNote || child.type === Status || child.props.className === 'lab-stats' || /__hint$|^lab-g6-detail$/.test(child.props.className || ''))) feedback.push(child);
+    else if (isValidElement<{className?: string}>(child) && (/__(actions|toolbar)$/.test(child.props.className || '') || (child.props.className === 'lab-options' && (mode === 'rich' || primary(child))))) actions.push(child);
+    else settings.push(child);
+  }
+  const hasSettings = settings.some(child => isValidElement(child) && child.type !== 'p');
+  return <>
+    {actions.length || hasSettings ? <div className="toy-control-bar">
+      {actions.length ? <div className="toy-quick-actions">{actions}</div> : null}
+      {hasSettings ? <button type="button" className="button button--secondary toy-parameter-trigger" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}><SlidersHorizontal size={16} aria-hidden="true"/>参数与操作</button> : null}
+    </div> : null}
+    {feedback.length ? <div className="toy-control-feedback">{feedback}</div> : null}
+    {open ? createPortal(<div className="toy-parameter-backdrop" onPointerDown={event => {if(event.target === event.currentTarget) close();}}>
+      <div className="toy-parameter-sheet" ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby={titleId}>
+        <div className="toy-parameter-head"><h2 id={titleId}>示例参数</h2><button type="button" className="button button--primary button--small" onClick={close}>完成</button></div>
+        <div className="toy-parameter-body"><div className={`${className} lab-controls`}>{settings}</div></div>
+      </div>
+    </div>, document.querySelector('.toy-shell') || document.body) : null}
+  </>;
+}
+
+export function LabLayout({ controls, children, layout = 'split' }: { controls: ReactNode; children: ReactNode; layout?: 'split' | 'toolbar' | 'editor' | 'rich' }) {
   return (
     <div className={`lab-layout lab-layout--${layout}`}>
-      {IS_TOY ? <details className="toy-controls"><summary>参数与操作</summary><div className="lab-controls">{controls}</div></details> : <div className="lab-controls">{controls}</div>}
+      <LabControls mode={layout === 'editor' ? 'inline' : layout === 'rich' ? 'rich' : 'sheet'}>{controls}</LabControls>
       <div className="lab-stage">{children}</div>
     </div>
   );
@@ -158,7 +201,7 @@ export function TextField({
     <label className="lab-field" htmlFor={id}>
       <span>{label}</span>
       {rows ? (
-        <textarea id={id} aria-label={label} className={mono ? 'lab-editor lab-editor--short' : undefined} rows={rows} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
+        <textarea id={id} aria-label={label} className={mono ? 'lab-editor lab-editor--short' : undefined} wrap={IS_TOY && mono ? 'off' : undefined} rows={rows} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
       ) : (
         <input id={id} aria-label={label} type="text" value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
       )}
@@ -220,10 +263,14 @@ export function Status({ children, tone }: { children: ReactNode; tone?: 'ok' | 
   );
 }
 
-export function Stat({ label, value, format = 'auto' }: { label: string; value: ReactNode; format?: 'auto' | 'number' | 'text' }) {
-  const textual = format === 'text' || (format === 'auto' && (typeof value === 'string'
+function isTextStat(value: ReactNode, format: 'auto' | 'number' | 'text' = 'auto') {
+  return format === 'text' || (format === 'auto' && (typeof value === 'string'
     ? value.length > 14 || (!/\d/.test(value) && !/^[—–-]$/.test(value))
     : typeof value !== 'number'));
+}
+
+export function Stat({ label, value, format = 'auto' }: { label: string; value: ReactNode; format?: 'auto' | 'number' | 'text' }) {
+  const textual = isTextStat(value, format);
   const wide = textual && (typeof value !== 'string' || value.length > 24);
   return (
     <div data-format={textual ? 'text' : 'number'} data-wide={wide || undefined}>
@@ -234,7 +281,9 @@ export function Stat({ label, value, format = 'auto' }: { label: string; value: 
 }
 
 export function Stats({ children }: { children: ReactNode }) {
-  return <div className="lab-stats">{children}</div>;
+  const numeric = Children.toArray(children).filter(child => isValidElement<{value: ReactNode; format?: 'auto' | 'number' | 'text'}>(child) && child.type === Stat && !isTextStat(child.props.value, child.props.format)).length;
+  const columns = numeric <= 1 ? 1 : numeric === 3 || numeric === 6 ? 3 : 2;
+  return <div className="lab-stats" data-toy-columns={IS_TOY ? columns : undefined}>{children}</div>;
 }
 
 /** Simple scrollable table so wide result sets never overflow the page. */

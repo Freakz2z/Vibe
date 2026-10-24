@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import type { DemoCopyHandler } from '../types';
@@ -70,7 +71,7 @@ export default function MotionLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   return (
     <Lab title="Motion 布局过渡" badge={<span className="demo-live-badge">motion/react 12</span>} reset={reset}>
       <div className="lab-layout">
-        <div className="lab-controls">
+        <LabControls className="lab-controls">
           <Segmented<Mode> label="演示能力" value={mode} options={MODES} onChange={setMode} />
           <div className="lab-options">
             <button
@@ -85,7 +86,7 @@ export default function MotionLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             当前选中：<strong>{active ? active.name : '（无）'}</strong>。先选中一项再切换另一项，可以看到同一个 layoutId 在不同挂载点之间被 Motion 接住。
           </p>
           {!motionOk ? <Status>系统开启了「减少动态效果」，过渡时长已降为 0。共享元素的落点仍然正确。</Status> : null}
-        </div>
+        </LabControls>
 
         <div className="lab-stage">
           {mode === 'layout' ? (

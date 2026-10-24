@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { apiUrl } from '../../lib/runtime';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DemoCopyHandler } from '../types';
@@ -78,7 +79,7 @@ export default function HonoLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   return (
     <Lab title="Hono 路由与中间件" badge={<span className="demo-live-badge">Cloudflare Workers</span>} reset={() => { setName('小明'); setGreeting('你好'); setSubPath('greet'); setStatus(null); }}>
       <div className="lab-layout">
-        <div className="lab-controls">
+        <LabControls className="lab-controls">
           <TextField label="路由参数 name" value={name} onChange={setName} placeholder="路径参数" />
           <TextField label="查询参数 greeting" value={greeting} onChange={setGreeting} placeholder="查询参数" />
           <Select
@@ -96,7 +97,7 @@ export default function HonoLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             </button>
           </div>
           {name.length > 40 || greeting.length > 40 ? <Status tone="warn">参数超过 40 字符会被截断，避免无意义的超长 URL。</Status> : null}
-        </div>
+        </LabControls>
 
         <div className="lab-stage">
           {status === null ? (

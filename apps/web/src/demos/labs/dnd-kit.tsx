@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { useMemo, useState } from 'react';
 import {
   DndContext,
@@ -166,7 +167,7 @@ export default function DndKitLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       }}
     >
       <div className="lab-layout">
-        <div className="lab-controls">
+        <LabControls className="lab-controls">
           <div className="lab-options">
             <button
               type="button"
@@ -197,7 +198,7 @@ export default function DndKitLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             <strong>键盘也能拖：</strong>用 Tab 聚焦到卡片，按空格（或回车）拿起，方向键移动，空格放下，Esc 取消。
             这是 KeyboardSensor + sortableKeyboardCoordinates 提供的真实能力，不是自绘的快捷键。
           </p>
-        </div>
+        </LabControls>
 
         <div className="lab-stage">
           <DndContext

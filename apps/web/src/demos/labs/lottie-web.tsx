@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 // The default `lottie-web` build ships an expressions engine that calls eval(),
 // which our CSP forbids. `lottie_light` is the official build with the
@@ -656,7 +657,7 @@ export default function LottieWebLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       }}
     >
       <div className="lab-layout">
-        <div className="lab-controls">
+        <LabControls className="lab-controls">
           <Range label="帧率 fr" value={frameRate} min={12} max={60} step={6} unit=" fps" onChange={setFrameRate} hint="帧率写在 JSON 里，改它会重建整段动画数据。" />
           <Range label="播放速度" value={speed} min={0.25} max={3} step={0.25} unit=" 倍" onChange={setSpeed} hint="走 anim.setSpeed()，JSON 不变。" />
           <Range
@@ -728,7 +729,7 @@ export default function LottieWebLab({ onCopy }: { onCopy: DemoCopyHandler }) {
           </Stats>
           {!motionOk ? <Status>系统开启了「减少动态效果」，动画以 autoplay=false 载入，只停在首帧。</Status> : null}
           {error ? <ErrorNote>{error}</ErrorNote> : null}
-        </div>
+        </LabControls>
 
         <div className="lab-stage">
           <div className="lab-lottie-canvas">

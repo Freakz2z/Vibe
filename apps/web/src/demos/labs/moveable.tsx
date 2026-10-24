@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Moveable from 'react-moveable';
 import type { DemoCopyHandler } from '../types';
@@ -70,7 +71,7 @@ export default function MoveableLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   return (
     <Lab title="Moveable 拖拽缩放旋转" badge={<span className="demo-live-badge">react-moveable 0.56</span>} reset={reset}>
       <div className="lab-layout">
-        <div className="lab-controls">
+        <LabControls className="lab-controls">
           <Range label="吸附网格" value={grid} min={5} max={50} step={5} unit=" px" onChange={setGrid} />
           <div className="lab-field">
             <span>可用的手柄</span>
@@ -98,7 +99,7 @@ export default function MoveableLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             </div>
           </div>
           <Status>x / y / 宽 / 高 / 角度全部来自 Moveable 的指针事件对象，不是自己累加的。</Status>
-        </div>
+        </LabControls>
 
         <div className="lab-stage">
           <div className="lab-moveable-scroll">

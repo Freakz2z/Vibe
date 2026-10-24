@@ -1,3 +1,4 @@
+import { IS_TOY } from '../../lib/runtime';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import mermaid from 'mermaid';
 import type { DemoCopyHandler } from '../types';
@@ -180,6 +181,7 @@ export default function MermaidLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   return (
     <Lab title="Mermaid 文本转图形" badge={<span className="demo-live-badge">Mermaid {MERMAID_VERSION}</span>} reset={() => pick('flow')}>
       <LabLayout
+        layout="editor"
         controls={
           <>
             <Segmented<SampleKey> label="示例图" value={sample} options={SAMPLE_OPTIONS} onChange={pick} />
@@ -187,6 +189,7 @@ export default function MermaidLab({ onCopy }: { onCopy: DemoCopyHandler }) {
               <span>Mermaid 源码</span>
               <textarea
                 className="lab-editor lab-editor--short"
+                wrap={IS_TOY ? 'off' : undefined}
                 rows={12}
                 value={text}
                 spellCheck={false}

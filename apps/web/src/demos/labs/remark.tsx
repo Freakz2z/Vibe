@@ -208,6 +208,7 @@ export default function RemarkLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   return (
     <Lab title="Remark AST 管线与净化" badge={<span className="demo-live-badge">remark 15</span>} reset={() => setSource(SAMPLE)}>
       <LabLayout
+        layout="editor"
         controls={
           <>
             <p className="demo-caption">

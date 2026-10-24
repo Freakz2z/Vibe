@@ -4,7 +4,7 @@
 
 - 标题：Vibe 工具集
 - 预定 slug：`vibe-tools-mobile`（正式提交前仍可调整，发布后不可修改）
-- 验收预览：https://www.bilibili.com/toy/preview/author_Hav1OoTO/index.html
+- 验收预览：https://www.bilibili.com/toy/preview/author_85Sf8Q8Y/index.html
 - 原站：https://vibe.freakz2z.com/
 
 ## 构建与预览
@@ -33,7 +33,9 @@ CORS 来源精确匹配 `https://www.bilibili.com` 和预览实际内容容器 `
 - 首页、分类、示例、收藏四个底部导航；收藏是唯一全局收藏入口。
 - 单列卡片、独立分类页、搜索框；平台/费用在底部面板中暂存，点击应用才提交，关闭即取消。
 - 详情完整阅读、复制命令；返回保留条件和列表位置。
-- 示例舞台优先展示，参数与代码折叠；图表、地图、编辑器和大依赖按需加载。
+- 示例使用单层边距，画布优先展示；参数集中到可滚动居中面板，右上角「完成」关闭，支持焦点约束、Esc 关闭和返回触发按钮。代码独立折叠，统计卡片按数值与文本排布。
+- Markdown、Mermaid、KaTeX 等源码保持直接编辑，富文本格式工具栏常驻；长代码横向滚动，宽屏输入与输出并排。表格局部滚动，图表、地图、编辑器和大依赖按需加载。
+- G6 手机端默认网格布局，支持切换力导向、分层布局；选中节点资料保留在画布下方。
 - 浅色默认，可切换暗色/跟随系统；触控区域、减少动态效果、安全区及键盘遮挡适配。
 - 收藏、主题与滚动位置使用 Toy 专用本地键，不会自动迁移原站收藏；未接入云存储或用户资料。
 
@@ -43,7 +45,7 @@ Toy SDK 的分享、二维码和容器能力先调用 `isSupport`。分享通过
 
 本地构建、类型检查与 24 项后端测试通过；原站真实 API、27 项服务检查和 20 项桌面/手机浏览器回归通过。Toy 子路径下验证了目录、分类、筛选草稿/取消/应用、收藏持久化、返回、分享参数直达及 320/390/768/1280 宽度。
 
-B站真实预览中已验证 HTMX 搜索片段及 Toy 内链接、R2 206 分段读取、Leaflet 177 个边界、MapLibre 地图绘制、esbuild WASM 编译。加载检查与交互检查分别保存于本机 `artifacts/toy-final-demos-*.log` 和 `artifacts/toy-live-actions.log`。
+B站真实预览中已验证 HTMX 搜索片段及 Toy 内链接、R2 206 分段读取、Leaflet 177 个边界、MapLibre 地图绘制、esbuild WASM 编译。本次布局检查覆盖全部 55 个示例，截图与几何尺寸记录保存于本机 `artifacts/toy-layout-before/`、`artifacts/toy-layout-after/` 和 `artifacts/toy-audit-after-*.log`。参数调整、GSAP 播放、Markdown 实时解析、Tiptap 加粗等真实交互记录于 `artifacts/toy-layout-interactions.log`；最终预览的关系图布局切换、R2 完整读取与 206、320/390 手机及横屏/桌面参数面板检查记录于 `artifacts/toy-layout-final-actions.log`；最终预览全量加载与 320/390/768/1280 宽度、亮暗模式检查记录于 `artifacts/toy-layout-final-smoke.log`、`artifacts/toy-layout-final-responsive.log`。
 
 **手机尺寸浏览器检查不等于实体手机 App 验收。** iOS/Android B站 App 的安全区、软键盘、触摸拖拽、端内分享和横屏沉浸仍需用户在预览中验收。预览环境不支持的 SDK 能力不能冒充已验证成功。
 

@@ -1,3 +1,5 @@
+import { IS_TOY } from '../../lib/runtime';
+import { Code, LabControls } from '../lab-kit';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { Draggable } from 'gsap/Draggable';
@@ -280,7 +282,7 @@ export default function GsapLab({ onCopy }: { onCopy: DemoCopyHandler }) {
     >
       <div ref={rootRef}>
         <div className="lab-layout">
-          <div className="lab-controls">
+          <LabControls className="lab-controls">
             <Range
               label="目标总时长"
               value={targetDuration}
@@ -318,7 +320,7 @@ export default function GsapLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             {motionOk ? null : (
               <Status>系统开启了「减少动态效果」，已暂停自动播放；仍可手动点击播放或拖动播放头。</Status>
             )}
-          </div>
+          </LabControls>
 
           <div className="lab-stage">
             <div className="lab-timeline-track" ref={trackRef}>
@@ -388,6 +390,7 @@ export default function GsapLab({ onCopy }: { onCopy: DemoCopyHandler }) {
           ))}
         </ul>
 
+        {IS_TOY ? <Code text={snippet} onCopy={onCopy} label="GSAP 调用" maxHeight={280}/> : (
         <div className="lab-code" style={{ marginTop: 22 }}>
           <div>
             <span>GSAP 调用</span>
@@ -399,6 +402,7 @@ export default function GsapLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             <code>{snippet}</code>
           </pre>
         </div>
+        )}
       </div>
     </Lab>
   );

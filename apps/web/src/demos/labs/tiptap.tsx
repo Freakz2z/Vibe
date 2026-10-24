@@ -154,6 +154,7 @@ export default function TiptapLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       reset={() => setNonce((n) => n + 1)}
     >
       <LabLayout
+        layout="rich"
         controls={
           <>
             <p className="demo-caption">

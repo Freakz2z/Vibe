@@ -1,4 +1,4 @@
-import { apiUrl } from '../../lib/runtime';
+import { apiUrl, IS_TOY } from '../../lib/runtime';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DemoCopyHandler } from '../types';
 import { Code, DataTable, ErrorNote, Lab, LabLayout, Range, Stat, Stats, Status } from '../lab-kit';
@@ -265,7 +265,7 @@ export default function R2Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
               </button>
             </div>
             <div className="lab-options">
-              <button type="button" className="button button--secondary button--small" disabled={busy} onClick={loadFullImage}>
+              <button type="button" className={`button ${IS_TOY ? 'button--primary' : 'button--secondary'} button--small`} disabled={busy} onClick={loadFullImage}>
                 取回完整对象并渲染
               </button>
             </div>

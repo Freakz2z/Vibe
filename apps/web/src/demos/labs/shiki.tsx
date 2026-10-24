@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { useEffect, useMemo, useState } from 'react';
 import { createHighlighterCore, type HighlighterCore } from 'shiki/core';
 import { createJavaScriptRegexEngine } from 'shiki/engine/javascript';
@@ -168,7 +169,7 @@ highlighter.dispose();`;
 
   return (
     <Lab title="Shiki 语法高亮（JS 正则引擎）" badge={<span className="demo-live-badge">Shiki 1.24</span>} reset={() => setCode(SAMPLE[lang])}>
-      <div className="lab-config lab-config--pair">
+      <LabControls className="lab-config lab-config--pair">
         <p className="demo-caption">
           用 <code>createHighlighterCore</code> + <code>createJavaScriptRegexEngine()</code>，全程不加载 WASM。
         </p>
@@ -191,7 +192,7 @@ highlighter.dispose();`;
           ]}
           onChange={setThemeChoice}
         />
-      </div>
+      </LabControls>
       <LabLayout
         layout="editor"
         controls={

@@ -1,3 +1,4 @@
+import { IS_TOY } from '../../lib/runtime';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Compartment, EditorState, type Extension } from '@codemirror/state';
 import {
@@ -141,7 +142,7 @@ export default function CodemirrorLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   const langTouched = useRef(false);
 
   const [lang, setLang] = useState<Lang>('javascript');
-  const [wrap, setWrap] = useState(true);
+  const [wrap, setWrap] = useState(!IS_TOY);
   const [nonce, setNonce] = useState(0);
   const [stats, setStats] = useState<Snapshot>(EMPTY);
   const [hits, setHits] = useState<Hit[]>([]);

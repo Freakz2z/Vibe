@@ -429,6 +429,7 @@ export default function EsbuildLab({ onCopy }: { onCopy: DemoCopyHandler }) {
               <span>源码（可编辑）</span>
               <textarea
                 className="lab-editor"
+              wrap={IS_TOY ? 'off' : undefined}
                 rows={15}
                 spellCheck={false}
                 value={source}

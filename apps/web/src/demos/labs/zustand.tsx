@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
@@ -202,7 +203,7 @@ export default function ZustandLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   return (
     <Lab title="Zustand：细粒度订阅与带 selector 的监听" badge={<span className="demo-live-badge">Zustand 5</span>} reset={reset}>
       <div className="lab-layout">
-        <div className="lab-controls">
+        <LabControls className="lab-controls">
           <p className="demo-caption">
             三个面板各自只订阅一个切片：只有被改动的切片所在的面板才会重渲染，右侧「渲染计数」是真实计数。
           </p>
@@ -262,7 +263,7 @@ export default function ZustandLab({ onCopy }: { onCopy: DemoCopyHandler }) {
           <Status tone={log.length > 0 ? 'ok' : undefined}>
             subscribeWithSelector 已注册 5 个监听，清理时逐一 unsubscribe。
           </Status>
-        </div>
+        </LabControls>
 
         <div className="lab-stage">
           <Stats>

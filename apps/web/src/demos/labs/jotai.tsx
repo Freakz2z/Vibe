@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { useMemo, useState } from 'react';
 import { atom, useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { atomWithStorage, createJSONStorage, selectAtom } from 'jotai/utils';
@@ -192,7 +193,7 @@ export default function JotaiLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   return (
     <Lab title="Jotai：原子图与派生传播" badge={<span className="demo-live-badge">Jotai 2</span>} reset={reset}>
       <div className="lab-layout">
-        <div className="lab-controls">
+        <LabControls className="lab-controls">
           <p className="demo-caption">
             上游任何基础原子变化，Jotai 会沿依赖图只重算受影响的派生原子；下方「读次数」是真实计数。
           </p>
@@ -234,7 +235,7 @@ export default function JotaiLab({ onCopy }: { onCopy: DemoCopyHandler }) {
               写入 itemsAtom
             </button>
           </div>
-        </div>
+        </LabControls>
 
         <div className="lab-stage">
           <div className="lab-jotai-graph" aria-label="派生原子依赖图">

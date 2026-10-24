@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createTimeline, stagger, svg } from 'animejs';
 import type { DemoCopyHandler } from '../types';
@@ -124,7 +125,7 @@ export default function AnimejsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       }}
     >
       <div className="lab-layout">
-        <div className="lab-controls">
+        <LabControls className="lab-controls">
           <Range label="播放速度" value={speed} min={0.25} max={3} step={0.25} unit=" 倍" onChange={setSpeed} />
           <div className="lab-options">
             <button
@@ -184,7 +185,7 @@ export default function AnimejsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             当前时间 {time} ms / {duration} ms（{Math.round(progress * 100)}%），读自 Anime.js 的 <code>onUpdate</code>。
           </p>
           {!motionOk ? <Status>系统开启了「减少动态效果」，时间轴直接停在终态，不播放动画。</Status> : null}
-        </div>
+        </LabControls>
 
         <div className="lab-stage">
           <svg className="lab-anime-svg" viewBox="0 0 520 220" role="img" aria-label="路径变形与描边绘制动画">

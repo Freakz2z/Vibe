@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { useEffect, useMemo, useState, type Key } from 'react';
 import { ConfigProvider, Table, Tag, theme as antdTheme, type TableColumnsType } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
@@ -231,7 +232,7 @@ export default function AntDesignLab({ onCopy }: { onCopy: DemoCopyHandler }) {
         }}
       >
         <div className="lab-layout">
-          <div className="lab-controls">
+          <LabControls className="lab-controls">
             <p className="demo-caption">
               表头筛选是多个独立维度，可叠加；「当前命中行数」来自 Table 的 onChange 回调里的
               <code> extra.currentDataSource </code>，不是自己算的。
@@ -242,7 +243,7 @@ export default function AntDesignLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             <p className="lab-field__rule">
               表格设置了 <code>scroll={'{ x: 900 }'}</code>，在 320px 宽度下横向滚动而不会让整页溢出。
             </p>
-          </div>
+          </LabControls>
 
           <div className="lab-stage lab-stage--table">
             <Table<TicketRow>

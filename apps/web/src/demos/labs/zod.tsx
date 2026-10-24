@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { useMemo, useState, type ReactNode } from 'react';
 import { z } from 'zod';
 import type { DemoCopyHandler } from '../types';
@@ -214,7 +215,7 @@ export default function ZodLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       reset={() => setRaw(INITIAL)}
     >
       <div className="lab-layout">
-        <div className="lab-controls">
+        <LabControls className="lab-controls">
           <p className="demo-caption">
             每次按键都会跑一次 <code>safeParse</code>；右侧的每条消息与 path 都直接来自 Zod，未经加工。
           </p>
@@ -311,7 +312,7 @@ export default function ZodLab({ onCopy }: { onCopy: DemoCopyHandler }) {
           <Status tone={result.success ? 'ok' : 'warn'}>
             {result.success ? `校验通过，解析出 ${Object.keys(result.data).length} 个顶层字段。` : `校验失败，共 ${errorCount} 条 issue。`}
           </Status>
-        </div>
+        </LabControls>
 
         <div className="lab-stage">
           <div className="lab-zod-form">

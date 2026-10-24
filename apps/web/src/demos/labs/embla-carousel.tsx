@@ -1,3 +1,4 @@
+import { LabControls } from '../lab-kit';
 import { useEffect, useMemo, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import type { EmblaOptionsType } from 'embla-carousel';
@@ -139,11 +140,11 @@ export default function EmblaCarouselLab({ onCopy }: { onCopy: DemoCopyHandler }
         setNonce((n) => n + 1);
       }}
     >
-      <div className="lab-carousel-controls">
+      <LabControls className="lab-carousel-controls">
         <Select<Align> label="对齐 align" value={align} options={ALIGN_OPTIONS} onChange={setAlign} />
         <Select<ScrollStep> label="滚动步长 slidesToScroll" value={step} options={STEP_OPTIONS} onChange={setStep} />
         <Select<Contain> label="边界 containScroll" value={contain} options={CONTAIN_OPTIONS} onChange={setContain} />
-      </div>
+      </LabControls>
 
       <div className="lab-stage lab-carousel-stage">
         <div className="lab-embla" ref={emblaRef} key={nonce}>
