@@ -3,6 +3,7 @@ import {
   ArrowRight,
   Check,
   ChevronRight,
+  ChevronLeft,
   Flame,
   LockKeyhole,
   RotateCcw,
@@ -25,6 +26,7 @@ import {
   type GameConfig,
   type Pack,
 } from "./client";
+import { PagedCopy, useGameViewport } from "./Screen";
 import "./games.css";
 type Pose = "ready" | "good" | "oops" | "think" | "win" | "sleep";
 function Robot({
@@ -138,6 +140,7 @@ function Gate({ gate }: { gate: ReturnType<typeof useFollowGate> }) {
   );
 }
 export default function Games({ playing }: { playing: boolean }) {
+  useGameViewport();
   const gate = useFollowGate();
   const [preview, setPreview] = useState(false);
   const isPreview = /^\/toy\/preview\/author_[A-Za-z0-9]+\//.test(
@@ -237,7 +240,8 @@ function Quiz({ preview = false }: { preview?: boolean }) {
   const mounted = useRef(true);
   const abort = useRef<AbortController | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
-  const feedbackRef = useRef<HTMLDivElement>(null);
+  const [review, setReview] = useState<number | null>(null);
+  const [reviewTab, setReviewTab] = useState<"lesson" | "example">("lesson");
   useEffect(() => {
     mounted.current = true;
     const controller = new AbortController();
@@ -263,24 +267,10 @@ function Quiz({ preview = false }: { preview?: boolean }) {
       token.current = "";
     };
   }, [preview]);
-  useEffect(() => {
-    if (!feedback) return;
-    const frame = requestAnimationFrame(() => {
-      feedbackRef.current?.focus({ preventScroll: true });
-      feedbackRef.current?.scrollIntoView({
-        block: "start",
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-          ? "instant"
-          : "smooth",
-      });
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [feedback]);
   const focus = () =>
-    requestAnimationFrame(() => {
-      heading.current?.focus({ preventScroll: true });
-      window.scrollTo({ top: 0, behavior: "instant" });
-    });
+    requestAnimationFrame(() =>
+      heading.current?.focus({ preventScroll: true }),
+    );
   const accept = (next: Pack) => {
     setPack(next);
     setOptions(
@@ -291,6 +281,7 @@ function Quiz({ preview = false }: { preview?: boolean }) {
     setIndex(0);
     setAnswers([]);
     setFeedback(null);
+    setReview(null);
     setWriting(false);
     setDraft("");
     setPhase("playing");
@@ -485,7 +476,73 @@ function Quiz({ preview = false }: { preview?: boolean }) {
         </button>
       </div>
     );
-  if (phase === "done")
+  if (phase === "done") {
+    if (review !== null) {
+      const answer = answers[review];
+      return (
+        <div className="quiz-review">
+          <div className="quiz-review-heading">
+            <span className="quiz-label">逐题复盘 · {review + 1} / 5</span>
+            <button
+              className="quiz-text-button"
+              onClick={() => setReview(null)}
+            >
+              返回战绩
+            </button>
+          </div>
+          <div className="quiz-review-title">
+            <Robot pose={answer.correct ? "good" : "oops"} />
+            <h1 ref={heading} tabIndex={-1}>
+              {pack!.rounds[review].title}
+            </h1>
+            <b>{answer.score} 分</b>
+          </div>
+          <div className="quiz-tabs" role="tablist" aria-label="复盘内容">
+            <button
+              role="tab"
+              aria-selected={reviewTab === "lesson"}
+              onClick={() => setReviewTab("lesson")}
+            >
+              这题要点
+            </button>
+            <button
+              role="tab"
+              aria-selected={reviewTab === "example"}
+              onClick={() => setReviewTab("example")}
+            >
+              指令示例
+            </button>
+          </div>
+          <div className="quiz-paper quiz-review-copy">
+            <PagedCopy
+              key={review + "-" + reviewTab}
+              paragraphs={[
+                reviewTab === "lesson" ? answer.lesson : answer.example,
+              ]}
+              label="复盘文字"
+            />
+          </div>
+          <div className="quiz-review-actions">
+            <button
+              className="quiz-button quiz-button--secondary"
+              disabled={review === 0}
+              onClick={() => setReview((x) => x! - 1)}
+            >
+              <ChevronLeft size={17} />
+              上一题
+            </button>
+            <button
+              className="quiz-button"
+              disabled={review === 4}
+              onClick={() => setReview((x) => x! + 1)}
+            >
+              下一题
+              <ChevronRight size={17} />
+            </button>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="quiz-result">
         <Robot pose={correct >= 3 ? "win" : "sleep"} />
@@ -508,22 +565,26 @@ function Quiz({ preview = false }: { preview?: boolean }) {
               ? "已经发现几个坑，下次更稳。"
               : "这次踩过的坑，下次就是经验。"}
         </p>
-        <div className="quiz-results-list">
-          {answers.map((a, i) => (
-            <details key={a.questionId}>
-              <summary>
-                <span className={a.correct ? "quiz-check" : "quiz-cross"}>
-                  {a.correct ? <Check size={16} /> : <X size={16} />}
-                </span>
-                <strong>{pack!.rounds[i].title}</strong>
-                <span>{a.score} 分</span>
-                <ChevronRight size={16} />
-              </summary>
-              <p>{a.lesson}</p>
-              <p className="quiz-example">{a.example}</p>
-            </details>
+        <div className="quiz-score-strip" aria-label="选择一题复盘">
+          {answers.map((answer, i) => (
+            <button
+              key={answer.questionId}
+              aria-label={`复盘第 ${i + 1} 题`}
+              onClick={() => {
+                setReview(i);
+                setReviewTab("lesson");
+              }}
+            >
+              <span className={answer.correct ? "quiz-check" : "quiz-cross"}>
+                {answer.correct ? <Check size={17} /> : <X size={17} />}
+              </span>
+              <small>第 {i + 1} 题</small>
+            </button>
           ))}
         </div>
+        <small className="quiz-source-note">
+          点一题复盘 · 本机最佳 {best} 分
+        </small>
         <div className="quiz-result-actions">
           <button
             className="quiz-button"
@@ -534,18 +595,16 @@ function Quiz({ preview = false }: { preview?: boolean }) {
               focus();
             }}
           >
-            <RotateCcw size={18} /> 再来一局
+            <RotateCcw size={18} />
+            再来一局
           </button>
           <a className="quiz-text-button" href={routeHref("/games")}>
             回到游戏专区
           </a>
         </div>
-        <small className="quiz-source-note">
-          {pack?.source === "authored" ? "固定题库" : "AI 今日题目"} · 本机最佳{" "}
-          {best} 分
-        </small>
       </div>
     );
+  }
   if (!round) return null;
   return (
     <div className="quiz-play">
@@ -579,57 +638,15 @@ function Quiz({ preview = false }: { preview?: boolean }) {
           />
         ))}
       </div>
-      <div className="quiz-scene" key={round.id}>
-        <div className="quiz-scene-heading">
-          <h1 ref={heading} tabIndex={-1}>
-            {round.title}
-          </h1>
-          <Robot
-            pose={
-              busy
-                ? "think"
-                : feedback
-                  ? feedback.correct
-                    ? "good"
-                    : "oops"
-                  : "ready"
-            }
-          />
-        </div>
-        <p>{round.scene}</p>
-        <div className="quiz-clue">
-          现场线索 <span>{round.clue}</span>
-        </div>
-      </div>
-      {!writing ? (
-        <div className="quiz-choices" aria-label="选择你的处理方式">
-          {options[index].map((option, i) => (
-            <button
-              key={option.index}
-              className="quiz-choice"
-              disabled={busy || !!feedback}
-              data-state={
-                feedback
-                  ? option.index === feedback.correctChoice
-                    ? "correct"
-                    : option.index === feedback.choice
-                      ? "wrong"
-                      : undefined
-                  : undefined
-              }
-              onClick={() => void submit(option.index)}
-            >
-              <span className="quiz-option-letter">{"ABC"[i]}</span>
-              <span>{option.label}</span>
-              {feedback && option.index === feedback.correctChoice ? (
-                <Check size={19} />
-              ) : (
-                <ChevronRight size={17} />
-              )}
-            </button>
-          ))}
-        </div>
-      ) : (
+      {feedback ? (
+        <Feedback
+          key={round.id}
+          answer={feedback}
+          title={round.title}
+          last={index === 4}
+          onNext={next}
+        />
+      ) : writing ? (
         <form
           className="quiz-writing"
           onSubmit={(e) => {
@@ -638,29 +655,27 @@ function Quiz({ preview = false }: { preview?: boolean }) {
           }}
         >
           <label htmlFor="quiz-instruction">{round.challenge}</label>
-          <small className="quiz-source-note">
-            提交内容将发给 OpenRouter 及其模型供应商，请勿填写密钥等敏感信息。
-          </small>
           <textarea
             id="quiz-instruction"
             autoFocus
-            rows={4}
+            rows={3}
             maxLength={280}
             value={draft}
             disabled={busy}
             placeholder="告诉 AI 具体做什么，以及怎样才算完成。"
             onChange={(e) => setDraft(e.target.value)}
           />
-          <div>
-            <small>{draft.trim().length} / 280</small>
-            <button
-              className="quiz-button quiz-button--small"
-              disabled={busy || draft.trim().length < 3}
-            >
-              <Send size={16} />
-              {busy ? "点评中…" : "交给 AI 点评"}
-            </button>
-          </div>
+          <small className="quiz-source-note">
+            内容会发送至 OpenRouter 及其模型供应商，请勿填写敏感信息。
+            {draft.trim().length} / 280
+          </small>
+          <button
+            className="quiz-button"
+            disabled={busy || draft.trim().length < 3}
+          >
+            <Send size={16} />
+            {busy ? "点评中…" : "交给 AI 点评"}
+          </button>
           <button
             type="button"
             className="quiz-text-button"
@@ -670,19 +685,49 @@ function Quiz({ preview = false }: { preview?: boolean }) {
             回到选择题
           </button>
         </form>
+      ) : (
+        <>
+          <div className="quiz-scene quiz-paper" key={round.id}>
+            <div className="quiz-scene-heading">
+              <h1 ref={heading} tabIndex={-1}>
+                {round.title}
+              </h1>
+              <Robot pose={busy ? "think" : "ready"} />
+            </div>
+            <PagedCopy
+              paragraphs={[round.scene, "线索：" + round.clue]}
+              label="题目文字"
+            />
+          </div>
+          <div className="quiz-choices" aria-label="选择你的处理方式">
+            {options[index].map((option, i) => (
+              <button
+                key={option.index}
+                className="quiz-choice"
+                disabled={busy}
+                onClick={() => void submit(option.index)}
+              >
+                <span className="quiz-option-letter">{"ABC"[i]}</span>
+                <span>{option.label}</span>
+                <ChevronRight size={17} />
+              </button>
+            ))}
+          </div>
+          {index === 4 && pack?.source === "openrouter" ? (
+            <button
+              className="quiz-text-button quiz-write-link"
+              disabled={busy}
+              onClick={() => setWriting(true)}
+            >
+              <Sparkles size={16} />
+              最后一关，自己写一句指令
+            </button>
+          ) : null}
+        </>
       )}
-      {index === 4 && pack?.source === "openrouter" && !feedback && !writing ? (
-        <button
-          className="quiz-text-button quiz-write-link"
-          disabled={busy}
-          onClick={() => setWriting(true)}
-        >
-          <Sparkles size={16} /> 最后一关，自己写一句指令
-        </button>
-      ) : null}
-      {busy ? (
+      {busy && !writing ? (
         <p className="quiz-working" role="status">
-          {writing ? "正在按标准点评…" : "正在记录你的选择…"}
+          正在记录你的选择…
         </p>
       ) : null}
       {notice ? (
@@ -700,42 +745,81 @@ function Quiz({ preview = false }: { preview?: boolean }) {
           </button>
         </div>
       ) : null}
-      {feedback ? (
-        <div
-          className="quiz-feedback"
-          ref={feedbackRef}
-          tabIndex={-1}
-          data-correct={feedback.correct}
-          aria-live="polite"
-        >
-          <div className="quiz-feedback-head">
-            <Robot pose={feedback.correct ? "good" : "oops"} />
-            <strong>{feedback.correct ? "稳住了！" : "哎，翻车了。"}</strong>
-            <span>+{feedback.score}</span>
-          </div>
-          <p className="quiz-quip">{feedback.quip}</p>
-          <p>{feedback.lesson}</p>
-          {feedback.checks ? (
-            <ul className="quiz-rubric">
-              {feedback.checks.map((c) => (
-                <li key={c.criterion}>
-                  {c.met ? <Check size={15} /> : <X size={15} />}
-                  <span>{c.criterion}</span>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          {feedback.suggestion ? <p>{feedback.suggestion}</p> : null}
-          <details>
-            <summary>看看指令怎么写</summary>
-            <p>{feedback.example}</p>
-          </details>
-          <button className="quiz-button" onClick={next}>
-            {index === 4 ? "看看战绩" : "下一个现场"}
-            <ArrowRight size={18} />
-          </button>
+    </div>
+  );
+}
+function Feedback({
+  answer,
+  title,
+  last,
+  onNext,
+}: {
+  answer: Answer;
+  title: string;
+  last: boolean;
+  onNext: () => void;
+}) {
+  const [tab, setTab] = useState<
+    "lesson" | "example" | "checks" | "suggestion"
+  >("lesson");
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    titleRef.current?.focus({ preventScroll: true });
+  }, []);
+  const tabs = [
+    { id: "lesson", text: "点评" },
+    { id: "example", text: "指令" },
+    ...(answer.checks
+      ? [
+          { id: "checks", text: "评分" },
+          { id: "suggestion", text: "建议" },
+        ]
+      : []),
+  ] as const;
+  const paragraphs =
+    tab === "lesson"
+      ? [answer.quip, answer.lesson]
+      : tab === "example"
+        ? [answer.example]
+        : tab === "checks"
+          ? answer.checks!.map(
+              (c) =>
+                (c.met ? "✓ " : "✕ ") +
+                c.criterion +
+                (c.evidence ? "\n“" + c.evidence + "”" : ""),
+            )
+          : [answer.suggestion || ""];
+  return (
+    <div className="quiz-feedback" data-correct={answer.correct}>
+      <div className="quiz-feedback-head">
+        <Robot pose={answer.correct ? "good" : "oops"} />
+        <div>
+          <small>{title}</small>
+          <h1 ref={titleRef} tabIndex={-1}>
+            {answer.correct ? "稳住了！" : "哎，翻车了。"}
+          </h1>
         </div>
-      ) : null}
+        <span>+{answer.score}</span>
+      </div>
+      <div className="quiz-tabs" role="tablist" aria-label="答题反馈">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={tab === t.id}
+            onClick={() => setTab(t.id as typeof tab)}
+          >
+            {t.text}
+          </button>
+        ))}
+      </div>
+      <div className="quiz-paper quiz-feedback-copy">
+        <PagedCopy key={tab} paragraphs={paragraphs} label="反馈文字" />
+      </div>
+      <button className="quiz-button" onClick={onNext}>
+        {last ? "看看战绩" : "下一个现场"}
+        <ArrowRight size={18} />
+      </button>
     </div>
   );
 }

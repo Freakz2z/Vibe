@@ -7,7 +7,7 @@
  "workers_dev": false,
  "preview_urls": false,
  "vars": {
-  "OPENROUTER_MODEL": "openrouter/free",
+  "OPENROUTER_MODEL": "dots-studio/dots-3-note-preview:free",
   "MODEL_DAILY_LIMIT": "20",
   "SESSION_DAILY_LIMIT": "5",
   "TURNSTILE_HOSTNAMES": "www.bilibili.com,www.bilibilitoy.com",

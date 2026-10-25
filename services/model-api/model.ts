@@ -94,6 +94,7 @@ export async function completion(
       stream: false,
       max_tokens: maxTokens,
       temperature: 0.5,
+      reasoning: { effort: "low", exclude: true },
       response_format: { type: "json_object" },
       provider: {
         require_parameters: true,
@@ -196,7 +197,7 @@ export async function judgeAnswer(
       reference: question.example,
       playerAnswer: answer,
     },
-    1000,
+    3000,
     send,
   );
   const parsed = judging.safeParse(result.value);

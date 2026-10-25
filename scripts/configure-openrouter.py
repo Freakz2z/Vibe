@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Read the key without echo, save a private dev file, and upload the Worker Secret."""
 from pathlib import Path
+import argparse
 import getpass
 import os
 import re
@@ -9,7 +10,15 @@ import sys
 
 root = Path(__file__).resolve().parent.parent
 path = root / 'services/model-api/.dev.vars'
-key = getpass.getpass('OpenRouter API Key（输入隐藏）: ').strip()
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--saved', action='store_true', help='重试上传已保存在本地私有文件的密钥')
+args = parser.parse_args()
+if args.saved:
+    if not path.exists():
+        sys.exit('本地尚未保存密钥，请先不带 --saved 运行。')
+    key = next((line.split('=', 1)[1].strip() for line in path.read_text().splitlines() if line.startswith('OPENROUTER_API_KEY=')), '')
+else:
+    key = getpass.getpass('OpenRouter API Key（输入隐藏）: ').strip()
 if not re.fullmatch(r'sk-or-[A-Za-z0-9_-]{20,}', key):
     sys.exit('格式不符合 OpenRouter Key，请重新执行；未写入或上传。')
 existing = path.read_text() if path.exists() else ''

@@ -52,7 +52,7 @@ export function HumanCheck({
         id = window.turnstile!.render(el.current, {
           sitekey: siteKey,
           action: "vibe_quiz",
-          size: "flexible",
+          size: el.current.clientWidth < 300 ? "compact" : "flexible",
           theme: "auto",
           callback: (token: string) => callback.current(token),
           "expired-callback": () => callback.current(""),

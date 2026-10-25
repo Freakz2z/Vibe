@@ -4,6 +4,8 @@
 
 ## 贴纸与预览
 
+游戏使用单屏布局：题目和反馈分开显示，结算按题复盘；较长文字按可见行数翻页，不增加页面或面板滚动条。手机键盘弹出时收起导航与页头，保留输入和提交操作。离开游戏后目录恢复正常滚动。
+
 角色为六种姿态的原创机器人贴纸；原图、提示词与压缩文件说明见 `assets/games/quiz/README.md`。动效只作用于反馈、入场和贴纸；没有 hover 容器位移，支持系统“减少动态效果”。
 
 Toy 正式页面通过 `toy.isSupport('getAuthorRelation')` 和 `toy.getAuthorRelation()` 检查 `status === 'ok' && data.isFollowing === true`。读取失败不解锁；本地缓存不充当关注凭证。
@@ -18,7 +20,7 @@ Toy 正式页面通过 `toy.isSupport('getAuthorRelation')` 和 `toy.getAuthorRe
 npm run model:configure
 ```
 
-命令隐藏输入密钥，保存到权限 0600 且被 Git 忽略的 `services/model-api/.dev.vars`，通过 stdin 上传 Cloudflare Worker Secret；不会把密钥放到参数、前端或聊天记录。未配置时服务关闭模型功能，游戏显示固定题库。上传成功后重新打开 Toy；还需要真实联网验收，不能把本地 fixture 测试当作 OpenRouter 成功。
+命令隐藏输入密钥，保存到权限 0600 且被 Git 忽略的 `services/model-api/.dev.vars`，通过 stdin 上传 Cloudflare Worker Secret；不会把密钥放到参数、前端或聊天记录。未配置时服务关闭模型功能，游戏显示固定题库。如上传遇到网络故障，修复连接后可用 `npm run model:configure -- --saved` 重试已有密钥；代理通过该命令的 `HTTPS_PROXY` 环境变量设置，不修改系统网络。上传成功仍需真实联网验收，不能把本地 fixture 测试当作 OpenRouter 成功。
 
 ## 安全边界
 
@@ -29,7 +31,7 @@ npm run model:configure
 - 会话建立要求服务端 Turnstile Siteverify 校验成功、预期 hostname 和 action。验证凭据单次使用；会话为 256 位随机值，服务端只存 SHA-256，绑定 Origin 与经盐哈希的来源 IP，15 分钟有效，不使用 Cookie，不持久化前端 token。
 - 一个 SQLite Durable Object 统一原子额度：默认全局每天 20 次模型调用、每分钟 4 次；最多配置到每天 40 次；每 IP 每天 5 个会话、每分钟 30 个请求及验证次数上限。额度在上游调用前预留，失败也消耗，不自动重试。全局入口还有每天 8,000 次上限。这是应用层限制，不是零成本或抗所有 DDoS 的承诺。
 - 问题包单独存 D1 `vibe-toy-quiz`，按 UTC 日期缓存，同日并发生成合并。选择题不用逐次调用模型。失败有冷却，达到额度可以玩固定题库。
-- OpenRouter 固定 `openrouter/free` 或受控的 `:free` 模型名，路由价格上限为零；没有付费降级。请求与响应有字节、长度、时间和结构限制，拒绝重定向，不输出上游原始错误或密钥。
+- OpenRouter 当前固定 `dots-studio/dots-3-note-preview:free`，服务端仅接受免费路由或受控的 `:free` 模型名，路由价格上限为零；没有付费降级。请求与响应有字节、长度、时间和结构限制，拒绝重定向，不输出上游原始错误或密钥。
 - 模型只改写人工案例的叙述与反馈；正确选项仍由服务端题库决定。自由输入仅第五题可用，每局最多请求一次；模型必须给出玩家原文证据，服务端按三项标准算分。输入按数据处理，没有工具调用或写库权限；最终文本由 React 转义渲染。输入会发送给 OpenRouter 及其选用的模型供应商，界面提交前有说明。
 - 题目属于会话、按序回答；相同提交幂等，不同答案不能覆盖已结算结果。模型无权限访问目录库、R2 或 Cloudflare 管理接口。
 
@@ -45,6 +47,7 @@ npm run model:configure
 
 - 生产构建、Toy 构建与类型检查通过；32 项后端测试、14 条本地 workerd 安全路径、80 项原站浏览器回归通过。
 - 真实 Toy 预览在 320 / 390 像素宽度完成五题、结算、逐题复盘和重开；该次页面没有脚本异常或缺失资源。额外检查了 430 像素和桌面、深色主题、减少动态效果，以及本地明确 fixture 下的关注拒绝、AI 点评和错误回退。
-- 最终预览：https://www.bilibili.com/toy/preview/author_SR1dcYYa/index.html 。仅生成预览，没有提交审核。
+- 单屏版预览：https://www.bilibili.com/toy/preview/author_4sHYpDZk/index.html 。仅生成预览，没有提交审核。
 - Cloudflare 已读回私有 Worker 的公开子域和版本预览均关闭、主 Worker 绑定正确；正式域名 D1 / R2 健康，目录 219 个工具。未配置模型密钥时 `configured: false`，模型请求返回 503；错误来源返回 403，批准来源的预检返回 204。
-- OpenRouter Key 尚未提供；真实模型调用、真实 Turnstile 完整流程与正式 Toy 的关注结果仍待联网验收。当前不声称这些已经通过。
+- 用户提供 Key 后，通过仅作用于 Wrangler 进程的现有本机代理恢复 OAuth 刷新，并完成 Secret 上传；正式配置接口已返回 `ready`。使用同一服务端代码直接真实请求免费模型，五题生成与三项标准点评通过，点评响应返回费用 0。通用免费路由和部分供应商曾返回上游限流；因此固定到已验证的免费模型，并保持失败关闭和固定题库回退。
+- 24 个尺寸/状态组合及包含小屏、键盘、评分建议、五题复盘的 31 条本地浏览器路径通过；这些路径使用明确的模型/SDK fixture。真实 Toy 预览还通过 29 个页面状态检查：五题全文无截断，反馈、结算、五题复盘、重开和滚轮操作均不会产生页面滚动；不混称真实模型或真实关注结果。真实 Turnstile 成功校验和正式 Toy 关注解锁仍待平台正式环境验收。
