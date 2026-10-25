@@ -20,7 +20,7 @@
 .toy-header__actions { margin-left: auto; display: flex; align-items: center; flex-shrink: 0; }
 .toy-header .icon-button { width: 44px; height: 44px; }
 .toy-search { display: flex; align-items: center; gap: 9px; width: 100%; max-width: 864px; margin: 8px auto 0; padding: 12px 14px; min-height: 46px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 13px; color: var(--muted); text-align: left; font-size: 14px; }
-.toy-nav { position: fixed; z-index: 35; bottom: 0; left: 0; right: 0; display: grid; grid-template-columns: repeat(4, 1fr); padding: 8px max(8px, var(--toy-safe-right)) calc(8px + var(--toy-safe-bottom)) max(8px, var(--toy-safe-left)); background: var(--surface); border-top: 1px solid var(--line-strong); box-shadow: 0 -5px 20px #00000004; }
+.toy-nav { position: fixed; z-index: 35; bottom: 0; left: 0; right: 0; display: grid; grid-template-columns: repeat(5, 1fr); padding: 8px max(8px, var(--toy-safe-right)) calc(8px + var(--toy-safe-bottom)) max(8px, var(--toy-safe-left)); background: var(--surface); border-top: 1px solid var(--line-strong); box-shadow: 0 -5px 20px #00000004; }
 .toy-nav a { display: flex; gap: 4px; flex-direction: column; align-items: center; justify-content: center; padding: 5px; min-height: 52px; color: var(--muted); font-size: 12px; border-radius: 12px; }
 .toy-nav a[aria-current="page"] { background: var(--accent-soft); color: var(--accent-strong); font-weight: 700; }
 .toy-nav small { margin-left: 4px; font-size: 10px; }

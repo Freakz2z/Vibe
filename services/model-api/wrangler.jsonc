@@ -1,0 +1,44 @@
+{
+ "$schema": "../../node_modules/wrangler/config-schema.json",
+ "name": "vibe-toy-model",
+ "main": "index.ts",
+ "account_id": "28c508bf41168952d42f067113491f4e",
+ "compatibility_date": "2026-10-01",
+ "workers_dev": false,
+ "preview_urls": false,
+ "vars": {
+  "OPENROUTER_MODEL": "openrouter/free",
+  "MODEL_DAILY_LIMIT": "20",
+  "SESSION_DAILY_LIMIT": "5",
+  "TURNSTILE_HOSTNAMES": "www.bilibili.com,www.bilibilitoy.com",
+  "TURNSTILE_SITE_KEY": "0x4AAAAAAFlSlu7vtVMdDJRR"
+ },
+ "durable_objects": {
+  "bindings": [
+   {
+    "name": "GUARD",
+    "class_name": "QuizGuard"
+   }
+  ]
+ },
+ "migrations": [
+  {
+   "tag": "v1",
+   "new_sqlite_classes": [
+    "QuizGuard"
+   ]
+  }
+ ],
+ "observability": {
+  "enabled": true,
+  "head_sampling_rate": 0.1
+ },
+ "d1_databases": [
+  {
+   "binding": "QUIZ_DB",
+   "database_name": "vibe-toy-quiz",
+   "database_id": "eb2d9af0-7b78-4c45-a13b-38e2e51e8aed",
+   "migrations_dir": "migrations"
+  }
+ ]
+}

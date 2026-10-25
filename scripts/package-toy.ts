@@ -6,7 +6,7 @@ const root = 'dist-toy';
 for (const [source, dest] of [['assets/icons', 'icons'], ['apps/web/public/brand', 'brand']]) {
   fs.mkdirSync(path.join(root, 'media', dest), {recursive: true});
   for (const name of fs.readdirSync(source)) {
-    if (!/\.(svg|png|webp|jpe?g|ico)$/i.test(name)) continue;
+    if (!/\.(svg|png|webp|jpe?g|gif|ico)$/i.test(name)) continue;
     fs.copyFileSync(path.join(source, name), path.join(root, 'media', dest, name));
   }
 }

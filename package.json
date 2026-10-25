@@ -29,11 +29,15 @@
     "test:labs": "tsx scripts/verify-labs.ts",
     "test:demo-assets": "tsx scripts/verify-demo-assets.ts",
     "build:toy": "tsx scripts/prepare-toy.ts && npm run typecheck -w apps/web && npm exec -w apps/web -- vite build --mode toy && tsx scripts/package-toy.ts",
-    "preview:toy": "tsx scripts/preview-toy.ts"
+    "preview:toy": "tsx scripts/preview-toy.ts",
+    "model:configure": "python3 scripts/configure-openrouter.py",
+    "test:model": "wrangler deploy --dry-run --config services/model-api/wrangler.jsonc --outdir output/model-api && tsx scripts/test-model-runtime.ts",
+    "deploy:model": "wrangler deploy --config services/model-api/wrangler.jsonc"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "latest",
     "@playwright/test": "^1.56.0",
+    "miniflare": "^5.20261012.1-beta",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0",
     "wrangler": "^4.101.0"
@@ -41,7 +45,8 @@
   "dependencies": {
     "drizzle-orm": "^0.45.4",
     "hono": "^4.13.13",
-    "kysely": "^0.29.7"
+    "kysely": "^0.29.7",
+    "zod": "3.23.8"
   },
   "overrides": {
     "@tiptap/core": "3.32.0",

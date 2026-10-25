@@ -26,7 +26,7 @@ function readRoute(): RouteState {
   if (IS_TOY) {
     const query = new URLSearchParams(window.location.search);
     const initial = query.get('tool') ? '/tools/' + encodeURIComponent(query.get('tool')!)
-      : query.get('demo') ? '/demos/' + encodeURIComponent(query.get('demo')!) : '/';
+      : query.get('demo') ? '/demos/' + encodeURIComponent(query.get('demo')!) : query.get('game')==='quiz'?'/games/quiz':query.has('game')?'/games':'/';
     const logical = window.location.hash.startsWith('#/') ? window.location.hash.slice(1) : initial;
     const url = new URL(logical, 'https://vibe.invalid');
     return { pathname: url.pathname, search: url.search, hash: url.hash };

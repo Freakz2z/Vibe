@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowUpRight, Grid2X2, Heart, Home, QrCode, Search, Share2, Sparkles, X, Maximize, Minimize } from 'lucide-react';
+import { Gamepad2, ArrowLeft, ArrowUpRight, Grid2X2, Heart, Home, QrCode, Search, Share2, Sparkles, X, Maximize, Minimize } from 'lucide-react';
 import type { Catalog } from '../types';
 import { routeHref } from '../lib/runtime';
 import { navigate } from '../lib/router';
@@ -16,6 +16,7 @@ export function ToyHeader({title, logical, onSearch, mode, resolved, setMode, no
   setMode: (mode: ThemeMode) => void; notify: (text: string) => void;
 }) {
   const inDemo = logical.startsWith('/demos/');
+  const inGame = logical.startsWith('/games');
   const [qr, setQr] = useState('');
   const [canShare, setCanShare] = useState(false);
   const [canQr, setCanQr] = useState(false);
@@ -40,20 +41,20 @@ export function ToyHeader({title, logical, onSearch, mode, resolved, setMode, no
   return <>
     <header className="toy-header">
       <div className="toy-header__row">
-        {/^\/(tools|demos)\//.test(logical) ? <button className="icon-button" aria-label="返回上一页" onClick={() => window.history.state?.vibeFrom ? window.history.back() : navigate(logical.startsWith('/demos/') ? '/demos' : '/')}><ArrowLeft size={20}/></button> : <a href={routeHref('/')} aria-label="Vibe 工具集首页"><Brand compact /></a>}
+        {/^\/(tools|demos|games)\//.test(logical) ? <button className="icon-button" aria-label="返回上一页" onClick={() => window.history.state?.vibeFrom ? window.history.back() : navigate(logical.startsWith('/demos/') ? '/demos' : logical.startsWith('/games/') ? '/games' : '/')}><ArrowLeft size={20}/></button> : <a href={routeHref('/')} aria-label="Vibe 工具集首页"><Brand compact /></a>}
         <span className="toy-header__title">{title}</span>
         <div className="toy-header__actions">
           {inDemo ? <button className="icon-button" aria-label="搜索工具" onClick={onSearch}><Search size={19}/></button> : null}
           <ThemeMenu mode={mode} resolved={resolved} setMode={setMode}/>
           <button className="icon-button" aria-label="分享当前页面" onClick={() => void share()}><Share2 size={19}/></button>
-          {canQr && !inDemo ? <button className="icon-button" disabled={busy} aria-label="页面二维码" onClick={async () => {
+          {canQr && !inDemo && !inGame ? <button className="icon-button" disabled={busy} aria-label="页面二维码" onClick={async () => {
             setBusy(true);
             try { const data = await window.toy!.getQrCode({path: sharePath(logical), size: 320}); setQr(data.base64); }
             catch { notify('二维码暂不可用'); } finally { setBusy(false); }
           }}><QrCode size={19}/></button> : null}
         </div>
       </div>
-      {!inDemo ? <button className="toy-search" onClick={onSearch}><Search size={18}/><span>搜索工具、分类或关键词</span></button> : null}
+      {!inDemo && !inGame ? <button className="toy-search" onClick={onSearch}><Search size={18}/><span>搜索工具、分类或关键词</span></button> : null}
     </header>
     {qr ? <div className="toy-modal-backdrop" onClick={e => {if (e.target === e.currentTarget) close();}}><div className="toy-qr" role="dialog" aria-modal="true" aria-label="当前页面二维码" tabIndex={-1} ref={qrRef}><button className="icon-button" onClick={close} aria-label="关闭二维码"><X size={20}/></button><h2>手机扫码打开</h2><img src={qr} alt="当前 Toy 页面的二维码" width="280" height="280"/></div></div> : null}
   </>;
@@ -65,6 +66,7 @@ export function ToyNav({pathname, search, count}: {pathname: string; search: str
     {label: '首页', href: '/', icon: Home, active: pathname === '/' && !favorites && !category},
     {label: '分类', href: '/categories', icon: Grid2X2, active: pathname === '/categories' || (!favorites && (category || pathname.startsWith('/tools/')))},
     {label: '示例', href: '/demos', icon: Sparkles, active: pathname.startsWith('/demos')},
+    {label:'游戏',href:'/games',icon:Gamepad2,active:pathname.startsWith('/games')},
     {label: '收藏', href: '/?favorites=1', icon: Heart, active: (pathname === '/' || pathname.startsWith('/tools/')) && favorites},
   ];
   return <nav className="toy-nav" aria-label="主导航">{links.map(item => <a key={item.label} href={routeHref(item.href)} aria-current={item.active ? 'page' : undefined}><item.icon size={21}/><span>{item.label}{item.label === '收藏' && count > 0 ? <small>{count}</small> : null}</span></a>)}</nav>;

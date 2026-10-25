@@ -29,5 +29,6 @@
   ],
   "observability": {
     "enabled": true
-  }
+  },
+ "services":[{"binding":"TOY_MODEL","service":"vibe-toy-model"}]
 }

@@ -1,3 +1,4 @@
+import {toyGameFetch,type ToyGameEnv} from './toy-game';
 import {toyLabFetch} from './toy-labs';
 import {publicRequestHost,normalizedPageUrl,type PublicRouting} from './public-request';
 import {visitorStats} from './visitors';
@@ -10,7 +11,7 @@ import {demoAssets} from './demo-assets';
 import {labFetch} from './labs';
 import {matchesEntityTag,parseTool,queryFilters,validMediaKey} from './catalog';
 import type { Catalog,Category,Demo } from '../shared/contracts';
-interface Env extends PublicRouting { DB:D1Database; MEDIA:R2Bucket; ASSETS:Fetcher; PUBLIC_ORIGIN?:string; TOY_ALLOWED_ORIGINS?:string; }
+interface Env extends PublicRouting,ToyGameEnv { DB:D1Database; MEDIA:R2Bucket; ASSETS:Fetcher; PUBLIC_ORIGIN?:string; TOY_ALLOWED_ORIGINS?:string; }
 const security:Record<string,string>={
  'X-Content-Type-Options':'nosniff', 'Referrer-Policy':'strict-origin-when-cross-origin',
  'X-Frame-Options':'DENY','Permissions-Policy':'camera=(), microphone=(), geolocation=()',
@@ -43,6 +44,7 @@ async function snapshot(request:Request,env:Env,ctx:ExecutionContext):Promise<Ca
 async function route(request:Request,env:Env,ctx:ExecutionContext):Promise<Response>{
  const url=new URL(request.url);const path=url.pathname;const origin=env.PUBLIC_ORIGIN||url.origin;
  if(path.length>1&&path.endsWith('/')&&/^\/(tools|demos)(\/|$)/.test(path)){return Response.redirect(normalizedPageUrl(request,env).toString(),308);}
+ if(path.startsWith('/api/toy/game/'))return toyGameFetch(request,env);
  if(path.startsWith('/api/toy/labs/'))return toyLabFetch(request,env);
  if(path==='/api/visitors')return visitorStats(request,env.DB,origin,env.CDN_TEST_ORIGIN?[env.CDN_TEST_ORIGIN]:[]);
  if(request.method!=='GET'&&request.method!=='HEAD'){const response=json({error:'METHOD_NOT_ALLOWED'},405,'no-store');response.headers.set('Allow','GET, HEAD');return response;}
