@@ -6950,3 +6950,6 @@ body, .sidebar, .topbar, .site-footer {
 .home-preview-links span { color: var(--muted); font-size: .78rem; line-height: 1.6; }
 .site-footer__visitors span { font-variant-numeric: tabular-nums; }
 .site-footer__visitors .site-footer__separator { margin: 0 5px; opacity: .5; }
+
+/* Leaflet's pane/control z-indices belong to the map, below dialogs and navigation. */
+.lab-map-leaflet, .lab-leaflet-map { position: relative; z-index: 0; isolation: isolate; }

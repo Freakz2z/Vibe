@@ -286,7 +286,7 @@ export default function ChartJsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       <LabLayout
         controls={
           <>
-            <Segmented<Mode> label="图表配置" value={mode} options={MODES} onChange={setMode} />
+            <div data-lab-actions><Segmented<Mode> label="图表配置" value={mode} options={MODES} onChange={setMode} /></div>
             {mode === 'single' ? (
               <Segmented<'line' | 'bar'> label="几何形状" value={shape} options={[['line', '折线'], ['bar', '柱状']]} onChange={setShape} />
             ) : null}

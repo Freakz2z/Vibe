@@ -320,6 +320,7 @@ export default function X6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
   );
 
   const reset = useCallback(() => {
+    setNodeKind('service');
     setRevision(value => value + 1);
     setSelected(null);
     setSerialized('{}');

@@ -4,7 +4,7 @@
 
 - 标题：Vibe 工具集
 - 预定 slug：`vibe-tools-mobile`（正式提交前仍可调整，发布后不可修改）
-- 验收预览：https://www.bilibili.com/toy/preview/author_5K6JZJhS/index.html
+- 验收预览：https://www.bilibili.com/toy/preview/author_4V6BFy1D/index.html
 - 原站：https://vibe.freakz2z.com/
 
 ## 构建与预览
@@ -83,3 +83,9 @@ toy create dist-toy --title 'Vibe 工具集' --slug vibe-tools-mobile --poster a
 ```
 
 本次未使用 `--yes`。预览上传不等于审核提交；用户验收并明确确认提交后，才按相同目标与参数提交审核。正式提交前重查本机发布记录和线上列表，避免重复创建；已有 Toy 后更新必须保留其 slug。当前封面使用已有品牌图，内容检查只有非阻塞的 4:3 比例建议。
+
+## 全量复核（2026-10-25）
+
+已逐项检查 55 个示例，修复图形可见性、触摸交互、参数恢复、地图弹窗层级和重复进入时的缓存错误。270 次参数操作、220 项 Toy 手机亮暗页面检查、80 项站点浏览器回归通过；额外验证真实服务错误恢复与原生拖动/连接。详情和逐例清单见 [示例逐项复核](SHOWCASE_AUDIT.md)。
+
+当前仍为预览，未提交 Toy 审核；原站没有自动发布这些改动。

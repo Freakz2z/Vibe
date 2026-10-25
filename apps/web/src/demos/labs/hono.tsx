@@ -46,7 +46,9 @@ export default function HonoLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       const requestId = response.headers.get('X-Request-Id') ?? '—';
 
       if (!response.ok) {
-        setStatus({ kind: 'error', message: await response.text(), status: response.status });
+        const message = await response.text();
+        if (controller.signal.aborted) return;
+        setStatus({ kind: 'error', message, status: response.status });
         return;
       }
       const data = (await response.json()) as GreetResponse;
@@ -77,7 +79,7 @@ export default function HonoLab({ onCopy }: { onCopy: DemoCopyHandler }) {
     : '';
 
   return (
-    <Lab title="Hono 路由与中间件" badge={<span className="demo-live-badge">Cloudflare Workers</span>} reset={() => { setName('小明'); setGreeting('你好'); setSubPath('greet'); setStatus(null); }}>
+    <Lab title="Hono 路由与中间件" badge={<span className="demo-live-badge">Cloudflare Workers</span>} reset={() => { controllerRef.current?.abort(); setPending(false); setName('小明'); setGreeting('你好'); setSubPath('greet'); setStatus(null); }}>
       <div className="lab-layout">
         <LabControls className="lab-controls" mode="inline">
           <TextField label="路由参数 name" value={name} onChange={setName} placeholder="路径参数" />

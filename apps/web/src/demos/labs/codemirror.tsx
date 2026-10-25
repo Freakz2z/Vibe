@@ -173,7 +173,7 @@ export default function CodemirrorLab({ onCopy }: { onCopy: DemoCopyHandler }) {
         highlightSelectionMatches(),
         search({ top: true }),
         keymap.of([...closeBracketsKeymap, ...defaultKeymap, ...searchKeymap, ...historyKeymap, ...foldKeymap, ...completionKeymap, indentWithTab]),
-        wrapBox.current.of(EditorView.lineWrapping),
+        wrapBox.current.of(wrap ? EditorView.lineWrapping : []),
         EditorView.updateListener.of((update) => {
           if (update.docChanged || update.selectionSet) setStats(measure(update.view));
         }),
@@ -305,7 +305,7 @@ export default function CodemirrorLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   );
 
   return (
-    <Lab title="CodeMirror 6 扩展体系" badge={<span className="demo-live-badge">CodeMirror 6</span>} reset={() => setNonce((n) => n + 1)}>
+    <Lab title="CodeMirror 6 扩展体系" badge={<span className="demo-live-badge">CodeMirror 6</span>} reset={() => {setLang('javascript'); setWrap(!IS_TOY); setHits([]); setError(''); setNonce(n => n + 1);}}>
       <LabLayout
         controls={
           <>

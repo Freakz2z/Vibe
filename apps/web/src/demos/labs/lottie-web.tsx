@@ -108,8 +108,8 @@ function prop(frames: KeyFrame[]): Record<string, unknown> {
 /* Shape helpers                                                       */
 /* ------------------------------------------------------------------ */
 
-const stroke = (color: number[], width: number) => ({ ty: 'st', c: solid(color), o: solid(100), w: solid(width), lc: 2, lj: 2 });
-const fill = (color: number[], opacity = 100) => ({ ty: 'fl', c: solid(color), o: solid(opacity), r: 1 });
+const stroke = (color: number[], width: number) => ({ ty: 'st', c: solid(color.slice(0, 3)), o: solid(100 * (color[3] ?? 1)), w: solid(width), lc: 2, lj: 2 });
+const fill = (color: number[], opacity = 100) => ({ ty: 'fl', c: solid(color.slice(0, 3)), o: solid(opacity * (color[3] ?? 1)), r: 1 });
 const ellipse = (size: number[], pos: number[] = [0, 0]) => ({ ty: 'el', p: solid(pos), s: solid(size) });
 const rect = (size: number[], pos: number[], radius = 0) => ({ ty: 'rc', p: solid(pos), s: solid(size), r: solid(radius) });
 const polyline = (points: number[][]) => ({
@@ -175,8 +175,8 @@ function orbitalFrames(cx: number, cy: number, radius: number, angles: number[],
     return {
       t: F(from + (to - from) * (index / (angles.length - 1))),
       s: [Math.round(px * 100) / 100, Math.round(py * 100) / 100],
-      to: [px + tx * k, py + ty * k],
-      ti: [px - tx * k, py - ty * k],
+      to: [tx * k, ty * k],
+      ti: [-tx * k, -ty * k],
     };
   });
 }
@@ -353,7 +353,7 @@ function buildAnimation(frameRate: number, colors: Record<string, string>): Lott
   const bars = shapeLayer(
     4,
     'bars',
-    layerKs({ o: solid(100) }),
+    layerKs({ o: solid(100), p: solid([0, 0]) }),
     barHeights.map((h, index) => {
       const from = barStarts[index];
       const tilt = barTilts[index];
@@ -515,6 +515,7 @@ export default function LottieWebLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   const speedRef = useRef(1);
 
   const [frameRate, setFrameRate] = useState(30);
+  const [revision, setRevision] = useState(0);
   const [speed, setSpeed] = useState(1);
   const [loop, setLoop] = useState(true);
   const [frame, setFrame] = useState(0);
@@ -545,7 +546,7 @@ export default function LottieWebLab({ onCopy }: { onCopy: DemoCopyHandler }) {
         container,
         renderer: 'svg',
         loop,
-        autoplay: motionOk,
+        autoplay: motionOk && revision === 0,
         animationData: JSON.parse(JSON.stringify(animationData)),
         rendererSettings: { preserveAspectRatio: 'xMidYMid meet' },
       });
@@ -560,7 +561,7 @@ export default function LottieWebLab({ onCopy }: { onCopy: DemoCopyHandler }) {
     anim.setSpeed(speedRef.current);
     setFrame(0);
     setTotalFrames(op);
-    setPaused(motionOk ? false : true);
+    setPaused(!(motionOk && revision === 0));
 
     const onEnter = (event: { currentTime: number; totalTime: number }) => {
       setFrame(Math.round(event.currentTime + segmentStartRef.current));
@@ -576,12 +577,12 @@ export default function LottieWebLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       animRef.current = null;
       container.innerHTML = '';
     };
-  }, [animationData, loop, motionOk]);
+  }, [animationData, motionOk, revision]);
 
   useEffect(() => {
     const anim = animRef.current;
-    if (anim) anim.setSpeed(speed);
-  }, [speed]);
+    if (anim) {anim.setSpeed(speed); anim.loop = loop;}
+  }, [speed, loop]);
 
   const jumpTo = useCallback((target: number) => {
     const anim = animRef.current;
@@ -653,6 +654,7 @@ export default function LottieWebLab({ onCopy }: { onCopy: DemoCopyHandler }) {
         setSpeed(1);
         setLoop(true);
         setSegment('stroke');
+        setRevision(n => n + 1);
         jumpTo(0);
       }}
     >

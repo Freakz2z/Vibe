@@ -179,3 +179,16 @@
 .toy-shell .lab-stats[data-toy-columns="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .toy-shell .toy-control-feedback .lab-g6-detail { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px 10px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; }
 .toy-shell .toy-control-feedback .lab-g6-detail strong { grid-column: 1/-1; }
+
+/* Primary demonstration controls stay next to the result; secondary settings use the dialog. */
+.toy-shell .toy-quick-actions:has(> [data-lab-actions]) { width: 100%; flex-basis: 100%; gap: 12px; }
+.toy-shell .toy-quick-actions > [data-lab-actions] { width: 100%; }
+.toy-shell .toy-quick-actions .range-field { display: flex; flex-direction: column; gap: 8px; }
+.toy-shell .lab-recharts-main { height: 260px; }
+.toy-shell .lab-recharts-brush { height: 96px; }
+.toy-shell .lab-matter-viewport { height: auto; aspect-ratio: 4 / 3; }
+
+.toy-shell .lab-stats > [data-format="number"] strong { white-space: nowrap; font-size: clamp(16px, 4.2vw, 23px); }
+@media (max-width: 360px) { .toy-shell .lab-stats[data-toy-columns="3"] { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.toy-shell .lab-stats[data-toy-columns="2"] > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+@media (max-width: 360px) { .toy-shell .lab-stats[data-toy-columns="3"] > :last-child:nth-child(odd) { grid-column: 1 / -1; } }

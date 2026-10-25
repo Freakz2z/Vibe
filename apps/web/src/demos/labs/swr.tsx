@@ -1,6 +1,6 @@
 import { apiUrl } from '../../lib/runtime';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import useSWR from 'swr';
+import useSWR, { SWRConfig } from 'swr';
 import type { DemoCopyHandler } from '../types';
 import {
   Code,
@@ -54,6 +54,13 @@ function buildUrl(key: string, delay: number, fail: boolean): string {
  * 请求计数器在每次真实响应到达时 +1。
  */
 export default function SwrLab({ onCopy }: { onCopy: DemoCopyHandler }) {
+  // Each visit owns its cache. An aborted request from an unmounted demo must
+  // not become the next visit's initial cached error.
+  const config = useMemo(() => ({ provider: () => new Map() }), []);
+  return <SWRConfig value={config}><SwrSession onCopy={onCopy} /></SWRConfig>;
+}
+
+function SwrSession({ onCopy }: { onCopy: DemoCopyHandler }) {
   const [key, setKey] = useState('alpha');
   const [delay, setDelay] = useState('900');
   const [fail, setFail] = useState(false);
@@ -100,6 +107,7 @@ export default function SwrLab({ onCopy }: { onCopy: DemoCopyHandler }) {
     revalidateOnFocus: true,
     revalidateOnReconnect: false,
     dedupingInterval: 0,
+    shouldRetryOnError: false,
   });
 
   // 真实的焦点事件：SWR 的 revalidateOnFocus 就是被它触发的。
@@ -134,7 +142,8 @@ export default function SwrLab({ onCopy }: { onCopy: DemoCopyHandler }) {
         `  {`,
         `    keepPreviousData: true,   // 切 key 时保留旧数据，不闪空白`,
         `    revalidateOnFocus: true,   // 窗口重新获得焦点时自动重新验证`,
-        `    dedupingInterval: 0,       // 关掉去重窗口，方便看清每一次真实请求`,
+        `    dedupingInterval: 0,
+    shouldRetryOnError: false,       // 关掉去重窗口，方便看清每一次真实请求`,
         `  },`,
         `);`,
         '',
@@ -158,7 +167,7 @@ export default function SwrLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   );
 
   return (
-    <Lab title="SWR 陈旧数据重验证" badge={<span className="demo-live-badge">swr 2.2.5</span>} reset={() => void mutate()}>
+    <Lab title="SWR 陈旧数据重验证" badge={<span className="demo-live-badge">swr 2.2.5</span>} reset={() => {controllersRef.current.forEach(c => c.abort()); setKey('alpha'); setDelay('900'); setFail(false); setFocusPulse(0); setLogs([]); if (key === 'alpha' && delay === '900' && !fail) void mutate(undefined, {revalidate: true});}}>
       <LabLayout
         layout="toolbar"
         controls={

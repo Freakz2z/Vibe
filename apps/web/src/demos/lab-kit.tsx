@@ -267,7 +267,7 @@ export function Status({ children, tone }: { children: ReactNode; tone?: 'ok' | 
 
 function isTextStat(value: ReactNode, format: 'auto' | 'number' | 'text' = 'auto') {
   return format === 'text' || (format === 'auto' && (typeof value === 'string'
-    ? value.length > 14 || (!/\d/.test(value) && !/^[—–-]$/.test(value))
+    ? !(/^[+-]?[\d.,]+(?:\s*(?:ms|s|KB|B|%|元|秒|天|个|条|万|亿))?$/.test(value) || /^[—–-]$/.test(value))
     : typeof value !== 'number'));
 }
 
@@ -284,7 +284,8 @@ export function Stat({ label, value, format = 'auto' }: { label: string; value: 
 
 export function Stats({ children }: { children: ReactNode }) {
   const numeric = Children.toArray(children).filter(child => isValidElement<{value: ReactNode; format?: 'auto' | 'number' | 'text'}>(child) && child.type === Stat && !isTextStat(child.props.value, child.props.format)).length;
-  const columns = numeric <= 1 ? 1 : numeric === 3 || numeric === 6 ? 3 : 2;
+  const longNumber = Children.toArray(children).some(child => isValidElement<{value: ReactNode}>(child) && child.type === Stat && String(child.props.value).length > 5);
+  const columns = numeric <= 1 ? 1 : !longNumber && (numeric === 3 || numeric === 6) ? 3 : 2;
   return <div className="lab-stats" data-toy-columns={IS_TOY ? columns : undefined}>{children}</div>;
 }
 

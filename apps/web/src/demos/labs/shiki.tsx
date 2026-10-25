@@ -168,7 +168,7 @@ const html = highlighter.codeToHtml(code, { lang: '${lang}', theme: '${theme}' }
 highlighter.dispose();`;
 
   return (
-    <Lab title="Shiki 语法高亮（JS 正则引擎）" badge={<span className="demo-live-badge">Shiki 1.24</span>} reset={() => setCode(SAMPLE[lang])}>
+    <Lab title="Shiki 语法高亮（JS 正则引擎）" badge={<span className="demo-live-badge">Shiki 1.24</span>} reset={() => {setLang('javascript'); setThemeChoice('auto'); setCode(SAMPLE.javascript); setRenderError('');}}>
       <LabControls className="lab-config lab-config--pair">
         <p className="demo-caption">
           用 <code>createHighlighterCore</code> + <code>createJavaScriptRegexEngine()</code>，全程不加载 WASM。

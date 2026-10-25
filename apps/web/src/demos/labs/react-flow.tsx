@@ -1,3 +1,4 @@
+import { IS_TOY } from '../../lib/runtime';
 import { useCallback, useMemo, useState } from 'react';
 import {
   Background,
@@ -51,7 +52,7 @@ function makeNodes(): StageNode[] {
   return STAGES.map((s, i) => ({
     id: s.id,
     type: 'stage',
-    position: { x: (i % 4) * 210 + 20, y: Math.floor(i / 4) * 120 + 20 },
+    position: IS_TOY ? {x: (i % 2) * 210 + 20, y: Math.floor(i / 2) * 120 + 20} : { x: (i % 4) * 210 + 20, y: Math.floor(i / 4) * 120 + 20 },
     data: { label: s.label, stage: s.stage },
   }));
 }
@@ -244,13 +245,14 @@ export default function ReactFlowLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             onConnect={onConnect}
             defaultEdgeOptions={{ style: { stroke: line, strokeWidth: 2 } }}
             fitView
+            fitViewOptions={{ minZoom: IS_TOY ? 0.65 : 0.3, maxZoom: 1, padding: 0.15 }}
             proOptions={{ hideAttribution: false }}
             nodesDraggable
             nodesConnectable
           >
             <Background gap={16} color={line} />
             <Controls showInteractive={false} />
-            <MiniMap pannable zoomable nodeColor={() => accent} maskColor={soft} style={{ background: surface }} />
+            {!IS_TOY ? <MiniMap pannable zoomable nodeColor={() => accent} maskColor={soft} style={{ background: surface }} /> : null}
           </ReactFlow>
         </div>
         <p className="lab-mermaid-note" style={{ color: muted, marginTop: 12 }}>

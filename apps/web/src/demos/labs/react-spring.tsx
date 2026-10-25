@@ -1,5 +1,5 @@
 import { LabControls } from '../lab-kit';
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { animated, useSpring, useSprings } from '@react-spring/web';
 import type { DemoCopyHandler } from '../types';
 import { Code, Lab, Range, Status, useMotionOk } from '../lab-kit';
@@ -13,17 +13,26 @@ interface BallProps {
 }
 
 function Ball({ tension, friction, motionOk }: BallProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [distance, setDistance] = useState(40);
+  useEffect(() => {
+    const ball = ref.current, track = ball?.parentElement;
+    if (!ball || !track) return;
+    const measure = () => setDistance(Math.max(0, Math.min(90, (track.clientWidth - ball.offsetWidth) / 2 - 8)));
+    const observer = new ResizeObserver(measure); observer.observe(track); measure();
+    return () => observer.disconnect();
+  }, []);
   const [style, api] = useSpring({
-    from: { x: -78, scale: 0.72, rotate: -18 },
-    to: { x: 78, scale: 1, rotate: 0 },
+    from: { x: -distance, scale: 0.72, rotate: -18 },
+    to: { x: 0, scale: 1, rotate: 0 },
     config: { tension, friction },
     immediate: !motionOk,
-  }, [tension, friction, motionOk]);
+  }, [tension, friction, motionOk, distance]);
 
   const replay = () => {
     void api.start({
-      from: { x: -78, scale: 0.72, rotate: -18 },
-      to: { x: 78, scale: 1, rotate: 0 },
+      from: { x: -distance, scale: 0.72, rotate: -18 },
+      to: { x: 0, scale: 1, rotate: 0 },
       reset: true,
       config: { tension, friction },
       immediate: !motionOk,
@@ -32,6 +41,7 @@ function Ball({ tension, friction, motionOk }: BallProps) {
 
   return (
     <animated.div
+      ref={ref}
       className="lab-spring-ball"
       style={style as unknown as CSSProperties}
       onClick={replay}
@@ -75,8 +85,8 @@ export default function ReactSpringLab({ onCopy }: { onCopy: DemoCopyHandler }) 
         '',
         `// 单个弹簧：from -> to，config 直接决定阻尼曲线`,
         `const [style, api] = useSpring({`,
-        `  from: { x: -78, scale: 0.72, rotate: -18 },`,
-        `  to:   { x:  78, scale: 1,    rotate: 0 },`,
+        `  from: { x: -distance, scale: 0.72, rotate: -18 },`,
+        `  to:   { x: 0, scale: 1, rotate: 0 },`,
         `  config: { tension: ${tension}, friction: ${friction} },`,
         `});`,
         ``,

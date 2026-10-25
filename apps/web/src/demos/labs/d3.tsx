@@ -17,7 +17,6 @@ const DATASETS: readonly (readonly [DatasetKey, string])[] = [
   ['all', '全渠道合计'],
 ];
 
-const WIDTH = 720;
 const HEIGHT = 330;
 const MARGIN = { top: 18, right: 16, bottom: 44, left: 56 };
 
@@ -54,6 +53,14 @@ export default function D3Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
   const motionOk = useMotionOk();
   const colors = useThemeColors();
   const svgRef = useRef<SVGSVGElement>(null);
+  const [width, setWidth] = useState(720);
+  useEffect(() => {
+    const host = svgRef.current?.parentElement;
+    if (!host) return;
+    const measure = () => setWidth(Math.max(220, Math.floor(host.clientWidth)));
+    const observer = new ResizeObserver(measure); observer.observe(host); measure();
+    return () => observer.disconnect();
+  }, []);
   const [dataset, setDataset] = useState<DatasetKey>('east');
   const [counts, setCounts] = useState({ enter: 0, update: 0, exit: 0 });
   const [error, setError] = useState<string | null>(null);
@@ -82,7 +89,7 @@ export default function D3Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
       root.append('g').attr('class', 'd3-axis-x').attr('transform', `translate(${MARGIN.left},${HEIGHT - MARGIN.bottom})`);
       root.append('g').attr('class', 'd3-bars').attr('transform', `translate(${MARGIN.left},${MARGIN.top})`);
       root.append('g').attr('class', 'd3-labels').attr('transform', `translate(${MARGIN.left},${MARGIN.top})`);
-      root.selectAll('.d3-axis text').attr('fill', muted);
+      root.selectAll('.d3-axis-x text, .d3-axis-y text').attr('fill', muted).attr('font-size', 11);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     }
@@ -92,7 +99,7 @@ export default function D3Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
-    const inner = { w: WIDTH - MARGIN.left - MARGIN.right, h: HEIGHT - MARGIN.top - MARGIN.bottom };
+    const inner = { w: width - MARGIN.left - MARGIN.right, h: HEIGHT - MARGIN.top - MARGIN.bottom };
     const root = d3.select(svg);
 
     const x = d3.scaleBand<string>().domain(rows.map((d) => d.id)).range([0, inner.w]).padding(0.24);
@@ -121,11 +128,11 @@ export default function D3Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
         .attr('font-size', 11)
         .attr('fill', muted)
         .attr('y', (d) => Math.max(11, y(d.value) - 6))
-        .text((d) => d.label);
+        .text((d) => d.value);
     };
 
     const yAxis = d3.axisLeft(y).ticks(5).tickSize(-inner.w).tickFormat((v) => String(v));
-    const xAxis = d3.axisBottom(x).tickSize(0);
+    const xAxis = d3.axisBottom(x).tickSize(0).tickFormat(id => rows.find(d => d.id === id)?.label || id);
     const grid = d3.axisLeft(y).ticks(5).tickSize(-inner.w).tickFormat(() => '');
 
     root.select<SVGGElement>('g.d3-grid').call(grid);
@@ -136,7 +143,7 @@ export default function D3Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
     root.select<SVGGElement>('g.d3-axis-y').selectAll('path.domain').attr('stroke', line);
     root.select<SVGGElement>('g.d3-axis-x').call(xAxis);
     root.select<SVGGElement>('g.d3-axis-x').selectAll('path.domain').attr('stroke', line);
-    root.selectAll('.d3-axis text').attr('fill', muted);
+    root.selectAll('.d3-axis-x text, .d3-axis-y text').attr('fill', muted).attr('font-size', 11);
 
     // ---- the classic keyed data join ----
     const groups = root.select<SVGGElement>('g.d3-bars');
@@ -167,7 +174,7 @@ export default function D3Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
     }
 
     setCounts({ enter: enterCount, update: merged.size() - enterCount, exit: exitCount });
-  }, [rows, motionOk, line, muted, accent]);
+  }, [rows, motionOk, line, muted, accent, width]);
 
   const snippet = useMemo(
     () =>
@@ -212,7 +219,7 @@ export default function D3Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
       <LabLayout
         controls={
           <>
-            <Segmented<DatasetKey> label="数据集" value={dataset} options={DATASETS} onChange={setDataset} />
+            <div data-lab-actions><Segmented<DatasetKey> label="数据集" value={dataset} options={DATASETS} onChange={setDataset} /></div>
             <Status>
               切换数据集时带 <code>key 函数</code> 的 <code>data()</code> 会真正触发 enter / update / exit。
             </Status>
@@ -224,7 +231,7 @@ export default function D3Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
         <div className="lab-d3-host">
           <svg
             ref={svgRef}
-            viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+            viewBox={`0 0 ${width} ${HEIGHT}`}
             role="img"
             aria-label="D3 数据连接柱状图"
             style={{ borderRadius: 12, background: colors.surface ?? 'transparent', border: `1px solid ${soft}` }}

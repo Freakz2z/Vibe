@@ -38,6 +38,8 @@ export default function MoveableLab({ onCopy }: { onCopy: DemoCopyHandler }) {
 
   const reset = useCallback(() => {
     setBox(INITIAL);
+    setDraggable(true); setResizable(true); setRotatable(true);
+    setSnap(true); setUseGuidelines(true); setGrid(20);
     setLastEvent('已重置');
     requestAnimationFrame(() => moveableRef.current?.updateRect());
   }, []);

@@ -60,7 +60,7 @@ export default function KatexLab({ onCopy }: { onCopy: DemoCopyHandler }) {
     <Lab
       title="KaTeX 数学排版"
       badge={<span className="demo-live-badge">KaTeX {katex.version}</span>}
-      reset={() => setTex(DEFAULT_TEX)}
+      reset={() => {setTex(DEFAULT_TEX); setDisplayMode(true);}}
     >
       <LabLayout
         layout="editor"

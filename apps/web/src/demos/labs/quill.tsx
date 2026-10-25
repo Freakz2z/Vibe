@@ -199,7 +199,12 @@ export default function QuillLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   const empty = ops.length <= 1 && ops.every((op) => op.insert === '\n');
 
   return (
-    <Lab title="Quill Delta 文档模型" badge={<span className="demo-live-badge">Quill 2.0</span>}>
+    <Lab title="Quill Delta 文档模型" badge={<span className="demo-live-badge">Quill 2.0</span>} reset={() => {
+      const quill = quillRef.current;
+      if (!quill) return;
+      quill.setContents(SEED_DELTA, 'silent'); quill.history.clear();
+      setContents(quill.getContents()); setLog([]); seqRef.current = 0; setError('');
+    }}>
       <LabLayout
         controls={
           <>

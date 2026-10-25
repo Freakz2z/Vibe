@@ -30,8 +30,8 @@ interface ShapeState {
   size: number;
 }
 
-const DEFAULT_A: ShapeState = { kind: 'circle', x: 240, y: 150, size: 150 };
-const DEFAULT_B: ShapeState = { kind: 'rect', x: 400, y: 200, size: 170 };
+const DEFAULT_A: ShapeState = { kind: 'circle', x: 265, y: 160, size: 190 };
+const DEFAULT_B: ShapeState = { kind: 'rect', x: 355, y: 190, size: 200 };
 
 function makeShape(scope: paper.PaperScope, state: ShapeState): paper.PathItem {
   const center = new scope.Point(state.x, state.y);
@@ -215,7 +215,7 @@ export default function PaperjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
     >
       <div className="lab-layout">
         <LabControls className="lab-controls">
-          <Select<Op> label="布尔运算" value={op} options={OP_OPTIONS} onChange={setOp} />
+          <div data-lab-actions><Select<Op> label="布尔运算" value={op} options={OP_OPTIONS} onChange={setOp} /></div>
           <Select<Kind> label="形状 A 类型" value={a.kind} options={KIND_OPTIONS} onChange={(v) => setA((p) => ({ ...p, kind: v }))} />
           <Range label="形状 A 大小" value={a.size} min={40} max={280} step={5} unit=" px" onChange={(v) => setA((p) => ({ ...p, size: v }))} />
           <Select<Kind> label="形状 B 类型" value={b.kind} options={KIND_OPTIONS} onChange={(v) => setB((p) => ({ ...p, kind: v }))} />

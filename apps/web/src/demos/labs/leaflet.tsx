@@ -378,10 +378,16 @@ export default function LeafletLab({ onCopy }: { onCopy: DemoCopyHandler }) {
 
   const reset = useCallback(() => {
     setContinent('全部');
-    mapRef.current?.setView([15, 10], 1);
+    const map = mapRef.current;
+    if (map) {
+      map.stop(); map.closePopup();
+      const bounds = data ? collectionBounds(data.features) : null;
+      if (bounds) map.fitBounds(bounds, { padding: [10, 10], animate: false });
+      else map.setView([15, 10], 1, { animate: false });
+    }
     setSelected(null);
     showVariant('continent');
-  }, [showVariant]);
+  }, [showVariant, data]);
 
   const changeZoom = (value: number) => mapRef.current?.setZoom(value);
 

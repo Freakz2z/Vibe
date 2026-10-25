@@ -231,6 +231,7 @@ function Surface({ history, onChange, onError }: { history: HistoryState; onChan
 export default function LexicalLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   const history = useRef<HistoryState>(createEmptyHistoryState()).current;
   const [tick, setTick] = useState(0);
+  const [revision, setRevision] = useState(0);
   const [error, setError] = useState('');
   const [currentState, setCurrentState] = useState<EditorState | null>(null);
 
@@ -292,7 +293,10 @@ export default function LexicalLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   );
 
   return (
-    <Lab title="Lexical 不可变状态与历史栈" badge={<span className="demo-live-badge">Lexical 0.21</span>}>
+    <Lab title="Lexical 不可变状态与历史栈" badge={<span className="demo-live-badge">Lexical 0.21</span>} reset={() => {
+      history.undoStack.length = 0; history.redoStack.length = 0; history.current = null;
+      setError(''); setCurrentState(null); setRevision(n => n + 1);
+    }}>
       <LabLayout
         controls={
           <>
@@ -311,7 +315,7 @@ export default function LexicalLab({ onCopy }: { onCopy: DemoCopyHandler }) {
         }
       >
         <Stage>
-          <LexicalComposer initialConfig={initialConfig}>
+          <LexicalComposer key={revision} initialConfig={initialConfig}>
             <Surface history={history} onChange={refresh} onError={setError} />
           </LexicalComposer>
         </Stage>

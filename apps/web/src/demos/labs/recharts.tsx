@@ -115,7 +115,7 @@ export default function RechartsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       <LabLayout
         controls={
           <>
-            <Segmented<Metric> label="副轴指标" value={metric} options={METRICS} onChange={setMetric} />
+            <div data-lab-actions><Segmented<Metric> label="副轴指标" value={metric} options={METRICS} onChange={setMetric} /></div>
             <Range
               label="区间起点"
               value={range.start}
@@ -132,7 +132,7 @@ export default function RechartsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
         }
       >
         <div className="lab-recharts-main">
-          <ResponsiveContainer width="100%" height={230}>
+          <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={subset} margin={{ top: 12, right: 12, left: 0, bottom: 4 }}>
               <CartesianGrid stroke={line} strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="name" stroke={muted} tick={{ fontSize: 11 }} minTickGap={14} />
@@ -155,11 +155,12 @@ export default function RechartsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
         </div>
 
         <div className="lab-recharts-brush">
-          <ResponsiveContainer width="100%" height={92}>
+          <ResponsiveContainer width="100%" height="100%">
             <LineChart data={rows} margin={{ top: 4, right: 12, left: 0, bottom: 0 }}>
               <XAxis dataKey="name" hide />
               <YAxis hide />
               <Tooltip contentStyle={tooltipStyle} />
+              <Line dataKey="views" stroke={accent} dot={false} isAnimationActive={false} strokeWidth={1.4} />
               <Brush
                 dataKey="name"
                 height={38}

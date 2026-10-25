@@ -461,14 +461,50 @@ SDK_CLAIMS.gsap.run=async page=>{
  const paused=Number(await slider.getAttribute('aria-valuenow'));expect(paused).toBeLessThan(80);await page.waitForTimeout(200);expect(Number(await slider.getAttribute('aria-valuenow'))).toBe(paused);
  await expect(page.locator('.lab-scrub__time')).toContainText('/ 4.00s');await page.getByRole('button',{name:'重置',exact:true}).click();await expect(slider).toHaveAttribute('aria-valuenow','0');
 };
-SDK_CLAIMS.motion.run=async page=>{await page.locator('.lab-motion-card').filter({hasText:'版式共享'}).click();await expect(page.locator('.lab-motion-tray__label')).toContainText('版式共享');};
+SDK_CLAIMS.motion.run=async page=>{
+  await page.getByRole('button',{name:'选择珊瑚',exact:true}).click();
+  await expect(page.locator('.lab-motion-target [data-motion-item="coral"]')).toBeVisible();
+  await page.getByRole('button',{name:'收回卡片',exact:true}).click();
+  await expect(page.locator('.lab-motion-target [data-motion-item]')).toHaveCount(0);
+  await page.getByRole('button',{name:'增删与重排',exact:true}).click();
+  await page.getByRole('button',{name:'移除卡片 01',exact:true}).click();
+  await expect(page.locator('[data-motion-exit-card="1"]')).toHaveCount(0);
+};
 SDK_CLAIMS.paperjs.run=async page=>{const before=await stat(page,'结果').innerText();await page.getByLabel('布尔运算',{exact:true}).selectOption('intersect');await expect(stat(page,'结果')).not.toHaveText(before);};
 SDK_CLAIMS['lottie-web'].run=async page=>{const svg=page.locator('.lab-lottie-canvas svg');await expect(svg).toBeVisible();await range(page,'当前帧',20);const before=await svg.innerHTML();await range(page,'当前帧',100);await expect.poll(()=>svg.innerHTML()).not.toBe(before);await expect(stat(page,'图层数')).toHaveText('6');};
 SDK_CLAIMS.swiper.run=async page=>{const active=page.locator('.swiper-slide-active');const before=await active.getAttribute('data-swiper-slide-index')??await active.innerText();await page.locator('.swiper').evaluate(el=>{const next=el as HTMLElement&{swiper:{slideNext:()=>void}};next.swiper.slideNext();});await expect.poll(async()=>await active.getAttribute('data-swiper-slide-index')??await active.innerText()).not.toBe(before);};
 SDK_CLAIMS['auto-animate'].run=async page=>{const before=await stat(page,'数据条数').innerText();await page.getByRole('button',{name:/添加/}).first().click();await expect(stat(page,'数据条数')).not.toHaveText(before);};
 SDK_CLAIMS.remark.run=async page=>{await expect(page.locator('.lab-error')).toHaveCount(0);await page.getByLabel('Markdown 源码',{exact:true}).fill('# 管线验证\n\n[测试](https://example.com)');await expect(page.locator('.lab-remark__out')).toContainText('管线验证 ✎');await expect(page.locator('.demo-workspace')).toContainText('https://example.com');};
-SDK_CLAIMS.matterjs.run=async page=>{await expect(stat(page,'动态刚体')).toHaveText('24');await page.getByRole('button',{name:'堆叠方块',exact:true}).click();await expect(stat(page,'动态刚体')).toHaveText('48');await page.getByRole('button',{name:'清空',exact:true}).click();await expect(stat(page,'动态刚体')).toHaveText('0');};
-SDK_CLAIMS.threejs.run=async page=>{await expect(page.locator('.lab-three-viewport')).toHaveAttribute('data-rendered-instances','1400');await range(page,'实例数量',500);await expect(page.locator('.lab-three-viewport')).toHaveAttribute('data-rendered-instances','500');};
+SDK_CLAIMS.matterjs.run=async page=>{
+  await expect(stat(page,'动态刚体')).toHaveText('24');
+  await page.getByRole('button',{name:'暂停仿真',exact:true}).click();
+  const canvas = page.locator('.lab-matter-canvas');
+  const initial = await canvas.evaluate(el => (el as HTMLCanvasElement).toDataURL());
+  await page.getByRole('button',{name:'堆叠方块',exact:true}).click();
+  await expect(stat(page,'动态刚体')).toHaveText('48');
+  await page.getByRole('button',{name:'清空',exact:true}).click();
+  await expect(stat(page,'动态刚体')).toHaveText('0');
+  // The composite bodies must actually be painted, not just counted.
+  expect(await canvas.evaluate(el => (el as HTMLCanvasElement).toDataURL())).not.toBe(initial);
+  await page.getByRole('button',{name:'重置',exact:true}).click();
+  await expect(stat(page,'动态刚体')).toHaveText('24');
+};
+SDK_CLAIMS.moveable.run=async page=>{
+  for(const name of ['拖动','缩放','旋转','网格吸附','元素参考线']) await page.getByLabel(name,{exact:true}).uncheck();
+  await range(page,'吸附网格',25);
+  await page.getByRole('button',{name:'重置',exact:true}).click();
+  for(const name of ['拖动','缩放','旋转','网格吸附','元素参考线']) await expect(page.getByLabel(name,{exact:true})).toBeChecked();
+  await expect(page.getByLabel('吸附网格',{exact:true})).toHaveValue('20');
+};
+SDK_CLAIMS.x6.run=async page=>{
+  await page.getByLabel('新增节点类型',{exact:true}).selectOption('db');
+  await page.getByRole('button',{name:'新增节点',exact:true}).click();
+  await expect(stat(page,'节点')).toHaveText('5');
+  await page.getByRole('button',{name:'重置',exact:true}).click();
+  await expect(stat(page,'节点')).toHaveText('4');
+  await expect(page.getByLabel('新增节点类型',{exact:true})).toHaveValue('service');
+};
+SDK_CLAIMS.threejs.run=async page=>{await expect(page.locator('.lab-three-viewport')).toHaveAttribute('data-rendered-instances','1000');await range(page,'实例数量',500);await expect(page.locator('.lab-three-viewport')).toHaveAttribute('data-rendered-instances','500');await expect(page.locator('.lab-three-viewport')).toHaveAttribute('data-draw-calls','1');};
 SDK_CLAIMS.pixijs.run=async page=>{await expect(page.locator('.lab-pixi-viewport canvas')).toBeVisible();await expect(page.locator('.lab-error')).toHaveCount(0);await range(page,'精灵数量',1200);await expect(stat(page,'精灵')).toHaveText('1,200');};
 SDK_CLAIMS.recharts.run=async page=>{await expect(page.locator('.recharts-bar-rectangle').first()).toBeVisible();await range(page,'区间起点',20);await expect(stat(page,'区间条数')).toHaveText('20');await page.getByRole('button',{name:'仅金额',exact:true}).click();await expect(page.locator('.recharts-area-curve')).toBeVisible();};
 SDK_CLAIMS.echarts.run=async page=>{await expect(stat(page,'窗口内样本')).toHaveText('45 天');await range(page,'dataZoom 起点',50);await expect.poll(async()=>parseInt(await stat(page,'窗口内样本').innerText())).toBeLessThan(30);await page.getByRole('button',{name:'重置',exact:true}).click();await expect(stat(page,'窗口内样本')).toHaveText('45 天');await page.getByRole('button',{name:'对齐峰值窗口',exact:true}).click();await expect.poll(async()=>parseInt(await stat(page,'窗口内样本').innerText())).toBeLessThan(20);};

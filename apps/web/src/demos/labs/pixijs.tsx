@@ -18,7 +18,7 @@ const BLENDS: readonly (readonly [Blend, string])[] = [
 const MAX_SPRITES = 12000;
 
 /** Radial dot drawn on an offscreen canvas — no external asset, no network. */
-function makeDotTexture(variant: number, accent: string): Texture {
+function makeDotTexture(variant: number): Texture {
   const canvas = document.createElement('canvas');
   canvas.width = 64;
   canvas.height = 64;
@@ -26,15 +26,20 @@ function makeDotTexture(variant: number, accent: string): Texture {
   const source = new CanvasSource({ resource: canvas, antialias: true, scaleMode: 'linear' });
   if (!ctx) return new Texture({ source });
   ctx.clearRect(0, 0, 64, 64);
-  const g = ctx.createRadialGradient(32, 32, 1, 32, 32, 31);
-  g.addColorStop(0, accent);
-  g.addColorStop(0.5, accent);
-  g.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.globalAlpha = 0.5 + variant * 0.09;
-  ctx.fillStyle = g;
+  ctx.fillStyle = '#fff';
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 6;
   ctx.beginPath();
-  ctx.arc(32, 32, 31, 0, Math.PI * 2);
-  ctx.fill();
+  if (variant % 3 === 0) { ctx.arc(32, 32, 23, 0, Math.PI * 2); ctx.fill(); }
+  else if (variant % 3 === 1) { ctx.arc(32, 32, 23, 0, Math.PI * 2); ctx.stroke(); }
+  else {
+    for (let i = 0; i < 10; i++) {
+      const r = i % 2 ? 11 : 28, a = i * Math.PI / 5 - Math.PI / 2;
+      const x = 32 + Math.cos(a) * r, y = 32 + Math.sin(a) * r;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.closePath(); ctx.fill();
+  }
   return new Texture({ source });
 }
 
@@ -46,8 +51,8 @@ export default function PixijsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   const appRef = useRef<Application | null>(null);
   const frameRef = useRef({ ms: 16.7, tick: 0 });
 
-  const [count, setCount] = useState(3000);
-  const [textureCount, setTextureCount] = useState(1);
+  const [count, setCount] = useState(1500);
+  const [textureCount, setTextureCount] = useState(3);
   const [blend, setBlend] = useState<Blend>('normal');
   const [appToken, setAppToken] = useState(0);
   const [frameMs, setFrameMs] = useState(16.7);
@@ -77,14 +82,14 @@ export default function PixijsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       if (destroyed || !initialised) return;
       destroyed = true;
       if (appRef.current === app) appRef.current = null;
-      app.destroy(true, { children: true, texture: true, textureSource: true });
+      app.destroy(true, { children: true });
     };
 
     void (async () => {
       try {
         await app.init({
           resizeTo: host,
-          backgroundColor: surface,
+          backgroundColor: 0x101a33,
           antialias: true,
           preference: 'webgl',
           autoDensity: true,
@@ -117,10 +122,9 @@ export default function PixijsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
     if (!app) return;
 
     const layer = new Container();
-    app.stage.removeChildren();
     app.stage.addChild(layer);
 
-    const textures = Array.from({ length: textureCount }, (_, i) => makeDotTexture(i, accent));
+    const textures = Array.from({ length: textureCount }, (_, i) => makeDotTexture(i));
     const safeCount = Math.min(count, MAX_SPRITES);
     const cx = new Float32Array(safeCount);
     const cy = new Float32Array(safeCount);
@@ -131,19 +135,20 @@ export default function PixijsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
 
     for (let i = 0; i < safeCount; i += 1) {
       const sprite = new Sprite(textures[i % textureCount]);
-      const a = (i * 0.6180339887) % 1;
-      const b = (i * 0.7548776662) % 1;
+      const hash = (n: number) => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };
+      const a = hash(i + 1), b = hash(i + 175);
       sprite.anchor.set(0.5);
-      sprite.scale.set(0.5 + a * 1.6);
-      sprite.alpha = 0.3 + b * 0.55;
+      sprite.scale.set((4 + a * 8) / 64);
+      sprite.tint = [0x62d7df, 0x9a86ff, 0xffcb77, 0xff819b][i % 4];
+      sprite.alpha = 0.45 + b * 0.5;
       sprite.blendMode = blend;
-      cx[i] = 16 + a * Math.max(1, app.screen.width - 32);
-      cy[i] = 16 + b * Math.max(1, app.screen.height - 32);
+      cx[i] = a;
+      cy[i] = b;
       orbit[i] = 6 + b * 26;
       phase[i] = a * Math.PI * 2;
       rate[i] = 0.0006 + b * 0.0014;
-      sprite.x = cx[i];
-      sprite.y = cy[i];
+      sprite.x = cx[i] * app.screen.width;
+      sprite.y = cy[i] * app.screen.height;
       layer.addChild(sprite);
       sprites.push(sprite);
     }
@@ -152,20 +157,31 @@ export default function PixijsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       const t = ticker.lastTime;
       for (let i = 0; i < sprites.length; i += 1) {
         const s = sprites[i];
-        s.x = cx[i] + Math.cos(t * rate[i] + phase[i]) * orbit[i];
-        s.y = cy[i] + Math.sin(t * rate[i] * 1.3 + phase[i]) * orbit[i] * 0.6;
+        s.x = (cx[i] * app.screen.width + Math.cos(t * rate[i] + phase[i]) * orbit[i] + app.screen.width) % app.screen.width;
+        s.y = (cy[i] * app.screen.height + Math.sin(t * rate[i] * 1.3 + phase[i]) * orbit[i] * 0.6 + app.screen.height) % app.screen.height;
+        s.rotation = t * 0.0002 * (i % 2 ? 1 : -1);
       }
       frameRef.current.ms = frameRef.current.ms * 0.92 + (ticker.deltaMS || 16.7) * 0.08;
       frameRef.current.tick += 1;
       if (frameRef.current.tick % 15 === 0) setFrameMs(frameRef.current.ms);
     };
+    const resize = () => {
+      const host = hostRef.current;
+      if (!host) return;
+      app.renderer.resize(Math.max(1, host.clientWidth), Math.max(1, host.clientHeight));
+      for (let i = 0; i < sprites.length; i++) { sprites[i].x = cx[i] * app.screen.width; sprites[i].y = cy[i] * app.screen.height; }
+      app.render();
+    };
+    const observer = new ResizeObserver(resize);
+    if (hostRef.current) observer.observe(hostRef.current);
     app.ticker.add(tick);
-    app.render();
+    resize();
 
     return () => {
       // app effect 的 cleanup 先跑；renderer 为 null 说明 Application 已被拆除。
       if (app.renderer) app.ticker.remove(tick);
-      layer.destroy({ children: true });
+      observer.disconnect();
+      if (!layer.destroyed) layer.destroy({ children: true });
       for (const texture of textures) texture.destroy(true);
     };
   }, [appToken, count, textureCount, blend, accent, surface]);
@@ -192,7 +208,7 @@ export default function PixijsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
         `}`,
         ``,
         `// 销毁：连同子节点、纹理与纹理源一起释放`,
-        `app.destroy(true, { children: true, texture: true, textureSource: true });`,
+        `app.destroy(true, { children: true });`,
       ].join('\n'),
     [blend, count, textureCount],
   );
@@ -202,16 +218,16 @@ export default function PixijsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       title="PixiJS 精灵合批"
       badge={<span className="demo-live-badge">pixi.js v8.6.6</span>}
       reset={() => {
-        setCount(3000);
-        setTextureCount(1);
+        setCount(1500);
+        setTextureCount(3);
         setBlend('normal');
         setNonce((n) => n + 1);
       }}
     >
       <div className="lab-layout lab-layout--toolbar">
         <LabControls className="lab-controls">
-          <Select<Blend> label="混合模式" value={blend} options={BLENDS} onChange={setBlend} />
-          <Range label="精灵数量" value={count} min={500} max={MAX_SPRITES} step={100} onChange={setCount} />
+          <div data-lab-actions><Select<Blend> label="混合模式" value={blend} options={BLENDS} onChange={setBlend} /></div>
+          <div data-lab-actions><Range label="精灵数量" value={count} min={500} max={MAX_SPRITES} step={100} onChange={setCount} /></div>
           <Range
             label="纹理数量"
             value={textureCount}
@@ -222,7 +238,7 @@ export default function PixijsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             hint="调整共享纹理的数量。"
           />
           <p className="lab-motion-note">
-            PixiJS v8 没有公开绘制调用计数器，精灵共享纹理；不同纹理仍可能在同一批次中绘制。帧耗时来自 ticker.deltaMS，包含帧间等待时间，不代表 GPU 渲染耗时。
+            PixiJS v8 没有公开绘制调用计数器，精灵共享纹理；不同纹理仍可能在同一批次中绘制。圆点、圆环、星形均为本地产生的纹理。帧耗时来自 ticker.deltaMS，包含帧间等待时间，不代表 GPU 渲染耗时。
           </p>
           {!motionOk ? <Status>系统开启了「减少动态效果」，ticker 已停止，只绘制一帧静态图。</Status> : null}
           {error ? <ErrorNote onRetry={() => setNonce((n) => n + 1)}>{error}</ErrorNote> : null}

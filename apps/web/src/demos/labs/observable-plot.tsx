@@ -162,7 +162,7 @@ export default function ObservablePlotLab({ onCopy }: { onCopy: DemoCopyHandler 
         y: { label: '样本数', ...axis },
         marks: [
           Plot.rectY(data, { ...transform, fill: 'group', opacity: 0.9, rx: 1 }),
-          Plot.ruleY([mean], { stroke: ink, strokeDasharray: '4 3', strokeWidth: 1.2 }),
+          Plot.ruleX([mean], { stroke: ink, strokeDasharray: '4 3', strokeWidth: 1.2 }),
         ],
       });
 
@@ -210,7 +210,7 @@ export default function ObservablePlotLab({ onCopy }: { onCopy: DemoCopyHandler 
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
-    const measure = () => setWidth(Math.max(260, Math.round(host.clientWidth)));
+    const measure = () => setWidth(Math.max(220, Math.round(host.clientWidth)));
     measure();
     let last = host.clientWidth;
     const observer = new ResizeObserver(() => {
@@ -240,7 +240,7 @@ export default function ObservablePlotLab({ onCopy }: { onCopy: DemoCopyHandler 
         ``,
         `Plot.rectY(data, { ...transform, fill: 'group' });   // 直方图`,
         `Plot.lineY(data, { ...transform, curve: 'step-after' }); // 阶梯折线`,
-        `Plot.ruleY([${mean.toFixed(1)}], { strokeDasharray: '4 3' }); // 均值参考线`,
+        `Plot.ruleX([${mean.toFixed(1)}], { strokeDasharray: '4 3' }); // 评分均值参考线`,
         `Plot.dot(data, { x: 'score', sw: 8, r: 2.4 });        // 底部样本带`,
         ``,
         `// thresholds 接受“分箱个数”、阈值数组，或自定义函数：`,
@@ -258,7 +258,7 @@ export default function ObservablePlotLab({ onCopy }: { onCopy: DemoCopyHandler 
       <LabLayout
         controls={
           <>
-            <Segmented<BinMode> label="分箱策略" value={mode} options={BIN_MODES} onChange={setMode} />
+            <div data-lab-actions><Segmented<BinMode> label="分箱策略" value={mode} options={BIN_MODES} onChange={setMode} /></div>
             <Range label="分箱数量" value={bins} min={3} max={40} step={1} onChange={setBins} hint="传给 Plot.binX 的 thresholds。" />
             <Range label="样本量" value={count} min={60} max={2400} step={60} onChange={setCount} hint="数据量由确定性种子生成，不含运行时随机。" />
             <Status tone={total === data.length ? 'ok' : 'warn'}>

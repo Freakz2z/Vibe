@@ -42,6 +42,7 @@ interface HtmxRequestDetail {
   target: Element;
   successful: boolean;
   failed: boolean;
+  pathInfo?: { finalRequestPath?: string; requestPath?: string };
 }
 
 function isTrustedHtmxRequest(url: string): boolean {
@@ -89,14 +90,13 @@ export default function HtmxLab({ onCopy }: { onCopy: DemoCopyHandler }) {
     const onAfterRequest = (event: Event) => {
       const detail = (event as CustomEvent<HtmxRequestDetail>).detail;
       if (!detail?.xhr) return;
-      const url = detail.xhr.responseURL || '';
-      if (!isTrustedHtmxRequest(url)) return;
-      if (!mountedRef.current) return;
-      setRequests((n) => n + 1);
-      setLastUrl(url);
-      setLastStatus(detail.xhr.status);
+      const url = detail.xhr.responseURL || detail.pathInfo?.finalRequestPath || detail.pathInfo?.requestPath || '';
+      if (!isTrustedHtmxRequest(url) || !mountedRef.current) return;
+      setRequests(n => n + 1);
+      setLastUrl(url); setLastStatus(detail.xhr.status);
       setLastMs(Math.round(performance.now() - startRef.current));
-      setErrorText(null);
+      setErrorText(detail.xhr.status === 0 ? '请求未完成，请检查网络连接后重试。上一次成功内容已保留。'
+        : detail.xhr.status >= 400 ? `后端返回 HTTP ${detail.xhr.status}。上一次成功内容已保留。` : null);
     };
 
     const onAfterSwap = (event: Event) => {
@@ -109,26 +109,12 @@ export default function HtmxLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       setSwaps((n) => n + 1);
     };
 
-    const onResponseError = (event: Event) => {
-      const detail = (event as CustomEvent<HtmxRequestDetail>).detail;
-      if (!detail?.xhr) return;
-      const url = detail.xhr.responseURL || '';
-      if (!isTrustedHtmxRequest(url)) return;
-      if (!mountedRef.current) return;
-      // htmx 对非 2xx 默认不交换内容，所以错误必须显式呈现。
-      setRequests((n) => n + 1);
-      setLastUrl(url);
-      setLastStatus(detail.xhr.status);
-      setLastMs(Math.round(performance.now() - startRef.current));
-      setErrorText(`后端返回 HTTP ${detail.xhr.status}。htmx 对非 2xx 响应不会交换内容，#lab-htmx-results 保持上一次的成功片段。`);
-    };
 
     const validateUrl = (event: Event) => { if (!isTrustedHtmxRequest(String((event as CustomEvent).detail?.url || ''))) event.preventDefault(); };
     document.body.addEventListener('htmx:validateUrl', validateUrl);
     document.body.addEventListener('htmx:beforeRequest', onBeforeRequest);
     document.body.addEventListener('htmx:afterRequest', onAfterRequest);
     document.body.addEventListener('htmx:afterSwap', onAfterSwap);
-    document.body.addEventListener('htmx:responseError', onResponseError);
 
     return () => {
       mountedRef.current = false;
@@ -136,7 +122,6 @@ export default function HtmxLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       document.body.removeEventListener('htmx:beforeRequest', onBeforeRequest);
       document.body.removeEventListener('htmx:afterRequest', onAfterRequest);
       document.body.removeEventListener('htmx:afterSwap', onAfterSwap);
-      document.body.removeEventListener('htmx:responseError', onResponseError);
     };
   }, []);
 
@@ -165,7 +150,7 @@ export default function HtmxLab({ onCopy }: { onCopy: DemoCopyHandler }) {
         if (results) {
           results.innerHTML = '<p class="lab-htmx__hint">还没有发过请求。在上方输入内容，htmx 会自己发 GET 请求，并把后端返回的 HTML 片段换进这里。</p>';
         }
-        setErrorText(null);
+        setErrorText(null); setRequests(0); setSwaps(0); setLastUrl('—'); setLastStatus(null); setLastMs(null);
       }}
     >
       <LabLayout

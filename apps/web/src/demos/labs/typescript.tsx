@@ -304,7 +304,7 @@ export default function TypescriptLab({ onCopy }: { onCopy: DemoCopyHandler }) {
     [],
   );
 
-  const reset = () => applyPreset('errors');
+  const reset = () => { setShowSyntactic(true); applyPreset('errors'); };
 
   return (
     <Lab title="TypeScript 真实类型检查" badge={<span className="demo-live-badge">tsc {tsc.version}</span>} reset={reset}>

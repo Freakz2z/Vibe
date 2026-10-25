@@ -85,6 +85,7 @@ export default function ProsemirrorLab({ onCopy }: { onCopy: DemoCopyHandler }) 
   const seqRef = useRef(0);
 
   const [rows, setRows] = useState<LogRow[]>([]);
+  const [revision, setRevision] = useState(0);
   const [stepJson, setStepJson] = useState('');
   const [error, setError] = useState('');
   const [stats, setStats] = useState({ blocks: 0, nodes: 0, chars: 0, sel: '' });
@@ -159,7 +160,7 @@ export default function ProsemirrorLab({ onCopy }: { onCopy: DemoCopyHandler }) 
       view.destroy();
       host.replaceChildren();
     };
-  }, []);
+  }, [revision]);
 
   const run = useCallback((label: string, fn: (view: EditorView, schema: PMSchema) => boolean) => {
     const view = viewRef.current;
@@ -265,7 +266,7 @@ export default function ProsemirrorLab({ onCopy }: { onCopy: DemoCopyHandler }) 
   };
 
   return (
-    <Lab title="ProseMirror 事务与步骤" badge={<span className="demo-live-badge">ProseMirror 1.42</span>} reset={clearLog}>
+    <Lab title="ProseMirror 事务与步骤" badge={<span className="demo-live-badge">ProseMirror 1.42</span>} reset={() => {clearLog(); setStepJson(''); seqRef.current = 0; setError(''); setRevision(n => n + 1);}}>
       <LabLayout
         controls={
           <>

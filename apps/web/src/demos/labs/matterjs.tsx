@@ -12,8 +12,8 @@ interface Palette {
   ink: string;
 }
 
-const VIEW_W = 720;
-const VIEW_H = 340;
+const VIEW_W = 560;
+const VIEW_H = 420;
 
 /** Matter.js：真实刚体仿真 + MouseConstraint 拖拽 + Constraint 单摆，全部手写 Canvas 渲染以跟随主题。 */
 export default function MatterjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
@@ -32,7 +32,9 @@ export default function MatterjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   const [gravityY, setGravityY] = useState(1);
   const [restitution, setRestitution] = useState(0.35);
   const [grabbed, setGrabbed] = useState<string>('（无）');
-  const [nonce] = useState(0);
+  const [nonce, setNonce] = useState(0);
+  const [running, setRunning] = useState(motionOk);
+  useEffect(() => setRunning(motionOk), [motionOk]);
 
   const palette = useMemo<Palette>(
     () => ({
@@ -80,9 +82,9 @@ export default function MatterjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
     });
     mouseConstraintRef.current = mouseConstraint;
     Matter.Composite.add(world, mouseConstraint as unknown as Matter.Constraint);
-    Matter.Composite.add(world, Matter.Composites.stack(230, 40, 6, 4, 4, 2, (x: number, y: number) => Matter.Bodies.rectangle(x, y, 28, 28, { restitution, friction: 0.35, label: 'box' })));
+    Matter.Composite.add(world, Matter.Composites.stack(VIEW_W / 2 - 96, 40, 6, 4, 4, 2, (x: number, y: number) => Matter.Bodies.rectangle(x, y, 28, 28, { restitution, friction: 0.35, label: 'box' })));
     setBodyCount(24);
-    Matter.Events.on(engine, 'mouseup', () => {
+    Matter.Events.on(mouseConstraint, 'mouseup', () => {
       grabRef.current = '';
       setGrabbed('（无）');
     });
@@ -99,6 +101,7 @@ export default function MatterjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale((w * dpr) / VIEW_W, (h * dpr) / VIEW_H);
       Matter.Mouse.setScale(mouse, { x: VIEW_W / w, y: VIEW_H / h });
+      draw(ctx, world, pendulumsRef.current, paletteRef.current, mouseConstraint, () => {});
     };
     resize();
     const observer = new ResizeObserver(resize);
@@ -109,8 +112,14 @@ export default function MatterjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
 
     return () => {
       observer.disconnect();
+      Matter.Events.off(mouseConstraint, 'mouseup');
       if (mouseConstraint) Matter.Composite.remove(world, mouseConstraint as unknown as Matter.Constraint, true);
-      if (mouse) Matter.Mouse.clearSourceEvents(mouse);
+      if (mouse) {
+        Matter.Mouse.clearSourceEvents(mouse);
+        const m = mouse as unknown as Record<string, EventListener>;
+        for (const [name, key] of [['mousemove','mousemove'],['mousedown','mousedown'],['mouseup','mouseup'],['wheel','mousewheel'],['touchmove','mousemove'],['touchstart','mousedown'],['touchend','mouseup']]) host.removeEventListener(name, m[key]);
+      }
+      pendulumsRef.current = [];
       Matter.Composite.clear(world, false);
       Matter.Engine.clear(engine);
       mouseConstraintRef.current = null;
@@ -127,7 +136,7 @@ export default function MatterjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   gravityYRef.current = gravityY;
   const countRef = useRef(0);
 
-  useAnimationFrame(motionOk, () => {
+  useAnimationFrame(running, () => {
     const engine = engineRef.current;
     const ctx = ctxRef.current;
     const world = worldRef.current;
@@ -155,6 +164,14 @@ export default function MatterjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
     }
   }, [gravityY, restitution, nonce]);
 
+  const refresh = useCallback(() => {
+    const world = worldRef.current, ctx = ctxRef.current;
+    if (!world || !ctx) return;
+    setBodyCount(Matter.Composite.allBodies(world).filter(b => !b.isStatic).length);
+    draw(ctx, world, pendulumsRef.current, paletteRef.current, mouseConstraintRef.current, () => {});
+  }, []);
+  useEffect(refresh, [palette, refresh, running]);
+
   const clearDynamic = useCallback(() => {
     const world = worldRef.current;
     if (!world) return;
@@ -163,8 +180,13 @@ export default function MatterjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
     }
     for (const c of pendulumsRef.current) Matter.Composite.remove(world, c, true);
     pendulumsRef.current = [];
-    setBodyCount(0);
-  }, []);
+    setGrabbed('（无）'); grabRef.current = '';
+    if (mouseConstraintRef.current) {
+      mouseConstraintRef.current.body = null as unknown as Matter.Body;
+      mouseConstraintRef.current.constraint.bodyB = null as unknown as Matter.Body;
+    }
+    refresh();
+  }, [refresh]);
 
   const stack = useCallback(() => {
     const world = worldRef.current;
@@ -176,7 +198,8 @@ export default function MatterjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       body.label = 'box';
     }
     Matter.Composite.add(world, pile);
-  }, []);
+    refresh();
+  }, [refresh]);
 
   const restitutionRef = useRef(restitution);
   restitutionRef.current = restitution;
@@ -187,7 +210,7 @@ export default function MatterjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
     const balls = Matter.Composite.create({ label: 'balls' });
     for (let i = 0; i < 18; i += 1) {
       const r = 10 + ((i * 7919) % 13);
-      const body = Matter.Bodies.circle(60 + ((i * 137) % 600), 40 + ((i * 61) % 160), r, {
+      const body = Matter.Bodies.circle(40 + ((i * 137) % (VIEW_W - 80)), 40 + ((i * 61) % 160), r, {
         restitution: restitutionRef.current,
         friction: 0.1,
         label: 'ball',
@@ -195,13 +218,14 @@ export default function MatterjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       balls.bodies.push(body);
     }
     Matter.Composite.add(world, balls);
-  }, []);
+    refresh();
+  }, [refresh]);
 
   const pendulum = useCallback(() => {
     const world = worldRef.current;
     if (!world) return;
     for (let i = 0; i < 3; i += 1) {
-      const pivotX = 200 + i * 160;
+      const pivotX = 100 + i * 140;
       const length = 120;
       const bob = Matter.Bodies.circle(pivotX + length * 0.9, 60, 13, {
         restitution: 0.2,
@@ -219,7 +243,8 @@ export default function MatterjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       pendulumsRef.current.push(rod);
       Matter.Composite.add(world, [bob, rod]);
     }
-  }, []);
+    refresh();
+  }, [refresh]);
 
   const snippet = useMemo(
     () =>
@@ -227,7 +252,7 @@ export default function MatterjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
         `import Matter from 'matter-js';`,
         ``,
         `const engine = Matter.Engine.create();`,
-        `const world = Matter.Composite.create({ label: 'lab-world' });`,
+        `const world = Matter.World.create({ label: 'lab-world' });`,
         `engine.world = world;`,
         ``,
         `// 静态墙体：地板 + 左右两堵墙`,
@@ -269,7 +294,9 @@ export default function MatterjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       title="Matter.js 刚体仿真"
       badge={<span className="demo-live-badge">matter-js 0.20</span>}
       reset={() => {
-        clearDynamic();
+        setNonce(n => n + 1);
+        setRunning(motionOk);
+        setGrabbed('（无）');
         setGravityY(1);
         setRestitution(0.35);
       }}
@@ -287,6 +314,7 @@ export default function MatterjsLab({ onCopy }: { onCopy: DemoCopyHandler }) {
           />
           <Range label="弹性 restitution" value={restitution} min={0} max={1} step={0.05} onChange={setRestitution} />
           <div className="lab-options">
+            <button type="button" className="button button--secondary button--small" onClick={() => setRunning(v => !v)}>{running ? '暂停仿真' : '运行仿真'}</button>
             <button type="button" className="button button--primary button--small" onClick={stack}>
               堆叠方块
             </button>
@@ -357,7 +385,7 @@ function draw(
     ctx.fill();
   }
 
-  for (const body of world.bodies) {
+  for (const body of Matter.Composite.allBodies(world)) {
     const x = body.position.x;
     const y = body.position.y;
     if (body.label === 'ball' || body.label === 'bob') {
@@ -377,17 +405,11 @@ function draw(
       ctx.strokeRect(x - w / 2, y - h / 2, w, h);
       continue;
     }
-    const w = body.bounds.max.x - body.bounds.min.x;
-    const h = body.bounds.max.y - body.bounds.min.y;
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(body.angle);
-    ctx.fillStyle = mouseConstraint?.body === body ? p.accent : p.surface;
-    ctx.fillRect(-w / 2, -h / 2, w, h);
-    ctx.strokeStyle = p.accent;
-    ctx.lineWidth = 2;
-    ctx.strokeRect(-w / 2, -h / 2, w, h);
-    ctx.restore();
+    ctx.beginPath();
+    body.vertices.forEach((v, i) => i === 0 ? ctx.moveTo(v.x, v.y) : ctx.lineTo(v.x, v.y));
+    ctx.closePath();
+    ctx.fillStyle = mouseConstraint?.body === body ? p.accent : ['#e8a27b', '#82a8d8', '#9fc6b2', '#b69ace'][body.id % 4];
+    ctx.fill(); ctx.strokeStyle = p.accent; ctx.lineWidth = 2; ctx.stroke();
   }
 
   if (mouseConstraint?.body) onGrab(mouseConstraint.body.label);

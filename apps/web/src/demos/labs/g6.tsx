@@ -79,7 +79,7 @@ export default function G6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
   const surface = colors.surface ?? '#fff';
 
   const groupColor = useMemo(
-    () => ({ 网关: accent, 业务: ink, 数据: muted, 存储: soft }) as Record<Service['group'], string>,
+    () => ({ 网关: accent, 业务: '#547ec5', 数据: '#2a937b', 存储: '#9870bf' }) as Record<Service['group'], string>,
     [accent, ink, muted, soft],
   );
 
@@ -92,9 +92,9 @@ export default function G6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
           fill: groupColor[s.group],
           stroke: surface,
           lineWidth: 2,
-          labelText: s.name,
+          labelText: ({gw:'网关',auth:'认证',route:'路由',order:'订单',user:'用户',search:'搜索',feed:'信息流',notify:'通知',event:'事件总线',cdc:'变更捕获',etl:'数据管道',metric:'指标',pg:'数据库',redis:'缓存',oss:'对象存储',mq:'消息队列'} as Record<string,string>)[s.id],
           labelFill: muted,
-          labelFontSize: 10,
+          labelFontSize: 12,
           labelPlacement: 'bottom',
           size: 14 + Math.min(18, Math.log10(Math.max(1, s.qps)) * 3.2),
         },
@@ -216,7 +216,7 @@ export default function G6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
       <LabLayout
         controls={
           <>
-            <Segmented<LayoutKey> label="布局算法" value={layout} options={LAYOUTS} onChange={switchLayout} />
+            <div data-lab-actions><Segmented<LayoutKey> label="布局算法" value={layout} options={LAYOUTS} onChange={switchLayout} /></div>
             <Status tone={ready ? 'ok' : undefined}>
               {ready ? 'graph.render() 已完成。' : '正在执行 graph.render()…'} 拖动节点可直接改写位置，滚轮缩放、空白处拖动画布。
             </Status>
