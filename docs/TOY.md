@@ -1,10 +1,10 @@
 # Vibe 工具集 · Toy 手机版
 
-状态：2026-10-24 已生成预览，**未提交审核，未发布为正式 Toy**。
+状态：2026-10-25 已生成预览，**未提交审核，未发布为正式 Toy**。
 
 - 标题：Vibe 工具集
 - 预定 slug：`vibe-tools-mobile`（正式提交前仍可调整，发布后不可修改）
-- 验收预览：https://www.bilibili.com/toy/preview/author_7OmCB228/index.html
+- 验收预览：https://www.bilibili.com/toy/preview/author_5K6JZJhS/index.html
 - 原站：https://vibe.freakz2z.com/
 
 ## 构建与预览
@@ -61,6 +61,18 @@ B站真实预览中已验证 HTMX 搜索片段及 Toy 内链接、R2 206 分段�
 55 个示例已逐项操作主要流程：播放、逐帧、数据切换、轮播、编辑/解析、验证、实体增删、缓存重拉及真实接口读取。分批证据为本机 `artifacts/toy-usage-suite-*.log`；最终变更项与实际拖拽分别记录于 `artifacts/toy-usage-final-changed.log`、`artifacts/toy-usage-native.log`。全量几何与加载检查记录于 `artifacts/toy-usage-geometry.log`，没有尺寸塌缩的 canvas 或示例错误；320/1280 宽度下重点页面检查为 `artifacts/toy-usage-responsive.log`。
 
 构建、类型检查、24 项后端测试和正式站 27 项服务检查通过。本次仅更新 Toy 预览与源代码，未提交审核，也未发布新的 Cloudflare Worker 或数据迁移。
+
+## Motion 专项修复（2026-10-25）
+
+原示例的共享徽标没有背景，同一 layoutId 同时长期存在于两处；模式切换隐藏在参数面板中，拖动区域过矮，重置不恢复模式与拖动位置。本次改为直接可见的三种模式：
+
+- 共享布局：四张有明确颜色的卡片在来源和目标之间移动，每张卡片只有一个实时 layoutId；LayoutGroup 按实例隔离。目标节点按卡片 ID 使用独立 React key，避免快速切换后投影节点复用而停在 opacity:0；收回后恢复来源按钮的键盘焦点。
+- 增删与重排：点击卡片移除，支持反转、清空和恢复；固定编号与相对定位的 popLayout 容器使退出和自动补位可观察。
+- 拖动约束：260px 高的拖动区，触摸捕获只在方块上；真实 MotionValue 驱动坐标读数，支持方向键、Enter / 按钮回中、缩小窗口时约束位置，以及全局重置。
+
+本地与 B站真实预览均检查了动画中间帧、快速选择后的 opacity 与最终位置、唯一共享元素、退场完成、空列表/恢复、顺序恢复、指针拖动边界、键盘操作、重置、320/390/768/1280 宽度、减少动态效果与亮暗模式。证据位于本机 `output/playwright/motion-local-check.log`、`motion-public-check.log`。另在独立浏览器触屏模拟环境中验证了点选、连续切换、拖动与回中，记录于 `motion-touch.log`；这仍不等同于实体 B站 App 验收。
+
+生产构建、类型检查、24 项后端测试及正式站 27 项服务检查通过。本次仅上传预览，不提交 Toy 审核，不发布 Cloudflare Worker。
 
 ## 上传与审核
 

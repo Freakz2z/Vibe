@@ -6081,19 +6081,36 @@ kbd {
    ========================================================= */
 
 /* ---- motion.tsx ---- */
-.lab-motion-tray { display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; min-height:104px; padding:10px; border:1px dashed var(--line-strong); border-radius:14px; }
-.lab-motion-tray__label { font-size:.75rem; color:var(--muted); }
-.lab-motion-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(108px,1fr)); gap:10px; margin-top:14px; }
-.lab-motion-card { position:relative; padding:16px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface); font:inherit; color:var(--ink); text-align:left; cursor:pointer; overflow:hidden; }
-.lab-motion-card[data-active="true"] { border-color:var(--accent); }
-.lab-motion-card__swatch { width:22px; height:22px; border-radius:7px; margin-bottom:10px; }
-.lab-motion-card strong { display:block; font-size:.82rem; }
-.lab-motion-card small { display:block; margin-top:3px; color:var(--muted); font-size:.7rem; }
-.lab-motion-badge { position:absolute; right:8px; top:8px; width:16px; height:16px; border-radius:5px; }
-.lab-motion-reveal { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
-.lab-motion-dot { width:34px; height:34px; border-radius:10px; }
-.lab-motion-drag { display:grid; place-items:center; min-height:96px; margin-top:16px; border:1px solid var(--line); border-radius:14px; background:var(--surface); touch-action:none; overflow:hidden; }
+/* Motion: fixed source/target slots, visible tokens, and bounded gestures. */
+.lab-motion-demo { display:flex; flex-direction:column; gap:14px; min-width:0; }
+.lab-motion-demo > .lab-field > .segmented { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
+.lab-motion-demo .segmented button { min-height:44px; padding:8px 6px; font-size:.76rem; }
+.lab-motion-stage { min-width:0; padding:16px; }
+.lab-motion-help { margin:0 0 12px; color:var(--muted); font-size:.78rem; line-height:1.65; }
+.lab-motion-target { position:relative; z-index:2; display:grid; place-items:center; height:132px; border:1px dashed var(--line-strong); border-radius:16px; color:var(--muted); font-size:.82rem; }
+.lab-motion-target > .lab-motion-token { inset:8px; }
+.lab-motion-token { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:6px; border-radius:12px; color:#fff; pointer-events:none; }
+.lab-motion-token strong { font-size:1rem; }
+.lab-motion-token span { font-size:.7rem; opacity:.8; }
+.lab-motion-return { position:absolute; right:16px; top:16px; z-index:2; min-width:52px; min-height:44px; padding:6px 10px; border:1px solid #fff8; border-radius:10px; background:#0002; color:#fff; font:inherit; font-size:.75rem; cursor:pointer; }
+.lab-motion-sources { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:12px; }
+.lab-motion-source { position:relative; display:grid; place-items:center; height:90px; padding:0; border:1px dashed var(--line-strong); border-radius:12px; background:var(--surface); color:var(--ink); font:inherit; cursor:pointer; }
+.lab-motion-placeholder { display:flex; flex-direction:column; gap:6px; font-size:.82rem; }
+.lab-motion-placeholder small { color:var(--muted); font-size:.72rem; }
+.lab-motion-feedback { margin:12px 0 0; color:var(--muted); font-size:.78rem; }
+.lab-motion-actions { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+.lab-motion-actions .button { padding-inline:12px; }
+.lab-motion-exit-grid { position:relative; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-content:start; gap:8px; min-height:194px; }
+.lab-motion-exit-card { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; height:92px; min-width:0; padding:8px; border:1px solid var(--line-strong); border-radius:12px; background:var(--surface); color:var(--ink); font:inherit; cursor:pointer; }
+.lab-motion-exit-card strong { color:var(--accent-strong); font-size:1.25rem; }
+.lab-motion-exit-card span { color:var(--muted); font-size:.7rem; }
+.lab-motion-empty { grid-column:1/-1; align-self:center; text-align:center; color:var(--muted); font-size:.82rem; margin:68px 0; }
+.lab-motion-drag-field { position:relative; height:260px; border:1px solid var(--line-strong); border-radius:14px; background:var(--surface); }
+.lab-motion-handle { position:absolute; left:calc(50% - 32px); top:calc(50% - 32px); display:grid; place-items:center; width:64px; height:64px; padding:0; border:0; border-radius:14px; background:var(--accent-strong); color:var(--on-accent); font:inherit; font-size:.82rem; cursor:grab; touch-action:none; }
+.lab-motion-handle:active { cursor:grabbing; }
+.lab-motion-coordinates { margin-left:auto; color:var(--muted); font-size:.75rem; font-variant-numeric:tabular-nums; }
 .lab-motion-note { margin:10px 0 0; color:var(--muted); font-size:.72rem; }
+
 
 /* ---- react-spring.tsx ---- */
 .lab-spring-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); gap:12px; place-items:center; min-height:190px; }
