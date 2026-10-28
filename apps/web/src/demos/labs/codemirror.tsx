@@ -1,4 +1,4 @@
-import { IS_TOY } from '../../lib/runtime';
+import { useCompactDemo } from '../../hooks/useCompactDemo';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Compartment, EditorState, type Extension } from '@codemirror/state';
 import {
@@ -135,6 +135,7 @@ function measure(view: EditorView): Snapshot {
  * 折叠是真实的 foldCode / foldEffect 命令，补全是 localCompletionSource，搜索是官方 search 扩展。
  */
 export default function CodemirrorLab({ onCopy }: { onCopy: DemoCopyHandler }) {
+  const compact=useCompactDemo();
   const hostRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const wrapBox = useRef(new Compartment());
@@ -142,7 +143,7 @@ export default function CodemirrorLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   const langTouched = useRef(false);
 
   const [lang, setLang] = useState<Lang>('javascript');
-  const [wrap, setWrap] = useState(!IS_TOY);
+  const [wrap, setWrap] = useState(!compact);
   const [nonce, setNonce] = useState(0);
   const [stats, setStats] = useState<Snapshot>(EMPTY);
   const [hits, setHits] = useState<Hit[]>([]);
@@ -305,7 +306,7 @@ export default function CodemirrorLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   );
 
   return (
-    <Lab title="CodeMirror 6 扩展体系" badge={<span className="demo-live-badge">CodeMirror 6</span>} reset={() => {setLang('javascript'); setWrap(!IS_TOY); setHits([]); setError(''); setNonce(n => n + 1);}}>
+    <Lab title="CodeMirror 6 扩展体系" badge={<span className="demo-live-badge">CodeMirror 6</span>} reset={() => {setLang('javascript'); setWrap(!compact); setHits([]); setError(''); setNonce(n => n + 1);}}>
       <LabLayout
         controls={
           <>

@@ -1,4 +1,3 @@
-import { IS_TOY } from '../../lib/runtime';
 import { Code, LabControls } from '../lab-kit';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
@@ -390,19 +389,7 @@ export default function GsapLab({ onCopy }: { onCopy: DemoCopyHandler }) {
           ))}
         </ul>
 
-        {IS_TOY ? <Code text={snippet} onCopy={onCopy} label="GSAP 调用" maxHeight={280}/> : (
-        <div className="lab-code" style={{ marginTop: 22 }}>
-          <div>
-            <span>GSAP 调用</span>
-            <button type="button" className="copy-button" onClick={() => void onCopy(snippet, 'GSAP 调用')}>
-              复制
-            </button>
-          </div>
-          <pre tabIndex={0}>
-            <code>{snippet}</code>
-          </pre>
-        </div>
-        )}
+        <Code text={snippet} onCopy={onCopy} label="GSAP 调用" maxHeight={280}/>
       </div>
     </Lab>
   );

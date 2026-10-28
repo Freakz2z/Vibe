@@ -1,5 +1,5 @@
 import { IS_TOY } from '../lib/runtime';
-import { ToyOverview } from '../toy/Chrome';
+import { ToyOverview } from '../edition';
 import { Heart, Search } from 'lucide-react';
 import type { Catalog, Tool } from '../types';
 import type { ToolFilters } from '../lib/catalog';

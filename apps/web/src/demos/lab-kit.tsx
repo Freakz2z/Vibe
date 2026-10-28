@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom';
 import { useDialog } from '../hooks/useDialog';
+import { useCompactDemo } from '../hooks/useCompactDemo';
 import { IS_TOY } from '../lib/runtime';
 import { Children, Fragment, isValidElement, useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AlertTriangle, Check, Copy, RotateCcw, SlidersHorizontal } from 'lucide-react';
@@ -43,13 +44,16 @@ export function Lab({
 export function LabControls({children, className = 'lab-controls', mode = 'sheet'}: {
   children: ReactNode; className?: string; mode?: 'inline' | 'sheet' | 'rich';
 }) {
+  const compact = useCompactDemo();
+  const prefix = IS_TOY ? 'toy' : 'lab';
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const close = useCallback(() => setOpen(false), []);
-  useDialog(IS_TOY && open, ref, close);
-  if (!IS_TOY) return <div className={className}>{children}</div>;
-  if (mode === 'inline') return <div className={`${className} toy-editor-input`}>{children}</div>;
+  useDialog(compact && open, ref, close);
+  useEffect(()=>{if(!compact)setOpen(false);},[compact]);
+  if (!compact) return <div className={className}>{children}</div>;
+  if (mode === 'inline') return <div className={`${className} ${IS_TOY ? 'toy-editor-input' : 'lab-mobile-input'}`}>{children}</div>;
 
   const flatten = (nodes: ReactNode): ReactNode[] => Children.toArray(nodes).flatMap(child =>
     isValidElement<{children?: ReactNode}>(child) && child.type === Fragment
@@ -58,23 +62,25 @@ export function LabControls({children, className = 'lab-controls', mode = 'sheet
     if (!isValidElement<{className?: string; children?: ReactNode}>(node)) return false;
     return Boolean(node.props.className?.includes('button--primary')) || Children.toArray(node.props.children).some(primary);
   };
+  const hasButton = (node: ReactNode): boolean => isValidElement<{children?: ReactNode}>(node)
+    && (node.type === 'button' || Children.toArray(node.props.children).some(hasButton));
   const settings: ReactNode[] = [], actions: ReactNode[] = [], feedback: ReactNode[] = [];
   for (const child of flatten(children)) {
     if (isValidElement<{className?: string}>(child) && (child.type === Stats || child.type === ErrorNote || child.type === Status || child.props.className === 'lab-stats' || /__hint$|^lab-g6-detail$/.test(child.props.className || ''))) feedback.push(child);
-    else if (isValidElement<{className?: string; 'data-lab-actions'?: boolean}>(child) && (child.props['data-lab-actions'] || /__(actions|toolbar)$/.test(child.props.className || '') || (child.props.className === 'lab-options' && (mode === 'rich' || primary(child))))) actions.push(child);
+    else if (isValidElement<{className?: string; 'data-lab-actions'?: boolean}>(child) && (child.props['data-lab-actions'] || /__(actions|toolbar)$/.test(child.props.className || '') || (child.props.className === 'lab-options' && (mode === 'rich' || primary(child) || (!IS_TOY && hasButton(child)))))) actions.push(child);
     else settings.push(child);
   }
   const hasSettings = settings.some(child => isValidElement(child) && child.type !== 'p');
   return <>
-    {actions.length || hasSettings ? <div className="toy-control-bar">
-      {actions.length ? <div className="toy-quick-actions">{actions}</div> : null}
-      {hasSettings ? <button type="button" className="button button--secondary toy-parameter-trigger" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}><SlidersHorizontal size={16} aria-hidden="true"/>参数与操作</button> : null}
+    {actions.length || hasSettings ? <div className={`${prefix}-control-bar`}>
+      {actions.length ? <div className={`${prefix}-quick-actions`}>{actions}</div> : null}
+      {hasSettings ? <button type="button" className={`button button--secondary ${prefix}-parameter-trigger`} aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}><SlidersHorizontal size={16} aria-hidden="true"/>参数与操作</button> : null}
     </div> : null}
-    {feedback.length ? <div className="toy-control-feedback">{feedback}</div> : null}
-    {open ? createPortal(<div className="toy-parameter-backdrop" onPointerDown={event => {if(event.target === event.currentTarget) close();}}>
-      <div className="toy-parameter-sheet" ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby={titleId}>
-        <div className="toy-parameter-head"><h2 id={titleId}>示例参数</h2><button type="button" className="button button--primary button--small" onClick={close}>完成</button></div>
-        <div className="toy-parameter-body"><div className={`${className} lab-controls`}>{settings}</div></div>
+    {feedback.length ? <div className={`${prefix}-control-feedback`}>{feedback}</div> : null}
+    {compact && open ? createPortal(<div className={`${prefix}-parameter-backdrop`} onPointerDown={event => {if(event.target === event.currentTarget) close();}}>
+      <div className={`${prefix}-parameter-sheet`} ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby={titleId}>
+        <div className={`${prefix}-parameter-head`}><h2 id={titleId}>示例参数</h2><button type="button" className="button button--primary button--small" onClick={close}>完成</button></div>
+        <div className={`${prefix}-parameter-body`}><div className={`${className} lab-controls`}>{settings}</div></div>
       </div>
     </div>, document.querySelector('.toy-shell') || document.body) : null}
   </>;
@@ -222,6 +228,7 @@ export function Code({
   maxHeight?: number;
   output?: boolean;
 }) {
+  const compact = useCompactDemo();
   const content = (
     <div className="lab-code">
       <div>
@@ -236,7 +243,7 @@ export function Code({
       </pre>
     </div>
   );
-  return IS_TOY && !output ? <details className="toy-code"><summary>{label}</summary>{content}</details> : content;
+  return compact && !output ? <details className={IS_TOY ? 'toy-code' : 'lab-reference-code'}><summary>{label}</summary>{content}</details> : content;
 }
 
 /** Real error surface. Never fake a success to hide a failure. */
@@ -286,7 +293,7 @@ export function Stats({ children }: { children: ReactNode }) {
   const numeric = Children.toArray(children).filter(child => isValidElement<{value: ReactNode; format?: 'auto' | 'number' | 'text'}>(child) && child.type === Stat && !isTextStat(child.props.value, child.props.format)).length;
   const longNumber = Children.toArray(children).some(child => isValidElement<{value: ReactNode}>(child) && child.type === Stat && String(child.props.value).length > 5);
   const columns = numeric <= 1 ? 1 : !longNumber && (numeric === 3 || numeric === 6) ? 3 : 2;
-  return <div className="lab-stats" data-toy-columns={IS_TOY ? columns : undefined}>{children}</div>;
+  return <div className="lab-stats" data-columns={columns} data-toy-columns={IS_TOY ? columns : undefined}>{children}</div>;
 }
 
 /** Simple scrollable table so wide result sets never overflow the page. */

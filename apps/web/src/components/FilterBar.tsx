@@ -1,4 +1,3 @@
-import { IS_TOY } from '../lib/runtime';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, ListFilter, SlidersHorizontal, X } from 'lucide-react';
 import type { Tool } from '../types';
@@ -157,7 +156,7 @@ export function FilterBar({
 }: FilterBarProps) {
   const [draftPlatform, setDraftPlatform] = useState(platform);
   const [draftPricing, setDraftPricing] = useState(pricing);
-  const draftCount = IS_TOY && previewCount ? previewCount(draftPlatform, draftPricing) : resultCount;
+  const draftCount = previewCount ? previewCount(draftPlatform, draftPricing) : resultCount;
   const [sheetOpen, setSheetOpen] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -178,8 +177,7 @@ export function FilterBar({
   }, [closeSheet, sheetOpen]);
 
   const handleClearAll = () => {
-    if (IS_TOY) { setDraftPlatform(''); setDraftPricing(''); }
-    else { onClearAll(); closeSheet(); }
+    setDraftPlatform(''); setDraftPricing('');
   };
 
   return (
@@ -264,37 +262,30 @@ export function FilterBar({
               <p className="filter-sheet__status" role="status" aria-live="polite">
                 共 {draftCount} 个工具
               </p>
-              {!IS_TOY ? <ActiveFilterList
-                activeFilters={activeFilters}
-                onRemoveFilter={onRemoveFilter}
-                onClearAll={onClearAll}
-                compact
-                showReset={false}
-              /> : null}
               <FilterGroups
-                platform={IS_TOY ? draftPlatform : platform}
-                pricing={IS_TOY ? draftPricing : pricing}
+                platform={draftPlatform}
+                pricing={draftPricing}
                 idPrefix="mobile"
-                onPlatformChange={IS_TOY ? setDraftPlatform : onPlatformChange}
-                onPricingChange={IS_TOY ? setDraftPricing : onPricingChange}
+                onPlatformChange={setDraftPlatform}
+                onPricingChange={setDraftPricing}
               />
             </div>
             <div className="filter-sheet__foot">
-              {IS_TOY || activeFilters.length > 0 ? (
+              {(draftPlatform || draftPricing) ? (
                 <button type="button" className="button button--quiet" onClick={handleClearAll}>
-                  {IS_TOY ? '重置平台与费用' : '全部重置'}
+                  重置平台与费用
                 </button>
               ) : null}
               <button
                 type="button"
                 className="button button--primary"
                 onClick={() => {
-                  if (IS_TOY) onApply?.(draftPlatform, draftPricing);
+                  onApply?.(draftPlatform, draftPricing);
                   closeSheet();
                   triggerRef.current?.focus({ preventScroll: true });
                 }}
               >
-                {IS_TOY ? '应用' : '查看'} {draftCount} 个工具
+                应用 {draftCount} 个工具
               </button>
             </div>
           </div>

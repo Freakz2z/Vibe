@@ -1,4 +1,4 @@
-import { IS_TOY } from '../../lib/runtime';
+import { useCompactDemo } from '../../hooks/useCompactDemo';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Graph } from '@antv/g6';
 import type { GraphData, IElementEvent } from '@antv/g6';
@@ -7,14 +7,13 @@ import { Code, DataTable, ErrorNote, Lab, LabLayout, Segmented, Stat, Stats, Sta
 
 const G6_VERSION = '5.0.49';
 type LayoutKey = 'force' | 'dagre' | 'grid';
-const DEFAULT_LAYOUT: LayoutKey = IS_TOY ? 'grid' : 'force';
 const layoutOptions = (key: LayoutKey) => key === 'grid'
   ? {type: 'grid', preventOverlap: true, nodeSize: 32, nodeSpacing: 22}
   : key === 'force' ? { type: 'force', preventOverlap: true, nodeSize: 32, linkDistance: 96, nodeStrength: -32 }
   : { type: 'dagre', rankdir: 'LR', nodesep: 16, ranksep: 68 };
 
 const LAYOUTS: readonly (readonly [LayoutKey, string])[] = [
-  ...(IS_TOY ? [['grid', '网格布局'] as const] : []),
+  ['grid', '网格布局'],
   ['force', '力导向'],
   ['dagre', '有向分层'],
 ];
@@ -61,10 +60,12 @@ const LINKS: [string, string][] = [
  * the built-in `drag-element` behaviour.
  */
 export default function G6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
+  const compact=useCompactDemo();
+  const defaultLayout: LayoutKey=compact?'grid':'force';
   const colors = useThemeColors();
   const hostRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<Graph | null>(null);
-  const [layout, setLayout] = useState<LayoutKey>(DEFAULT_LAYOUT);
+  const [layout, setLayout] = useState<LayoutKey>(defaultLayout);
   const [revision, setRevision] = useState(0);
   const [selected, setSelected] = useState<string | null>('gw');
   const [error, setError] = useState<string | null>(null);
@@ -173,7 +174,7 @@ export default function G6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
 
   const reset = () => {
     setSelected('gw');
-    switchLayout(DEFAULT_LAYOUT);
+    switchLayout(defaultLayout);
     setRevision(value => value + 1);
   };
 
@@ -212,11 +213,11 @@ export default function G6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
   );
 
   return (
-    <Lab title={IS_TOY ? "AntV G6 关系图布局" : "AntV G6 力导向关系图"} badge={<span className="demo-live-badge">G6 {G6_VERSION}</span>} reset={reset}>
+    <Lab title={compact ? "AntV G6 关系图布局" : "AntV G6 力导向关系图"} badge={<span className="demo-live-badge">G6 {G6_VERSION}</span>} reset={reset}>
       <LabLayout
         controls={
           <>
-            <div data-lab-actions><Segmented<LayoutKey> label="布局算法" value={layout} options={LAYOUTS} onChange={switchLayout} /></div>
+            <div data-lab-actions><Segmented<LayoutKey> label="布局算法" value={layout} options={compact?LAYOUTS:LAYOUTS.filter(([key])=>key!=='grid')} onChange={switchLayout} /></div>
             <Status tone={ready ? 'ok' : undefined}>
               {ready ? 'graph.render() 已完成。' : '正在执行 graph.render()…'} 拖动节点可直接改写位置，滚轮缩放、空白处拖动画布。
             </Status>

@@ -1,6 +1,6 @@
 import { IS_TOY } from './lib/runtime';
-import { ToyHeader, ToyNav, ToyCategories, ToyStageMode } from './toy/Chrome';
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ToyHeader, ToyNav, ToyCategories, ToyStageMode, ToyGames } from './edition';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Catalog, Category, Tool } from './types';
 import { fetchCatalog } from './lib/api';
 import { filterTools, platformLabels, type ToolFilters } from './lib/catalog';
@@ -23,8 +23,6 @@ import { ToolPage } from './pages/ToolPage';
 import { DemosPage } from './pages/DemosPage';
 import { DemoPage } from './pages/DemoPage';
 import { NotFoundPage } from './pages/NotFoundPage';
-
-const ToyGames=lazy(()=>import('./toy/games/Games'));
 
 const BASE_TITLE = 'Vibe 工具集 · 独立开发者的中文工具导航';
 const BASE_DESCRIPTION =

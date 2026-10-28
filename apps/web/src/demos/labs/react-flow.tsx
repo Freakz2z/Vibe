@@ -1,4 +1,4 @@
-import { IS_TOY } from '../../lib/runtime';
+import { useCompactDemo } from '../../hooks/useCompactDemo';
 import { useCallback, useMemo, useState } from 'react';
 import {
   Background,
@@ -48,11 +48,11 @@ const PAIRS: [string, string][] = [
   ['gate', 'serve'],
 ];
 
-function makeNodes(): StageNode[] {
+function makeNodes(compact: boolean): StageNode[] {
   return STAGES.map((s, i) => ({
     id: s.id,
     type: 'stage',
-    position: IS_TOY ? {x: (i % 2) * 210 + 20, y: Math.floor(i / 2) * 120 + 20} : { x: (i % 4) * 210 + 20, y: Math.floor(i / 4) * 120 + 20 },
+    position: compact ? {x: (i % 2) * 210 + 20, y: Math.floor(i / 2) * 120 + 20} : { x: (i % 4) * 210 + 20, y: Math.floor(i / 4) * 120 + 20 },
     data: { label: s.label, stage: s.stage },
   }));
 }
@@ -108,8 +108,9 @@ function topo(nodes: StageNode[], edges: Edge[]): { order: string[]; depth: Map<
  * topological longest-path computation over the live graph.
  */
 export default function ReactFlowLab({ onCopy }: { onCopy: DemoCopyHandler }) {
+  const compact=useCompactDemo();
   const colors = useThemeColors();
-  const [nodes, setNodes, onNodesChange] = useNodesState<StageNode>(makeNodes());
+  const [nodes, setNodes, onNodesChange] = useNodesState<StageNode>(makeNodes(compact));
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(makeEdges());
   const [status, setStatus] = useState('拖动节点位置，或从右侧圆点拖到另一个节点左侧圆点建立连接。');
 
@@ -209,7 +210,7 @@ export default function ReactFlowLab({ onCopy }: { onCopy: DemoCopyHandler }) {
       title="React Flow 节点连线与拓扑布局"
       badge={<span className="demo-live-badge">React Flow {REACT_FLOW_VERSION}</span>}
       reset={() => {
-        setNodes(makeNodes());
+        setNodes(makeNodes(compact));
         setEdges(makeEdges());
         setStatus('已重置为初始流水线。');
       }}
@@ -245,14 +246,14 @@ export default function ReactFlowLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             onConnect={onConnect}
             defaultEdgeOptions={{ style: { stroke: line, strokeWidth: 2 } }}
             fitView
-            fitViewOptions={{ minZoom: IS_TOY ? 0.65 : 0.3, maxZoom: 1, padding: 0.15 }}
+            fitViewOptions={{ minZoom: compact ? 0.65 : 0.3, maxZoom: 1, padding: 0.15 }}
             proOptions={{ hideAttribution: false }}
             nodesDraggable
             nodesConnectable
           >
             <Background gap={16} color={line} />
             <Controls showInteractive={false} />
-            {!IS_TOY ? <MiniMap pannable zoomable nodeColor={() => accent} maskColor={soft} style={{ background: surface }} /> : null}
+            {!compact ? <MiniMap pannable zoomable nodeColor={() => accent} maskColor={soft} style={{ background: surface }} /> : null}
           </ReactFlow>
         </div>
         <p className="lab-mermaid-note" style={{ color: muted, marginTop: 12 }}>

@@ -125,7 +125,7 @@ export default function X6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
       return id;
     };
 
-    if (IS_TOY) {
+    if (IS_TOY || (window.matchMedia('(max-width: 900px)').matches && host.clientWidth < 560)) {
       const x = Math.max(14, (host.clientWidth - NODE_WIDTH) / 2);
       (['gateway', 'service', 'queue', 'db'] as const).forEach((kind, index) => addNodeAt(kind, x, 14 + index * 78));
     } else {
@@ -190,7 +190,7 @@ export default function X6Lab({ onCopy }: { onCopy: DemoCopyHandler }) {
     const meta = KIND_META[kind];
     graph.addNode({
       id,
-      x: IS_TOY ? Math.max(14, ((hostRef.current?.clientWidth ?? 320) - NODE_WIDTH) / 2) : 40 + ((counter * 37) % 320),
+      x: IS_TOY || (window.matchMedia('(max-width: 900px)').matches && (hostRef.current?.clientWidth ?? 1000) < 560) ? Math.max(14, ((hostRef.current?.clientWidth ?? 320) - NODE_WIDTH) / 2) : 40 + ((counter * 37) % 320),
       y: 40 + ((counter * 53) % 180),
       width: NODE_WIDTH,
       height: 54,
