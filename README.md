@@ -72,7 +72,3 @@ Vibe 是一个中文工具导航。你可以按用途找工具，查看简洁的
 ## 开源与致谢
 
 Vibe 的原创代码与文案采用 [MIT License](LICENSE)。第三方 Logo 和商标归各自权利人，见[第三方声明](THIRD_PARTY_NOTICES.md)。
-
-分类浏览方式参考 [Vibe Code Tools](https://vibecodetools.dev/en)，README 的组织方式参考 [BiliBot](https://github.com/Freakz2z/BiliBot)。
-
-需要运行或维护自己的版本，可查看[开发说明](docs/DEVELOPMENT.md)与[部署说明](docs/DEPLOYMENT.md)。
