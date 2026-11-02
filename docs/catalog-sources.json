@@ -1687,7 +1687,22 @@
       "homepage": "https://x6.antv.antgroup.com",
       "html_url": "https://github.com/antvis/X6",
       "license": "MIT"
+    },
+    {
+      "id": "agent-qa",
+      "full_name": "vostride/agent-qa",
+      "html_url": "https://github.com/vostride/agent-qa",
+      "homepage": "https://vostride.com",
+      "documentation": "https://vostride.com/docs/agent-qa",
+      "license": "FSL-1.1-ALv2",
+      "licenseSource": "https://github.com/vostride/agent-qa/blob/main/LICENSE.md",
+      "licenseNote": "源码可用，限制竞争性商业使用；不归入开源免费。模型和设备服务费用另计。",
+      "requirements": "Node.js 24+",
+      "mcp": "支持本地 stdio 与本地 HTTP；官网地址不是产品 MCP 端点。",
+      "sourceIssue": "https://github.com/Freakz2z/Vibe/issues/1",
+      "checkedAt": "2026-11-02",
+      "verification": "已核对官方文档、README 与许可证；未安装或运行，不关联站内示例。"
     }
   ],
-  "scope": "本轮新增的 153 个工具；基于官方仓库元信息核对，不代表逐一运行验证。"
+  "scope": "本轮新增的 153 个工具；基于官方仓库元信息核对，不代表逐一运行验证。 后续条目以各自 checkedAt 标注核对日期。"
 }

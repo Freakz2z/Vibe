@@ -1403,6 +1403,44 @@
       "logo": "/media/icons/playwright.svg"
     },
     {
+      "id": "agent-qa",
+      "name": "agent-qa",
+      "tagline": "用自然语言测试 Web 和手机应用，并保留执行证据。",
+      "description": "源码可用的自然语言 QA 工具，可测试 Web、Android 和 iOS，保留截图与执行证据。memidex 将事实和操作流程保存在可审阅的文件中，并根据验证结果更新经验。当前需要 Node.js 24+；采用 FSL-1.1-ALv2，限制竞争性商业使用，模型调用与设备服务费用另计。",
+      "categoryId": "devops",
+      "website": "https://vostride.com",
+      "github": "https://github.com/vostride/agent-qa",
+      "install": "npm install -D agent-qa",
+      "tags": [
+        "自然语言测试",
+        "端到端测试",
+        "移动端测试",
+        "AI QA",
+        "memidex",
+        "源码可用"
+      ],
+      "platforms": [
+        "Web",
+        "Mobile",
+        "CLI"
+      ],
+      "pricing": "免费使用",
+      "icon": "AQ",
+      "accent": "#E65D3B",
+      "featured": false,
+      "useCases": [
+        "用自然语言描述并验证关键用户流程",
+        "检查 Web 与 Android、iOS 应用的回归问题",
+        "结合截图、执行证据和可审阅记忆排查失败"
+      ],
+      "highlights": [
+        "通过 CLI、Dashboard 或本地 MCP 服务接入测试流程",
+        "memidex 保存可审阅的事实和操作流程",
+        "FSL 授权限制竞争性商业使用，外部服务费用另计"
+      ],
+      "logo": "/media/icons/agent-qa.png"
+    },
+    {
       "id": "vitest",
       "name": "Vitest",
       "tagline": "沿用 Vite 配置的快速单元测试运行器。",
@@ -7424,5 +7462,5 @@
       "documentation": "https://developers.cloudflare.com/r2/"
     }
   ],
-  "updatedAt": "2026-10-19"
+  "updatedAt": "2026-11-02"
 }

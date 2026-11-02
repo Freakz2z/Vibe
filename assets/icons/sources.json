@@ -2403,5 +2403,16 @@
     "bytes": 745,
     "sha256": "004f0e08cdbab6da3f70ae43ebc8353b12320c68e1162337718febcac3c1ee75",
     "retrievedAt": "2026-10-19T03:52:34.700Z"
+  },
+  "agent-qa": {
+    "name": "agent-qa",
+    "officialSite": "https://vostride.com",
+    "source": "https://vostride.com/icon.png?icon.1muy1ymeud8i8.png",
+    "resolvedUrl": "https://vostride.com/icon.png?icon.1muy1ymeud8i8.png",
+    "file": "assets/icons/agent-qa.png",
+    "mime": "image/png",
+    "bytes": 5462,
+    "sha256": "4bcfb9f6ff77fa899ea38f83437b8a4a72ab9ffb5bddcea906479bf547f72cbd",
+    "retrievedAt": "2026-11-02T07:13:12.856Z"
   }
 }

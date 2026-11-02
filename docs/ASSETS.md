@@ -34,3 +34,7 @@
 - esbuild-wasm 的编译器二进制来自锁定的 npm 发布包，按 MIT 许可使用；页面只编译并展示结果，不执行访客代码。
 - `npm run assets:demos:local` / `npm run assets:demos:remote` 同步资源至目标 R2。
 - `npm run test:demo-assets -- [站点地址]` 对实际响应的 MIME、SHA-256、ETag 与未放行键进行检查。
+
+## 2026-11-02：agent-qa 官方图标
+
+新增 `assets/icons/agent-qa.png`，从 vostride 官网图标链接取得，保留原始 PNG 字节；来源、大小与 SHA-256 记录在 `assets/icons/sources.json`。R2 键为 `icons/agent-qa.png`，正式读取路径为 `/media/icons/agent-qa.png`。本次仅同步该新对象，不重写旧素材。

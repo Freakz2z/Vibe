@@ -472,7 +472,22 @@ SDK_CLAIMS.motion.run=async page=>{
 };
 SDK_CLAIMS.paperjs.run=async page=>{const before=await stat(page,'结果').innerText();await page.getByLabel('布尔运算',{exact:true}).selectOption('intersect');await expect(stat(page,'结果')).not.toHaveText(before);};
 SDK_CLAIMS['lottie-web'].run=async page=>{const svg=page.locator('.lab-lottie-canvas svg');await expect(svg).toBeVisible();await range(page,'当前帧',20);const before=await svg.innerHTML();await range(page,'当前帧',100);await expect.poll(()=>svg.innerHTML()).not.toBe(before);await expect(stat(page,'图层数')).toHaveText('6');};
-SDK_CLAIMS.swiper.run=async page=>{const active=page.locator('.swiper-slide-active');const before=await active.getAttribute('data-swiper-slide-index')??await active.innerText();await page.locator('.swiper').evaluate(el=>{const next=el as HTMLElement&{swiper:{slideNext:()=>void}};next.swiper.slideNext();});await expect.poll(async()=>await active.getAttribute('data-swiper-slide-index')??await active.innerText()).not.toBe(before);};
+SDK_CLAIMS.swiper.run=async page=>{
+  const index=stat(page,'realIndex');
+  const settled=()=>expect.poll(()=>page.locator('.swiper').evaluate(el=>!(el as HTMLElement&{swiper:{animating:boolean}}).swiper.animating)).toBe(true);
+  await page.getByRole('button',{name:'下一张',exact:true}).click();
+  await expect(index).toHaveText('1');
+  await expect(page.locator('.swiper-slide-active')).toHaveAttribute('data-swiper-slide-index','1');
+  await settled();
+  await page.getByRole('button',{name:'上一张',exact:true}).click();
+  await expect(index).toHaveText('0');
+  await settled();
+  await page.getByRole('button',{name:'上一张',exact:true}).click();
+  await expect(index).toHaveText('7');
+  await settled();
+  await page.getByRole('button',{name:'回到第一张',exact:true}).click();
+  await expect(index).toHaveText('0');
+};
 SDK_CLAIMS['auto-animate'].run=async page=>{const before=await stat(page,'数据条数').innerText();await page.getByRole('button',{name:/添加/}).first().click();await expect(stat(page,'数据条数')).not.toHaveText(before);};
 SDK_CLAIMS.remark.run=async page=>{await expect(page.locator('.lab-error')).toHaveCount(0);await page.getByLabel('Markdown 源码',{exact:true}).fill('# 管线验证\n\n[测试](https://example.com)');await expect(page.locator('.lab-remark__out')).toContainText('管线验证 ✎');await expect(page.locator('.demo-workspace')).toContainText('https://example.com');};
 SDK_CLAIMS.matterjs.run=async page=>{

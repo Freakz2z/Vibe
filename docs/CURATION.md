@@ -4,7 +4,7 @@
 
 ## 来源与处理
 
-- 目录现有 219 个工具。本站示例已按“一例一个主要技术栈”重新组织，实际加载对应库或请求本站真实服务；不能在本站真实运行的工具不关联示例。
+- 目录现有 220 个工具。本站示例已按“一例一个主要技术栈”重新组织，实际加载对应库或请求本站真实服务；不能在本站真实运行的工具不关联示例。
 - 示例初稿由用户指定的 Claude Code CLI / MiniMax-M3.1-Flash-Preview 编写；额度用尽后按用户要求停止调用，由 Codex 接手后端、前端修正、文案、验收与发布。具体实现与验收见 [示例报告](EXAMPLES_MINIMAX_REPORT.md)。
 - 本轮源码核对记录见 [catalog-sources.json](catalog-sources.json)，包括官方仓库、主页、许可标识与归档状态。许可元数据仅作核对线索，不将 NOASSERTION 等同于开源许可。
 - 候选中的 Roo Code、Flowise、TOAST UI Editor 已归档，本轮未加入目录，改用 Kilo Code、Mastra、Plate。
@@ -31,3 +31,7 @@
 线上验收发现域名原有设置自动注入 Cloudflare 的 Web Analytics 与 JavaScript Detections 脚本。应用按官方说明对 HTML 使用每次请求随机生成的 CSP nonce，并仅允许 Cloudflare 官方分析脚本源。HTML 不缓存，图片继续保留缓存与 ETag；未启用脚本 unsafe-inline，也未关闭域名防护。
 
 参考：[JavaScript Detections 与 CSP](https://developers.cloudflare.com/cloudflare-challenges/challenge-types/javascript-detections/)、[Web Analytics CSP 要求](https://developers.cloudflare.com/web-analytics/faq/)。
+
+## 2026-11-02：Issue #1 收录 agent-qa
+
+根据 [收录建议](https://github.com/Freakz2z/Vibe/issues/1)，核对[官方文档](https://vostride.com/docs/agent-qa)、[README](https://github.com/vostride/agent-qa) 和 [FSL 许可证](https://github.com/vostride/agent-qa/blob/main/LICENSE.md) 后，将 agent-qa 加入「工程与部署」。采用「免费使用」标签并明确 FSL 的竞争性商业使用限制，以及模型、设备服务费用另计，不称为不受限制的开源免费工具。官方资料要求 Node.js 24+；MCP 当前支持本地 stdio 和本地 HTTP，区别于官网文档 MCP。仅核对公开资料，未安装运行，不关联站内示例。官方图标保存于本站 R2，来源和哈希见素材清单。

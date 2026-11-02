@@ -5,7 +5,7 @@ import { A11y, Autoplay, Keyboard, Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import type { DemoCopyHandler } from '../types';
-import { Code, Lab, Range, Stat, Stats, Status, useMotionOk, useThemeColors } from '../lab-kit';
+import { Code, Lab, Range, Stat, Stats, Status, useMotionOk } from '../lab-kit';
 
 const SLIDE_COUNT = 8;
 const LABELS = ['春', '夏', '秋', '冬', '晨', '午', '暮', '夜'];
@@ -13,7 +13,6 @@ const LABELS = ['春', '夏', '秋', '冬', '晨', '午', '暮', '夜'];
 /** Swiper v14：vanilla 实例（模块化导入），真实分页 / 键盘 / 自动播放与 activeIndex。 */
 export default function SwiperLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   const motionOk = useMotionOk();
-  const colors = useThemeColors();
   const rootRef = useRef<HTMLDivElement>(null);
   const swiperRef = useRef<Swiper | null>(null);
   const [nonce, setNonce] = useState(0);
@@ -25,28 +24,36 @@ export default function SwiperLab({ onCopy }: { onCopy: DemoCopyHandler }) {
   const [active, setActive] = useState(0);
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
-
-  const accent = colors.accent ?? '#d95a3f';
-  const surface = colors.surface ?? '#fffdf9';
-  const line = colors['line-strong'] ?? '#cfc4bb';
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
+    setReady(false);
+    let initFrame = 0;
 
     const instance = new Swiper(root, {
       modules: [Pagination, Keyboard, Autoplay, A11y],
       slidesPerView,
       spaceBetween: 12,
       loop,
+      speed: motionOk ? 300 : 0,
       grabCursor: true,
       keyboard: { enabled: true, onlyInViewport: true },
       a11y: { enabled: true, containerMessage: '演示轮播，可用左右方向键切换' },
       pagination: { el: '.lab-swiper-pagination', clickable: true },
       autoplay: autoplay && motionOk ? { delay, disableOnInteraction: false } : false,
       on: {
-        init(sw) {
-          setActive(sw.realIndex);
+        afterInit(sw) {
+          // Loop initialization schedules its first slide in requestAnimationFrame.
+          // Enable controls after that work, so it cannot overwrite the first click.
+          initFrame = requestAnimationFrame(() => {
+            if (sw.destroyed) return;
+            setActive(sw.realIndex);
+            setIsBeginning(sw.isBeginning);
+            setIsEnd(sw.isEnd);
+            setReady(true);
+          });
         },
         slideChange(sw) {
           setActive(sw.realIndex);
@@ -59,10 +66,11 @@ export default function SwiperLab({ onCopy }: { onCopy: DemoCopyHandler }) {
     swiperRef.current = instance;
 
     return () => {
+      cancelAnimationFrame(initFrame);
       instance.destroy(true, true);
       swiperRef.current = null;
     };
-  }, [loop, autoplay, delay, slidesPerView, motionOk, accent, surface, line, nonce]);
+  }, [loop, autoplay, delay, slidesPerView, motionOk, nonce]);
 
   const snippet = useMemo(
     () =>
@@ -115,7 +123,7 @@ export default function SwiperLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             max={3.4}
             step={0.1}
             onChange={setSlidesPerView}
-            hint="小于 1 可以露出下一张的边缘。"
+            hint="非整数张数会露出下一张的边缘。"
           />
           <Range label="自动播放间隔" value={delay} min={400} max={4000} step={100} unit=" ms" onChange={setDelay} />
           <div className="lab-options">
@@ -129,13 +137,13 @@ export default function SwiperLab({ onCopy }: { onCopy: DemoCopyHandler }) {
             </label>
           </div>
           <div className="lab-options">
-            <button type="button" className="button button--primary button--small" disabled={isBeginning} onClick={() => swiperRef.current?.slidePrev()}>
+            <button type="button" className="button button--primary button--small" disabled={!ready || (!loop && isBeginning)} onClick={() => swiperRef.current?.slidePrev()}>
               上一张
             </button>
-            <button type="button" className="button button--primary button--small" disabled={isEnd} onClick={() => swiperRef.current?.slideNext()}>
+            <button type="button" className="button button--primary button--small" disabled={!ready || (!loop && isEnd)} onClick={() => swiperRef.current?.slideNext()}>
               下一张
             </button>
-            <button type="button" className="button button--secondary button--small" onClick={() => swiperRef.current?.slideTo(0, 400)}>
+            <button type="button" className="button button--secondary button--small" disabled={!ready} onClick={() => loop ? swiperRef.current?.slideToLoop(0) : swiperRef.current?.slideTo(0)}>
               回到第一张
             </button>
           </div>

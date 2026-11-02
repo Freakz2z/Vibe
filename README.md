@@ -2,7 +2,7 @@
   <img src="apps/web/public/brand/logo.png" width="88" alt="Vibe 工具集标志">
   <h1>Vibe 工具集</h1>
   <p><strong>中文开发工具目录与交互示例</strong></p>
-  <p>219 个工具 · 10 个分类 · 55 个技术栈示例</p>
+  <p>220 个工具 · 10 个分类 · 55 个技术栈示例</p>
 
 [![Checks](https://github.com/Freakz2z/Vibe/actions/workflows/ci.yml/badge.svg)](https://github.com/Freakz2z/Vibe/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
