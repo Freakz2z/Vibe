@@ -1,6 +1,6 @@
 import { IS_TOY } from './lib/runtime';
-import { ToyHeader, ToyNav, ToyCategories, ToyStageMode, ToyGames } from './edition';
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ToyHeader, ToyNav, ToyCategories, ToyStageMode } from './edition';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Catalog, Category, Tool } from './types';
 import { fetchCatalog } from './lib/api';
 import { filterTools, platformLabels, type ToolFilters } from './lib/catalog';
@@ -316,7 +316,6 @@ export default function App({ initialCatalog = null }: { initialCatalog?: Catalo
   let pageTitle = BASE_TITLE;
   let pageDescription = BASE_DESCRIPTION;
   if (IS_TOY && pathname === '/categories') { contextLabel = '分类'; pageTitle = '分类 · Vibe 工具集'; }
-  if(IS_TOY&&pathname.startsWith('/games')){contextLabel=pathname==='/games/quiz'?'这也敢上线？':'游戏';pageTitle=contextLabel+' · Vibe 工具集';}
   if (catalog) {
     if (pathname === '/') {
       if (filters.q) {
@@ -492,8 +491,6 @@ export default function App({ initialCatalog = null }: { initialCatalog?: Catalo
         onClearFavoriteFilters={clearFavoriteFilters}
       />
     );
-  } else if(IS_TOY&&(pathname==='/games'||pathname==='/games/quiz')){
-    content=<Suspense fallback={<p role="status">正在打开游戏…</p>}><ToyGames playing={pathname==='/games/quiz'}/></Suspense>;
   } else if (IS_TOY && pathname === '/categories') {
     content = <ToyCategories catalog={catalog} />;
   } else if (pathname === '/demos') {

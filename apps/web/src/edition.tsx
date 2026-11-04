@@ -20,6 +20,3 @@ export function ToyStageMode(
 export function ToyOverview(_props: ComponentProps<ToyChrome["ToyOverview"]>) {
   return null;
 }
-export function ToyGames(_props: { playing: boolean }) {
-  return null;
-}

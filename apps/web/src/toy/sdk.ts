@@ -25,7 +25,6 @@ export function sharePath(logical: string): string {
   const params = new URLSearchParams();
   if (tool) params.set('tool', decodeURIComponent(tool[1]));
   else if (demo) params.set('demo', decodeURIComponent(demo[1]));
-  else if(url.pathname.startsWith('/games')) params.set('game',url.pathname==='/games/quiz'?'quiz':'all');
   return 'index.html' + (params.size ? '?' + params.toString() : '');
 }
 export async function connectContainer() {

@@ -1,4 +1,3 @@
-import { lazy } from "react";
 export {
   ToyHeader,
   ToyNav,
@@ -6,4 +5,3 @@ export {
   ToyStageMode,
   ToyOverview,
 } from "./Chrome";
-export const ToyGames = lazy(() => import("./games/Games"));

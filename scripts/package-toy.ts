@@ -22,3 +22,12 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 assert(!/(?:src|href)="\/(?!\/)/.test(html), 'Toy entry still has root-absolute resources');
 assert(html.includes('toy-sdk.js'), 'Missing Toy SDK');
 console.log('Packaged Toy directory, official logos, and verified demo assets');
+
+// Keep the Toy package focused on the same directory features as the website.
+for (const name of fs.readdirSync(path.join(root, 'assets'))) {
+ assert(!/Games-|robot-stickers|quiz/i.test(name), 'Unexpected game asset: ' + name);
+ if (name.endsWith('.js')) {
+  const code = fs.readFileSync(path.join(root, 'assets', name), 'utf8');
+  assert(!/getAuthorRelation|vibe-quiz-best|这也敢上线|api\/toy\/game/.test(code), 'Unexpected game runtime: ' + name);
+ }
+}
