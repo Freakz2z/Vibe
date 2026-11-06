@@ -1,10 +1,13 @@
 # Vibe 工具集 · Toy 手机版
 
-状态：2026-11-06 已重新生成目录版预览，**未提交审核，未发布为正式 Toy**。
+状态：2026-11-06 已提交正式发布审核，**当前审核中（auditing），尚未确认正式上线**。
 
 - 标题：Vibe 工具集
-- 预定 slug：`vibe-tools-mobile`（正式提交前仍可调整，发布后不可修改）
-- 验收预览：https://www.bilibili.com/toy/preview/author_71K01EPB/index.html
+- Toy ID：`52153674635264`
+- slug：`vibe-tools-mobile`
+- 可见性：公开（PUBLIC）
+- 封面：`assets/toy/toy-cover-v1.png`
+- 验收预览：https://www.bilibili.com/toy/preview/author_aptAcqeh/index.html
 - 原站：https://vibe.freakz2z.com/
 
 ## 构建与预览
@@ -99,3 +102,7 @@ toy create dist-toy --title 'Vibe 工具集' --slug vibe-tools-mobile --poster a
 ## 2026-11-06：恢复预览访问
 
 上次预览的内容地址返回 HTTP 404，重新上传同一目录版包体并生成新的预览链接；包体自检通过。未改动产品功能，未提交审核。预览地址不视为正式发布地址。
+
+## 2026-11-06：封面与正式发布审核
+
+用户确认制作封面并正式发布后，使用内置 ImageGen 生成 4:3 横向封面，保存于 `assets/toy/toy-cover-v1.png`，完整提示词见同目录的 `toy-cover-v1.prompt.txt`。封面与目录包通过 doctor 自检，以公开可见方式提交；CLI 返回 ID `52153674635264`、状态 `auditing`，随后 `toy mylist --json` 核对为同一标题、同一 ID、公开可见且审核中。提交审核不等同于平台已批准上线。

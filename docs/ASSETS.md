@@ -38,3 +38,7 @@
 ## 2026-11-02：agent-qa 官方图标
 
 新增 `assets/icons/agent-qa.png`，从 vostride 官网图标链接取得，保留原始 PNG 字节；来源、大小与 SHA-256 记录在 `assets/icons/sources.json`。R2 键为 `icons/agent-qa.png`，正式读取路径为 `/media/icons/agent-qa.png`。本次仅同步该新对象，不重写旧素材。
+
+## Toy 列表封面（2026-11-06）
+
+`assets/toy/toy-cover-v1.png` 由内置 ImageGen 生成，用于 Vibe 工具集 Toy 的列表展示；4:3 横向构图，暖白底、珊瑚橙 V 形标志与中文标题。完整提示词保存在 `assets/toy/toy-cover-v1.prompt.txt`。该素材仅作为 Toy 发布封面，不替换网站品牌图。SHA-256：`4c1caae78f1df0f573e5e7970dd9fa5a00f0d2e34832218dbdbd4f2c79420538`。
